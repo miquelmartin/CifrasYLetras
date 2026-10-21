@@ -19,7 +19,13 @@ Se respetan la composicion de caracteres, las tildes y la distincion entre N y
 
 **Resolver yo** abre una calculadora dentro de la pagina con una tecla por
 cifra, incluidas las repetidas como instancias separadas. Elige una cifra,
-una operacion, otra cifra y pulsa `=`. Cada paso reutiliza el resultado anterior.
+una operacion y otra cifra: el resultado se calcula inmediatamente, sin `=`.
+Cada paso reutiliza el resultado anterior. La distancia absoluta al objetivo
+se actualiza con enteros exactos al elegir cifras, calcular y deshacer.
+Una division invalida no consume la cifra ni cambia el resultado.
+Al alcanzar el objetivo se dibujan breves fuegos artificiales en canvas,
+sin bloquear controles; se cancelan al salir o deshacer y se limpian al terminar.
+Con la preferencia de movimiento reducido solo se resalta el resultado.
 Los cuatro botones de operacion son azules, cuadrados y grandes.
 La flecha hacia atras (**Deshacer**) revierte cada accion, incluida la seleccion
 de una cifra. **Volver** conserva el reto
@@ -49,7 +55,7 @@ de aplicaciones, CDN externo, compilacion ni instalacion de paquetes.
 Ejecuta las pruebas de regresion con Node.js 18 o posterior:
 
 ```text
-node --test tests/solver.test.js tests/numbers-game.test.js
+node --test tests/solver.test.js tests/numbers-game.test.js tests/celebration.test.js
 ```
 
 Para ejecutar las comprobaciones reales de interfaz, sirve el sitio y ejecuta

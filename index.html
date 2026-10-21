@@ -64,8 +64,11 @@
     .calculator-tools { display: flex; gap: 6px; margin-top: 6px; }
     .calculator-tools button { flex: 1; padding: 4px; font-size: 1.75rem; }
     #calculator-status { font-size: .875rem; margin-top: 8px; max-height: 4em; overflow: auto; }
+    #calculator-distance { color: #8ce2c0; font-size: .875rem; margin-top: 4px; max-height: 2.8em; overflow: auto; overflow-wrap: anywhere; }
     .error { color: #ffb0b0; }
     .success { color: #8ce2c0; font-weight: 700; }
+    .target-reached #calculator-display { box-shadow: inset 0 0 0 2px #8ce2c0; }
+    .celebration { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
     #calculator-steps { padding: 3px; margin: 0; list-style: none; counter-reset: manual-step; display: flex; flex-direction: column; gap: 6px; }
     #calculator-steps li { counter-increment: manual-step; display: flex; gap: 8px; align-items: center; overflow-wrap: anywhere; padding: 8px; border: 1px solid #394a63; border-radius: 9px; background: #101826; }
     #calculator-steps li::before { content: counter(manual-step); display: grid; place-items: center; flex: 0 0 26px; height: 26px; border-radius: 50%; background: #303e56; font-size: .8rem; }
@@ -167,6 +170,7 @@
       </div>
       <div class="card calculator-controls">
         <div id="calculator-display" aria-label="Operaci&oacute;n actual" tabindex="0"></div>
+        <p id="calculator-distance" role="status" aria-live="polite">Distancia al objetivo: &mdash;</p>
         <div id="calculator-keys" role="group" aria-label="Cifras disponibles"></div>
         <div class="calculator-operators" role="group" aria-label="Operaciones">
           <button type="button" data-operator="+" aria-label="Sumar">+</button>
@@ -176,7 +180,6 @@
         </div>
         <div class="calculator-tools">
           <button id="calculator-undo" type="button" class="secondary" aria-label="Deshacer" title="Deshacer">&larr;</button>
-          <button id="calculator-equals" type="button" aria-label="Calcular">=</button>
         </div>
         <p id="calculator-status" role="status" aria-live="polite"></p>
       </div>
@@ -186,12 +189,13 @@
       </section>
     </section>
   </main>
-  <script src="letters-core.js"></script>
-  <script src="letters-ui.js"></script>
-  <script src="numbers-game.js"></script>
-  <script src="number-chips.js"></script>
-  <script src="letter-chips.js"></script>
-  <script src="calculator-ui.js"></script>
+  <script src="letters-core.js?v=4"></script>
+  <script src="letters-ui.js?v=4"></script>
+  <script src="numbers-game.js?v=4"></script>
+  <script src="number-chips.js?v=4"></script>
+  <script src="letter-chips.js?v=4"></script>
+  <script src="celebration.js?v=4"></script>
+  <script src="calculator-ui.js?v=4"></script>
   <script>
     "use strict";
 

@@ -45,12 +45,24 @@ export async function run() {
       };
       snapshot("Cifras inicial");
       assert(byId("number-chips").children.length === 0 && byId("numbers").value === "" && byId("target").value === "", "Cifras debe empezar vacio");
+      input("number-entry", " , , ");
+      assert(byId("number-chips").children.length === 0 && byId("numbers").value === "", "Los separadores crean una ficha fantasma");
+      input("number-entry", "0 ");
+      assert(byId("number-chips").children.length === 1 && byId("numbers").value === "0", "El cero debe ser una ficha real");
+      clear("number-chips");
+      assert(byId("number-chips").children.length === 0 && byId("numbers").value === "", "Quitar ultima cifra crea ficha fantasma");
+      input("number-entry", "0 ");
+      byId("number-entry").dispatchEvent(new win.KeyboardEvent("keydown", { key: "Backspace", bubbles: true }));
+      input("number-entry", "");
+      assert(byId("number-chips").children.length === 0 && byId("numbers").value === "", "Borrar ultima cifra crea ficha fantasma");
       byId("solver").requestSubmit();
       assert(byId("status").classList.contains("error"), "Falta validacion de cifras vacias");
       byId("solve-myself").click();
       assert(byId("calculator-panel").hidden, "No debe abrir calculadora vacia");
       byId("letters-tab").click();
       assert(byId("letter-chips").children.length === 0 && byId("letters").value === "", "Letras debe empezar vacio");
+      input("letter-entry", " , , ");
+      assert(byId("letter-chips").children.length === 0 && byId("letters").value === "", "Separadores crean letra fantasma");
       byId("letters-solver").requestSubmit();
       assert(byId("letters-status").classList.contains("error"), "Falta validacion de letras vacias");
       byId("numbers-tab").click();
@@ -89,7 +101,6 @@ export async function run() {
       for (let index = 1; index < nineKeys.length; index++) {
         doc.querySelector('[data-operator="+"]').click();
         nineKeys[index].click();
-        byId("calculator-equals").click();
       }
       snapshot("Calculadora ocho operaciones");
       assert(byId("calculator-steps").children.length === 8, "Calculadora pierde pasos");
@@ -101,6 +112,7 @@ export async function run() {
       }
       assert(byId("calculator-undo").textContent.trim() === "←" && byId("calculator-undo").getAttribute("aria-label") === "Deshacer", "Deshacer debe ser una flecha accesible");
       assert(!byId("calculator-reset") && !byId("calculator-reverse"), "Sobran controles eliminados");
+      assert(!byId("calculator-equals"), "No debe requerir igual");
       reachEnd("calculator-steps");
       byId("calculator-back").click();
       byId("solver").querySelector("details").open = true;
@@ -153,24 +165,53 @@ export async function run() {
       op("+");
       assert(!keys[1].disabled && keys[0].disabled, "No se distingue la cifra duplicada");
       keys[1].click();
-      byId("calculator-equals").click();
       assert(byId("calculator-status").textContent.includes("Objetivo alcanzado"), "No reconoce objetivo");
-      byId("calculator-undo").click();
+      assert(byId("calculator-distance").textContent === "Objetivo alcanzado", "Distancia cero incorrecta");
       byId("calculator-undo").click();
       assert(!keys[1].disabled && keys[0].disabled, "Deshacer no restaura cifra duplicada");
+      assert(byId("calculator-distance").textContent === "A 2 del objetivo", "Distancia tras deshacer incorrecta");
       byId("calculator-undo").click();
       byId("calculator-undo").click();
       assert(keys.every(key => !key.disabled), "Deshacer repetido no restaura inicio");
-      keys[3].click(); op("/"); keys[0].click(); byId("calculator-equals").click();
+      assert(byId("calculator-distance").textContent.endsWith("—"), "Falta distancia neutra");
+      keys[3].click(); op("/"); keys[0].click();
       assert(byId("calculator-status").textContent.includes("sin fracciones"), "Division fraccionaria aceptada");
-      byId("calculator-undo").click();
-      keys[2].click(); byId("calculator-equals").click();
+      assert(!keys[0].disabled && byId("calculator-display").textContent.trim() === "5 ÷", "Division invalida consume cifra o altera resultado");
+      keys[2].click();
       assert(byId("calculator-status").textContent.includes("entre cero"), "Division entre cero aceptada");
+      assert(!keys[2].disabled, "Division entre cero consume cifra");
       while (!byId("calculator-undo").disabled) byId("calculator-undo").click();
       assert(keys.every(key => !key.disabled), "Deshacer no restaura cifras");
       snapshot("Calculadora");
       byId("calculator-back").click();
       assert(byId("target").value === "4" && byId("numbers").value === "2, 2, 0, 5, 3, 6", "Volver pierde el reto");
+      clear("number-chips");
+      input("number-entry", "5 3 0 2 2 6");
+      byId("target").value = "21";
+      byId("solve-myself").click();
+      const immediateKeys = [...byId("calculator-keys").children];
+      assert(immediateKeys.length === 6 && immediateKeys[5].textContent === "6", "Falta ultima cifra sin espacio");
+      immediateKeys[0].click(); op("*"); immediateKeys[1].click();
+      assert(byId("calculator-display").textContent.trim() === "15", "5 por 3 no calcula inmediatamente");
+      assert(byId("calculator-distance").textContent === "A 6 del objetivo", "Distancia bajo objetivo incorrecta");
+      op("+"); immediateKeys[5].click();
+      assert(byId("calculator-display").textContent.trim() === "21", "15 mas 6 no calcula inmediatamente");
+      const fireworks = doc.querySelector(".celebration");
+      if (!win.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        assert(fireworks && win.getComputedStyle(fireworks).pointerEvents === "none", "Falta celebracion no bloqueante");
+        op("+");
+        assert(doc.querySelector(".celebration") === fireworks, "Se repite celebracion por render");
+        byId("calculator-undo").click();
+        assert(doc.querySelector(".celebration") === fireworks, "Se repite celebracion por deshacer operador");
+        byId("calculator-undo").click();
+        assert(!doc.querySelector(".celebration"), "Deshacer no limpia fuegos");
+        immediateKeys[5].click();
+        assert(doc.querySelector(".celebration") && doc.querySelector(".celebration") !== fireworks, "No celebra al alcanzar de nuevo");
+        await wait(() => !doc.querySelector(".celebration"));
+      }
+      snapshot("Calculadora resultado inmediato");
+      byId("calculator-back").click();
+      assert(!doc.querySelector(".celebration"), "Volver no limpia celebracion");
       clear("number-chips");
       input("number-entry", `${"9".repeat(180)} 2 0 0 0 0 `);
       byId("target").value = (BigInt("9".repeat(180)) * 2n).toString();
@@ -185,7 +226,6 @@ export async function run() {
       longKeys[0].click();
       doc.querySelector('[data-operator="*"]').click();
       longKeys[1].click();
-      byId("calculator-equals").click();
       snapshot("Calculadora resultado largo");
       reachEnd("calculator-display");
       reachEnd("calculator-steps");
