@@ -15,6 +15,9 @@ y con una marca de verificacion; las no usadas conservan su aspecto aunque
 temporalmente esperen la eleccion de un operador. Deshacer restaura esas marcas.
 Los resultados automaticos muestran tambien cada cifra original, con su
 estado utilizada/sin usar, distinguiendo las instancias repetidas.
+Las teclas numericas ajustan el tamano de fuente y, para enteros muy largos,
+dividen el numero en varias lineas. Nunca incorporan barras de desplazamiento
+ni recortan cifras; si hace falta se desplaza el conjunto de controles.
 
 En cifras, espacio o coma confirma cada entero como ficha. Puedes pegar listas,
 quitar fichas o usar retroceso con el campo vacio para corregir la ultima.
