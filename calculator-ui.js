@@ -154,6 +154,7 @@ function renderCalculator(message, error = false) {
     item.textContent = formatNumberStep(step);
     steps.append(item);
   }
+  document.getElementById("calculator-history-title").textContent = `Ver pasos (${state.steps.length})`;
   const reached = manualGame.distance === 0n;
   document.getElementById("calculator-distance").textContent = reached ?
     "Objetivo alcanzado" : `M\u00e1s cercano: a ${manualGame.distance} del objetivo`;
@@ -301,6 +302,7 @@ document.getElementById("solve-myself").addEventListener("click", () => {
   cancelAutomatic();
   targetCelebration.stop();
   manualGame = new NumbersGame.Game(puzzle.numbers, puzzle.target);
+  document.getElementById("calculator-history").open = false;
   document.getElementById("calculator-target").textContent = String(puzzle.target);
   document.querySelector("main").classList.add("manual");
   calculatorPanel.hidden = false;

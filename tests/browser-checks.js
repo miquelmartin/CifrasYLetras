@@ -128,10 +128,16 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       input("number-entry", "1 1 1 1 1 1 1 1 1 ");
       byId("target").value = "27";
       snapshot("Cifras nueve fichas y objetivo");
+      const numberBox = byId("number-entry").closest(".number-box");
+      assert(numberBox.scrollHeight <= numberBox.clientHeight + 1, "Nueve cifras ocultas por scroll interno");
       byId("solver").requestSubmit();
       await wait(() => !byId("solve").disabled);
       assert(byId("steps").children.length === 8, "Se esperaban ocho pasos con las nueve cifras");
       snapshot("Cifras nueve cifras ocho pasos");
+      for (const step of byId("steps").children) {
+        const bounds = step.getBoundingClientRect();
+        assert(bounds.top >= 0 && bounds.bottom <= height, "Paso automatico de nueve cifras fuera de pantalla");
+      }
       usableResults("result");
       reachEnd("steps");
       byId("target").value = "9";
@@ -158,8 +164,12 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       assert(byId("calculator-undo").textContent.trim() === "←" && byId("calculator-undo").getAttribute("aria-label") === "Deshacer", "Deshacer debe ser una flecha accesible");
       assert(!byId("calculator-reset") && !byId("calculator-reverse"), "Sobran controles eliminados");
       assert(!byId("calculator-equals"), "No debe requerir igual");
+      byId("calculator-history").open = true;
+      assert(byId("calculator-steps").firstElementChild.getBoundingClientRect().height >= 30, "Historial sin un paso legible");
+      snapshot("Calculadora historial desplegado");
       reachEnd("calculator-steps");
       byId("calculator-back").click();
+      byId("edit-numbers").click();
       byId("solver").querySelector("details").open = true;
       snapshot("Cifras ayuda abierta");
       byId("solver").querySelector("details").open = false;
@@ -397,13 +407,14 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       assert(byId("calculator-status").textContent.includes("cancelado") && byId("calculator-steps").children.length === cancelledSteps, "Cancelar no detiene reproduccion");
       byId("calculator-back").click();
       clear("number-chips");
-      input("number-entry", "-123456789 123456789 3456 -6789 12 34 56 78 90 ");
+      input("number-entry", "-123456 987654 -55555 4444444 31415926 -27182818 99999 -1 123456789 ");
       byId("target").value = "0";
       snapshot("Cifras nueve enteros largos y negativos");
       byId("solve-myself").click();
       snapshot("Calculadora nueve enteros largos y negativos");
       noKeyScrollbars();
       manualControlsVisible();
+      assert(byId("calculator-originals").scrollHeight <= byId("calculator-originals").clientHeight + 1, "Nueve originales ocultos en la tira");
       available = [...byId("calculator-keys").children];
       available[0].click(); op("+"); available[1].click();
       await idle();

@@ -39,7 +39,27 @@
     .tabs button[aria-selected="true"] { background: var(--amber); color: var(--ink); }
     [role="tabpanel"] { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
     form.card { flex: 0 0 auto; max-height: 62%; overflow: auto; }
-    .fields { display: grid; grid-template-columns: minmax(0, 1fr) 92px; gap: 10px; align-items: start; }
+    .fields { display: grid; gap: 8px; align-items: start; }
+    .fields > div { display: flex; align-items: center; gap: 10px; }
+    .fields > div label { margin: 0; }
+    .fields > div input { flex: 1; }
+    #numbers-panel .number-box { max-height: none; overflow: visible; }
+    #numbers-panel > form { max-height: none; }
+    #numbers-panel > form:has(details[open]) { max-height: 75%; }
+    #edit-numbers { display: none; }
+    .has-number-result #solver { padding: 8px; }
+    .has-number-result #solver .fields, .has-number-result #solver > details,
+    .has-number-result #status, .has-number-result #solve { display: none; }
+    .has-number-result #edit-numbers { display: block; }
+    .has-number-result #solver .buttons { margin: 0; }
+    #result #solution-inputs { max-height: none; }
+    #result #solution-inputs li { font-size: .75rem; border-width: 2px; padding: 1px 4px; }
+    #result { gap: 4px; }
+    #result .expression-details summary { padding: 0; }
+    #steps { gap: 4px; }
+    #steps li { padding: 4px; border-width: 2px; gap: 6px; }
+    #steps li::before { flex-basis: 20px; height: 20px; }
+    #steps .operation { font-size: .8rem; line-height: 1.25; }
     #result, #letters-result { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
     .result-scroll { min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
     #result .result-scroll { flex: 1; }
@@ -79,7 +99,10 @@
     #calculator-steps { padding: 3px; margin: 0; list-style: none; counter-reset: manual-step; display: flex; flex-direction: column; gap: 6px; }
     #calculator-steps li { counter-increment: manual-step; display: flex; gap: 8px; align-items: center; overflow-wrap: anywhere; padding: 8px; border: 3px solid var(--line); border-radius: 9px; background: var(--soft); }
     #calculator-steps li::before { content: counter(manual-step); display: grid; place-items: center; flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--amber); color: var(--ink); font-size: .8rem; }
-    #calculator-history { flex: 1; min-height: 52px; display: flex; flex-direction: column; gap: 6px; }
+    #calculator-history { flex: 0 0 auto; min-height: 44px; padding: 2px 8px; max-height: 28%; overflow: auto; }
+    #calculator-history summary { font-weight: 700; }
+    #calculator-history[open] { flex: 1; min-height: 104px; }
+    .manual:has(#calculator-history[open]) .calculator-controls { max-height: calc(100dvh - 240px); }
     .number-box { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; max-height: 116px; overflow: auto; padding: 5px; border: 3px solid var(--ink); border-radius: 8px; background: #fff; }
     #number-chips, #letter-chips { display: contents; }
     .number-chip { min-height: 32px; min-width: 32px; padding: 4px 7px; max-width: 100%; overflow-wrap: anywhere; background: var(--orange); color: var(--ink); font-size: .9rem; }
@@ -93,7 +116,8 @@
     .supplied-numbers { display: flex; gap: 4px; flex-wrap: wrap; max-height: 60px; overflow: auto; flex-shrink: 0; list-style: none; margin: 0; padding: 2px; }
     .supplied-numbers li { border: 3px solid var(--ink); border-radius: 6px; padding: 2px 6px; background: var(--orange); color: var(--ink); font-size: .875rem; overflow-wrap: anywhere; max-width: 100%; }
     .supplied-numbers li.used { background: #ffd2b8; color: #8a4a26; text-decoration: line-through; }
-    #calculator-originals li { font-size: .75rem; border-width: 2px; padding: 1px 4px; }
+    #calculator-originals { gap: 2px; }
+    #calculator-originals li { font-size: .7rem; line-height: 1.1; border-width: 2px; padding: 0 3px; }
     .key-legend { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
     #number-entry, #letter-entry { flex: 1; min-width: 64px; width: 64px; border: 0; padding: 6px; min-height: 32px; }
     #number-entry::placeholder, #letter-entry::placeholder { font-size: .875rem; }
@@ -127,6 +151,7 @@
       </div>
       <div class="buttons">
         <button id="solve" type="submit">Buscar soluci&oacute;n</button>
+        <button id="edit-numbers" type="button">Editar cifras</button>
         <button id="solve-myself" type="button" class="secondary">Resolver yo</button>
         <button id="cancel" type="button" class="secondary" hidden>Cancelar</button>
       </div>
@@ -208,10 +233,10 @@
         </div>
         <p id="calculator-status" role="status" aria-live="polite"></p>
       </div>
-      <section class="card" id="calculator-history" aria-labelledby="calculator-history-title">
-        <h2 id="calculator-history-title">Tus pasos</h2>
+      <details class="card" id="calculator-history">
+        <summary id="calculator-history-title">Ver pasos</summary>
         <ol id="calculator-steps" class="result-scroll" tabindex="0" aria-label="Pasos realizados"></ol>
-      </section>
+      </details>
     </section>
   </main>
   <script src="letters-core.js?v=5"></script>
@@ -221,7 +246,7 @@
   <script src="number-chips.js?v=5"></script>
   <script src="letter-chips.js?v=9"></script>
   <script src="celebration.js?v=11"></script>
-  <script src="calculator-ui.js?v=16"></script>
+  <script src="calculator-ui.js?v=17"></script>
   <script>
     "use strict";
 
@@ -232,6 +257,12 @@
     const cancelButton = document.getElementById("cancel");
     const status = document.getElementById("status");
     const result = document.getElementById("result");
+    const numbersPanel = document.getElementById("numbers-panel");
+    document.getElementById("edit-numbers").addEventListener("click", () => {
+      numbersPanel.classList.remove("has-number-result");
+      result.hidden = true;
+      document.getElementById("number-entry").focus();
+    });
     let worker = null;
     let workerUrl = null;
     let started = 0;
@@ -257,6 +288,7 @@
     form.addEventListener("submit", event => {
       event.preventDefault();
       result.hidden = true;
+      numbersPanel.classList.remove("has-number-result");
       let puzzle;
       try {
         puzzle = NumbersGame.parsePuzzle(numbersInput.value, targetInput.value);
@@ -301,7 +333,7 @@
             const item = document.createElement("li");
             const used = data.solution.usedIndices.includes(index);
             item.classList.toggle("used", used);
-            item.textContent = `${number} ${used ? "\u2713" : "\u2014"}`;
+            item.textContent = `${number}${used ? "\u2713" : ""}`;
             item.setAttribute("aria-label", `Cifra ${index + 1}: ${number}, ${used ? "utilizada" : "sin usar"}`);
             item.title = used ? "Utilizada" : "Sin usar";
             supplied.append(item);
@@ -317,9 +349,10 @@
             steps.append(item);
           }
           document.getElementById("summary").textContent =
-            `Cifras utilizadas: ${data.solution.used} de ${numbers.length}. Operaciones: ${data.solution.steps.length}.` +
+            `Objetivo ${target} \u00b7 ${data.solution.used}/${numbers.length} cifras \u00b7 ${data.solution.steps.length} pasos.` +
             (data.solution.steps.length === 0 ? " El objetivo ya es una de tus cifras." : "");
           result.hidden = false;
+          numbersPanel.classList.add("has-number-result");
           setStatus(`Soluci\u00f3n con el menor n\u00famero de operaciones encontrada en ${seconds} s.`);
         };
         worker.onerror = event => {

@@ -18,6 +18,10 @@ desaparecen al usarse y aparece un nuevo boton de resultado, identificado con R
 y su numero de paso. Deshacer restaura los operandos en su posicion.
 Los resultados automaticos muestran tambien cada cifra original, con su
 estado utilizada/sin usar, distinguiendo las instancias repetidas.
+Al encontrar una solucion, los pasos sustituyen al formulario para disponer
+de espacio real en movil; **Editar cifras** recupera la entrada completa.
+El historial manual se despliega con **Ver pasos**, en vez de dejar una lista
+comprimida a unos pocos pixeles bajo el teclado.
 Las teclas numericas ajustan el tamano de fuente y, para enteros muy largos,
 dividen el numero en varias lineas. Nunca incorporan barras de desplazamiento
 ni recortan cifras; si hace falta se desplaza el conjunto de controles.
