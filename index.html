@@ -44,10 +44,12 @@
     .result-scroll { min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
     #result .result-scroll { flex: 1; }
     #summary, #letters-summary { font-size: .875rem; overflow-wrap: anywhere; }
-    .word-list { margin: 0; padding: 3px; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px; align-content: start; }
-    .word-list li { padding: 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--soft); overflow-wrap: anywhere; }
-    .word-list strong { display: block; font-size: 1.1rem; color: var(--orange); }
-    .word-list a { font-size: .875rem; display: inline-block; padding: 6px 0; }
+    .word-list { margin: 0; padding: 3px; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(124px, 1fr)); gap: 6px; align-content: start; }
+    .word-list li { display: flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--soft); overflow-wrap: anywhere; }
+    .word-list strong { flex: 1; min-width: 0; font-size: 1rem; color: var(--orange); }
+    .word-list a { display: grid; place-items: center; flex: 0 0 44px; min-height: 44px; border-radius: 6px; }
+    .word-list a:hover { background: #deedfa; }
+    .word-list svg { width: 18px; height: 18px; }
     .notice { font-size: .875rem; color: var(--muted); }
     .caveat { font-size: .875rem; margin-top: 6px; }
     .expression-details { flex-shrink: 0; max-height: 30%; overflow: auto; }
@@ -202,7 +204,7 @@
     </section>
   </main>
   <script src="letters-core.js?v=5"></script>
-  <script src="letters-ui.js?v=5"></script>
+  <script src="letters-ui.js?v=10"></script>
   <script src="numbers-game.js?v=5"></script>
   <script src="number-chips.js?v=5"></script>
   <script src="letter-chips.js?v=9"></script>

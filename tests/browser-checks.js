@@ -222,6 +222,13 @@ export async function run() {
       byId("letters-solver").requestSubmit();
       await wait(() => !byId("letters-solve").disabled);
       assert(byId("letters-words").children.length >= 8, "Faltan empates");
+      for (const link of byId("letters-words").querySelectorAll("a")) {
+        const bounds = link.getBoundingClientRect();
+        assert(link.querySelector("svg") && link.textContent === "", "DLE debe mostrarse como icono");
+        assert(link.getAttribute("aria-label").includes("en el DLE") && link.title, "Falta nombre accesible del DLE");
+        assert(bounds.width >= 44 && bounds.height >= 44, "Icono DLE sin area tactil suficiente");
+        assert(link.href.startsWith("https://dle.rae.es/"), "Enlace DLE modificado");
+      }
       snapshot("Letras muchos empates");
       usableResults("letters-result");
       reachEnd("letters-words");

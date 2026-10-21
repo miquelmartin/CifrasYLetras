@@ -58,6 +58,8 @@ Las candidatas **no estan verificadas por la RAE**. El enfoque de diccionario
 ortografico, aprobado por el usuario, proporciona enlaces al DLE para consultar
 los lemas de origen, sin garantizar que la RAE acepte cada candidata.
 Consulta la [procedencia, licencia y alcance](data/README.md).
+Cada candidata incluye un icono de libro para consultar su lema en el DLE,
+con nombre accesible y una zona tactil de 44 px, sin repetir texto en cada fila.
 
 Las dos busquedas usan procesos independientes en segundo plano. Cambiar de
 pestana conserva entradas y resultados. El diccionario de letras se descarga
