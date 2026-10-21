@@ -43,6 +43,16 @@ export async function run() {
         const bounds = byId(id).getBoundingClientRect();
         assert(bounds.height >= 80 && bounds.bottom <= height, `${id}: resultados sin espacio visible`);
       };
+      const noKeyScrollbars = () => {
+        for (const button of doc.querySelectorAll("#calculator-keys button, .number-chip")) {
+          if (!button.getClientRects().length) continue;
+          const styles = win.getComputedStyle(button);
+          assert(!["auto", "scroll", "hidden", "clip"].includes(styles.overflowX) &&
+            !["auto", "scroll", "hidden", "clip"].includes(styles.overflowY), "Boton con scroll o recorte");
+          assert(button.scrollWidth <= button.clientWidth + 1 && button.scrollHeight <= button.clientHeight + 1,
+            `Cifra recortada dentro de boton: ${button.textContent.slice(0, 12)} ${button.clientWidth}x${button.clientHeight} / ${button.scrollWidth}x${button.scrollHeight}`);
+        }
+      };
       const contrast = element => {
         const styles = win.getComputedStyle(element);
         const luminance = color => {
@@ -310,6 +320,7 @@ export async function run() {
       snapshot("Cifras expresion larga");
       byId("solve-myself").click();
       snapshot("Calculadora enteros largos");
+      noKeyScrollbars();
       const longKeys = [...byId("calculator-keys").children];
       longKeys[0].click();
       doc.querySelector('[data-operator="*"]').click();
@@ -317,6 +328,11 @@ export async function run() {
       snapshot("Calculadora resultado largo");
       reachEnd("calculator-display");
       reachEnd("calculator-steps");
+      byId("calculator-back").click();
+      input("number-entry", `-${"9".repeat(180)} `);
+      byId("solve-myself").click();
+      snapshot("Calculadora negativo largo");
+      noKeyScrollbars();
     } finally {
       frame.remove();
     }
