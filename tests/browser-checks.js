@@ -154,7 +154,7 @@ export async function run() {
       const letterEntry = byId("letter-entry");
       letterEntry.dispatchEvent(new win.CompositionEvent("compositionstart"));
       input("letter-entry", "n");
-      assert(byId("letter-chips").children.length === 0, "Se confirma durante composicion");
+      assert(byId("letters").value === "n", "La composicion debe crear ficha de inmediato");
       letterEntry.value = "n\u0303";
       letterEntry.dispatchEvent(new win.CompositionEvent("compositionend"));
       assert(byId("letters").value === "ñ", "Composicion de ñ incorrecta");
@@ -178,6 +178,36 @@ export async function run() {
       input("letter-entry", "ñ");
       assert(byId("letters").value === "ññ", "Se pierde repeticion deliberada");
       byId("letter-entry").dispatchEvent(new win.KeyboardEvent("keydown", { key: "Backspace", bubbles: true }));
+      clear("letter-chips");
+      letterEntry.dispatchEvent(new win.CompositionEvent("compositionstart"));
+      for (const value of ["c", "ca", "cas", "casa", "casaa", "casa"]) {
+        letterEntry.value = value;
+        letterEntry.dispatchEvent(new win.InputEvent("input", { inputType: "insertCompositionText", data: value, isComposing: true, bubbles: true }));
+        assert(byId("letters").value === value && byId("letter-chips").children.length === value.length, "Gboard no crea fichas letra a letra");
+      }
+      letterEntry.value = "casa ";
+      letterEntry.dispatchEvent(new win.InputEvent("input", { inputType: "insertCompositionText", data: " ", isComposing: true, bubbles: true }));
+      assert(byId("letters").value === "casa", "Separador dentro de composicion pierde letras");
+      letterEntry.dispatchEvent(new win.CompositionEvent("compositionend", { data: "casa" }));
+      letterEntry.value = "casa ";
+      letterEntry.dispatchEvent(new win.InputEvent("input", { inputType: "insertText", data: " ", bubbles: true }));
+      assert(byId("letters").value === "casa", "Espacio pierde o repite composicion Android");
+      clear("letter-chips");
+      letterEntry.dispatchEvent(new win.CompositionEvent("compositionstart"));
+      letterEntry.value = "\u00b4";
+      letterEntry.dispatchEvent(new win.InputEvent("input", { inputType: "insertCompositionText", data: "\u00b4", isComposing: true, bubbles: true }));
+      assert(byId("letter-chips").children.length === 0, "Se confirma una tecla muerta");
+      letterEntry.value = "á";
+      letterEntry.dispatchEvent(new win.InputEvent("input", { inputType: "insertCompositionText", data: "á", isComposing: true, bubbles: true }));
+      assert(byId("letters").value === "á", "Acento completo no crea ficha inmediatamente");
+      letterEntry.dispatchEvent(new win.CompositionEvent("compositionend", { data: "á" }));
+      clear("letter-chips");
+      input("letter-entry", "\u00b4");
+      assert(byId("letter-chips").children.length === 0, "Tecla muerta de escritorio confirmada");
+      input("letter-entry", "\u00b4a");
+      assert(byId("letters").value === "á", "No se combina tecla muerta de escritorio");
+      clear("letter-chips");
+      input("letter-entry", "ñ");
       input("letter-entry", " A\u0301, ü A ");
       assert(byId("letters").value === "ñÁüA", "Acentos, repeticiones o separadores incorrectos");
       byId("letter-entry").dispatchEvent(new win.KeyboardEvent("keydown", { key: "Backspace", bubbles: true }));

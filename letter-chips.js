@@ -10,6 +10,11 @@
   let hadError = false;
   let lastCommitted = "";
   let compositionTail = null;
+  let compositionStart = 0;
+  const normalizeDraft = value => value.replace(/[\s,]/gu, "")
+    .replace(/^\u00b4([aeiou])/iu, "$1\u0301")
+    .replace(/^\u00a8(u)/iu, "$1\u0308")
+    .replace(/^~(n)/iu, "$1\u0303").normalize("NFC");
 
   function render() {
     container.replaceChildren();
@@ -29,11 +34,11 @@
     raw.value = chips.join("") + entry.value;
   }
   function commit() {
-    if (composing) {
+    let draft = normalizeDraft(entry.value);
+    if (/^[\u00b4~\u00a8]$/u.test(draft)) {
       raw.value = chips.join("") + entry.value;
       return;
     }
-    let draft = entry.value.replace(/[\s,]/g, "");
     // A separately delivered combining accent belongs to the previous letter.
     const mergePrevious = /^\p{M}/u.test(draft) && chips.length > 0;
     if (mergePrevious) draft = chips.at(-1) + draft;
@@ -56,6 +61,28 @@
       hadError = false;
     }
   }
+  function updateComposition(value) {
+    const draft = normalizeDraft(value);
+    if (/^[\u00b4`~\u00a8\u0300-\u036f]*$/u.test(draft) && draft) {
+      entry.value = value;
+      raw.value = chips.join("") + value;
+      return;
+    }
+    if (draft && !/^[a-záéíóúüñ]+$/iu.test(draft)) {
+      entry.value = value;
+      commit();
+      return;
+    }
+    chips.splice(compositionStart, chips.length - compositionStart, ...draft);
+    lastCommitted = draft;
+    entry.value = "";
+    render();
+    if (hadError) {
+      status.textContent = "Entrada actualizada. Puedes continuar.";
+      status.classList.remove("error");
+      hadError = false;
+    }
+  }
   entry.addEventListener("beforeinput", event => {
     if (composing || event.isComposing || hadError) return;
     const separator = typeof event.data === "string" && /^[\s,]+$/u.test(event.data);
@@ -67,14 +94,28 @@
       raw.value = chips.join("");
     }
   });
-  entry.addEventListener("compositionstart", () => { composing = true; compositionTail = null; });
-  entry.addEventListener("compositionend", () => {
+  entry.addEventListener("compositionstart", () => {
+    composing = true;
+    compositionStart = chips.length;
+    compositionTail = null;
+  });
+  entry.addEventListener("compositionend", event => {
     composing = false;
-    compositionTail = entry.value.normalize("NFC");
-    commit();
+    const value = [event.data, entry.value, chips.slice(compositionStart).join("")]
+      .find(text => typeof text === "string" && normalizeDraft(text)) || "";
+    compositionTail = value.replace(/[\s,]/gu, "").normalize("NFC");
+    updateComposition(value);
   });
   entry.addEventListener("input", event => {
-    if (event.isComposing || composing) return;
+    if (event.isComposing || composing) {
+      if (typeof event.data === "string" && /^[\s,]+$/u.test(event.data)) {
+        entry.value = "";
+        raw.value = chips.join("");
+        return;
+      }
+      updateComposition(typeof event.data === "string" ? event.data : entry.value);
+      return;
+    }
     // Some IMEs replay their committed buffer in the final input or space event.
     const finalComposition = compositionTail !== null &&
       ["insertCompositionText", "insertFromComposition"].includes(event.inputType) &&
