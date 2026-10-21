@@ -8,15 +8,13 @@
   <link rel="icon" href="favicon.ico?v=1" sizes="16x16 32x32 48x48">
   <link rel="icon" href="icons/favicon-32.png?v=1" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1" sizes="180x180">
-  <link rel="manifest" href="site.webmanifest?v=2">
+  <link rel="manifest" href="site.webmanifest?v=3">
   <style>
     :root { color-scheme: light; font: 16px/1.4 system-ui, sans-serif; background: #eef5fb; color: #1d2a44; --ink: #1d2a44; --muted: #3f6fc4; --blue: #3f6fc4; --orange: #f4a77c; --amber: #f6c96b; --line: #2b3a5a; --soft: #f7fafd; --operator: #5b84d1; --target: #e2733a; --result: #8fb0e6; }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
     body { margin: 0; padding: 12px; }
     main { max-width: 760px; height: calc(100vh - 24px); height: calc(100dvh - 24px); min-height: 480px; margin: auto; display: flex; flex-direction: column; gap: 10px; }
-    h1 { display: flex; align-items: center; gap: 8px; font-size: 1.5rem; letter-spacing: -.04em; margin: 0; line-height: 1.2; }
-    h1 img { width: 28px; height: 28px; border-radius: 6px; }
     h2 { font-size: 1.05rem; margin: 0; }
     p { color: var(--muted); margin: 0; }
     .card { background: #fff; border: 2px solid var(--line); border-radius: 14px; padding: 12px; }
@@ -37,6 +35,8 @@
     .tabs { display: flex; gap: 4px; padding: 4px; background: #fff; border: 2px solid var(--line); border-radius: 12px; }
     .tabs button { flex: 1; background: transparent; color: var(--ink); border: 0; box-shadow: none; }
     .tabs button[aria-selected="true"] { background: var(--amber); color: var(--ink); }
+    .tabs img { flex: none; align-self: center; width: 40px; height: 40px; pointer-events: none; user-select: none; }
+    #letters-solver:not(.letters-busy):not(.letter-results) #letters-source { display: none; }
     [role="tabpanel"] { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
     form.card { flex: 0 0 auto; }
     #letters-result { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
@@ -51,7 +51,6 @@
     .notice { font-size: .875rem; color: var(--muted); }
     .caveat { font-size: .875rem; margin-top: 6px; }
     .manual > .tabs, .manual > [role="tabpanel"] { display: none !important; }
-    .manual > h1 { display: none; }
     #calculator-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
     .calculator-toolbar { display: flex; align-items: center; gap: 8px; min-height: 72px; }
     .calculator-goal { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: center; }
@@ -123,6 +122,12 @@
     .entry-pad button.enter-key { background: var(--orange); font-size: clamp(1rem, 3.6dvh, 1.6rem); }
     .entry-pad button.delete-key { color: var(--blue); }
     #letters-solve { grid-column: span 2; }
+    /* Invisible hit areas reaching half-way into each gap (inset = half gap + 2px border), so taps between keys hit the nearest key. */
+    .entry-pad button, #calculator-keys button, .calculator-operators button { position: relative; -webkit-tap-highlight-color: transparent; }
+    .entry-pad button::before, #calculator-keys button::before, .calculator-operators button::before { content: ""; position: absolute; background: transparent; }
+    .entry-pad button::before { inset: -6px; }
+    #calculator-keys button::before { inset: -5px; }
+    .calculator-operators button::before { inset: -6px -5px -5px; }
     .keypad-form > .buttons { margin: 0; }
     #letters-solver > .buttons:not(:has(button:not([hidden]))) { display: none; }
     #solver.number-ready, #letters-solver.letter-results, #letters-solver.letters-busy { flex: 0 0 auto; }
@@ -135,9 +140,9 @@
 </head>
 <body>
   <main>
-    <h1><img src="icons/icon-64.png?v=1" width="28" height="28" alt="">Cifras y Letras</h1>
     <div class="tabs" role="tablist" aria-label="Elige un reto">
       <button id="numbers-tab" type="button" role="tab" aria-selected="true" aria-controls="numbers-panel">Cifras</button>
+      <img src="icons/icon-64.png?v=2" width="40" height="40" alt="" aria-hidden="true" draggable="false">
       <button id="letters-tab" type="button" role="tab" aria-selected="false" aria-controls="letters-panel" tabindex="-1">Letras</button>
     </div>
     <section id="numbers-panel" role="tabpanel" aria-labelledby="numbers-tab">

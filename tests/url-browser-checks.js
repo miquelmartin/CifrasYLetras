@@ -79,7 +79,8 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844]]) {
         await image.decode();
         assert(`${image.naturalWidth}x${image.naturalHeight}` === icon.sizes, "Icono de manifest invalido");
       }
-      assert(doc.querySelector("h1 img").complete && doc.querySelector("h1 img").naturalWidth === 64, "Icono de cabecera no carga");
+      const tabIcon = doc.querySelector(".tabs img");
+      assert(tabIcon.complete && tabIcon.naturalWidth === 64, "Icono entre pestanas no carga");
       results.push({ viewport: [width, height], restored: true, history: true, icons: true });
     } finally {
       frame.remove();

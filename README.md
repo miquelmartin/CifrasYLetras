@@ -26,7 +26,10 @@ repiten letras; se conservan las repeticiones deliberadas, tildes y &Ntilde;.
 La pagina nunca se desplaza. Solo la lista de Pasos y la de palabras halladas
 pueden desplazarse dentro de su propia caja; teclados, operaciones, objetivo y
 botones quedan siempre visibles (comprobado a 360x640, 375x667 y 390x844).
-Pulsar la pestana Cifras o Letras, aunque ya este activa, vacia ese modo y su URL. La paleta Pop suave combina celeste claro, naranja,
+Pulsar la pestana Cifras o Letras, aunque ya este activa, vacia ese modo y su URL.
+Cada tecla de los teclados, botones de Resolver yo y operaciones extiende de forma
+invisible su zona tactil hasta la mitad del hueco vecino: tocar entre teclas activa
+la mas cercana. En Letras, la nota del diccionario aparece tras pulsar Buscar. La paleta Pop suave combina celeste claro, naranja,
 ambar y azul menos saturados, con contornos y sombras solidas de 2 px.
 
 ## Cifras exactas
@@ -92,9 +95,11 @@ omiten con un aviso; mas de doce letras se recortan a doce, tambien con aviso.
 Una URL con el reto completo abre Resolver yo. Los enlaces antiguos con enteros negativos se conservan;
 el nuevo teclado no crea signos negativos.
 
-El icono suministrado por el usuario se incluye optimizado para cabecera,
-favicon, Apple y manifest. Todos sus recursos usan rutas relativas a Pages y
-pesan juntos menos de 100 KB.
+No hay titulo visible: el icono suministrado por el usuario aparece, decorativo,
+entre las pestanas Cifras y Letras. Al instalarla en Android, el manifest usa
+iconos sobre fondo blanco, incluidos los adaptables (maskable) con margen de
+zona segura, y fondo de arranque blanco. Todos los recursos usan rutas
+relativas a Pages y pesan juntos menos de 250 KB.
 
 ## Comprobaciones
 
