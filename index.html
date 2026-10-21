@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Number Workshop</title>
+  <style>
+    :root { color-scheme: dark; font: 16px/1.6 system-ui, sans-serif; background: #10141e; color: #e8edf7; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 48px 20px; background: radial-gradient(ellipse at top, #203b3a55, transparent 65%); min-height: 100vh; }
+    main { max-width: 680px; margin: auto; }
+    .eyebrow { color: #8ce2c0; text-transform: uppercase; letter-spacing: .16em; font-size: .75rem; font-weight: 700; }
+    h1 { font-size: clamp(2rem, 6vw, 3.4rem); letter-spacing: -.05em; margin: 8px 0; line-height: 1.2; }
+    p { color: #aebbd0; }
+    .card { background: #1a2232; border: 1px solid #303e56; border-radius: 20px; padding: 28px; margin-top: 28px; }
+    label { display: block; font-weight: 650; margin-bottom: 8px; }
+    input { width: 100%; background: #101826; color: #f2f6fc; border: 1px solid #53627a; border-radius: 10px; padding: 12px 14px; font: inherit; }
+    input:focus-visible, button:focus-visible { outline: 3px solid #8ce2c0; outline-offset: 3px; }
+    .hint { display: block; font-size: .85rem; color: #aebbd0; margin: 6px 0 20px; }
+    .buttons { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+    button { border: 0; border-radius: 10px; padding: 12px 20px; font: inherit; font-weight: 700; cursor: pointer; background: #8ce2c0; color: #10291f; }
+    button.secondary { background: #303e56; color: #e8edf7; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    details { margin-top: 20px; color: #aebbd0; font-size: .9rem; }
+    summary { cursor: pointer; }
+    .rules { padding-left: 22px; }
+    #status { min-height: 1.6em; margin-bottom: 0; overflow-wrap: anywhere; }
+    #status.error { color: #ffb0b0; }
+    #expression { overflow-wrap: anywhere; font: 1.15rem/1.8 ui-monospace, monospace; color: #8ce2c0; }
+    #steps { padding: 0; list-style: none; counter-reset: step; display: grid; gap: 12px; }
+    #steps li { counter-increment: step; display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid #394a63; border-radius: 12px; background: #101826; }
+    #steps li::before { content: counter(step); display: grid; place-items: center; flex: 0 0 28px; height: 28px; border-radius: 50%; background: #303e56; color: #aebbd0; font: 700 .8rem system-ui, sans-serif; }
+    #steps .operation { min-width: 0; overflow-wrap: anywhere; font: 1.1rem/1.6 ui-monospace, monospace; }
+    #result h2 { margin-top: 0; }
+    [hidden] { display: none !important; }
+    @media (max-width: 480px) { body { padding: 28px 14px; } .card { padding: 20px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">Number Workshop</div>
+    <h1>Your numbers. One target.</h1>
+    <p>Find an exact route using addition, subtraction, multiplication, and integer division.</p>
+    <form id="solver" class="card">
+      <label for="numbers">Your numbers</label>
+      <input id="numbers" type="text" value="25, 50, 3, 6, 7, 8" required autocomplete="off" spellcheck="false" aria-describedby="numbers-hint">
+      <small id="numbers-hint" class="hint">Enter 6-9 integers, separated by commas or spaces. Negative numbers and duplicates are welcome.</small>
+      <label for="target">Target</label>
+      <input id="target" type="text" value="952" required autocomplete="off" spellcheck="false">
+      <details>
+        <summary>The rules</summary>
+        <ul class="rules">
+          <li>Use any subset of the inputs, each at most once.</li>
+          <li>Negative and zero results are allowed; fractional results are not.</li>
+          <li>Start with two inputs, then combine the previous result with one unused input per step.</li>
+          <li>All arithmetic is exact, even for very large integers.</li>
+        </ul>
+      </details>
+      <div class="buttons">
+        <button id="solve" type="submit">Find a solution</button>
+        <button id="cancel" type="button" class="secondary" hidden>Cancel search</button>
+      </div>
+      <p id="status" role="status" aria-live="polite">Ready when you are.</p>
+    </form>
+    <section id="result" class="card" hidden aria-labelledby="result-title">
+      <h2 id="result-title">Solution</h2>
+      <div id="expression"></div>
+      <ol id="steps" role="list"></ol>
+      <p id="summary"></p>
+    </section>
+    <p class="hint">Private, offline, and no downloads needed. Finds the fewest operations. Tricky searches may take a while; cancel anytime.</p>
+  </main>
+  <script>
+    "use strict";
+
+    // This function is serialized into a worker so the page also works as a local file.
+    function solverWorker() {
+      self.onmessage = ({ data }) => {
+        const target = BigInt(data.target);
+        const initial = data.numbers.map(value => ({
+          value: BigInt(value),
+          expression: BigInt(value) < 0n ? `(${value})` : value
+        }));
+        const failed = new Map();
+        let visited = 0;
+        let lastProgress = Date.now();
+        let answer = initial.find(node => node.value === target);
+        const abs = value => value < 0n ? -value : value;
+        const compare = (a, b) => a.value < b.value ? -1 : a.value > b.value ? 1 : 0;
+
+        function search(current, unused, remaining) {
+          visited++;
+          if (visited % 4096 === 0 && Date.now() - lastProgress >= 150) {
+            self.postMessage({ type: "progress", visited });
+            lastProgress = Date.now();
+          }
+          if (remaining === 0 || unused.length === 0) return null;
+          const key = `${current.value}|${unused.map(node => node.value.toString()).join(",")}`;
+          if ((failed.get(key) ?? -1) >= remaining) return null;
+          const candidates = [];
+          const seen = new Set();
+          for (let i = 0; i < unused.length; i++) {
+            const a = current;
+            const b = unused[i];
+            if (seen.has(b.value)) continue;
+            seen.add(b.value);
+            const outcomes = new Map();
+            function add(value, left, operator, right) {
+              // With optional inputs, an operation returning either operand is redundant.
+              if (value === a.value || value === b.value || outcomes.has(value)) return;
+              outcomes.set(value, {
+                value, left, right, operator,
+                expression: `(${left.expression} ${operator} ${right.expression})`
+              });
+            }
+            add(a.value + b.value, a, "+", b);
+            add(a.value - b.value, a, "-", b);
+            add(b.value - a.value, b, "-", a);
+            add(a.value * b.value, a, "*", b);
+            if (b.value !== 0n && a.value % b.value === 0n) add(a.value / b.value, a, "/", b);
+            if (a.value !== 0n && b.value % a.value === 0n) add(b.value / a.value, b, "/", a);
+            for (const node of outcomes.values()) {
+              if (node.value === target) return node;
+              if (remaining > 1) candidates.push({ i, node, distance: abs(node.value - target) });
+            }
+          }
+          candidates.sort((a, b) => a.distance < b.distance ? -1 : a.distance > b.distance ? 1 : 0);
+          for (const { i, node } of candidates) {
+            const next = unused.filter((_, index) => index !== i);
+            const found = search(node, next, remaining - 1);
+            if (found) return found;
+          }
+          // Eviction only costs speed; no unexplored states are declared impossible.
+          if (failed.size >= 250000) failed.clear();
+          failed.set(key, remaining);
+          return null;
+        }
+
+        initial.sort(compare);
+        for (let depth = 1; !answer && depth < initial.length; depth++) {
+          self.postMessage({ type: "progress", visited, depth });
+          const starts = new Set();
+          for (let i = 0; i < initial.length; i++) {
+            if (starts.has(initial[i].value)) continue;
+            starts.add(initial[i].value);
+            answer = search(initial[i], initial.filter((_, index) => index !== i), depth);
+            if (answer) break;
+          }
+        }
+        if (!answer) {
+          self.postMessage({ type: "done", solution: null, visited });
+          return;
+        }
+        const steps = [];
+        let used = 0;
+        function collect(node) {
+          if (!node.left) {
+            used++;
+            return;
+          }
+          collect(node.left);
+          collect(node.right);
+          const format = value => value < 0n ? `(${value})` : value.toString();
+          steps.push(`${format(node.left.value)} ${node.operator} ${format(node.right.value)} = ${node.value}`);
+        }
+        collect(answer);
+        self.postMessage({
+          type: "done", visited,
+          solution: { expression: `${answer.expression} = ${target}`, steps, used }
+        });
+      };
+    }
+
+    const form = document.getElementById("solver");
+    const numbersInput = document.getElementById("numbers");
+    const targetInput = document.getElementById("target");
+    const solveButton = document.getElementById("solve");
+    const cancelButton = document.getElementById("cancel");
+    const status = document.getElementById("status");
+    const result = document.getElementById("result");
+    let worker = null;
+    let workerUrl = null;
+    let started = 0;
+    let currentDepth = 0;
+
+    function setStatus(message, error = false) {
+      status.textContent = message;
+      status.classList.toggle("error", error);
+    }
+
+    function stopWorker() {
+      if (worker) worker.terminate();
+      if (workerUrl) URL.revokeObjectURL(workerUrl);
+      worker = null;
+      workerUrl = null;
+      solveButton.disabled = false;
+      cancelButton.hidden = true;
+      numbersInput.disabled = false;
+      targetInput.disabled = false;
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      result.hidden = true;
+      const raw = numbersInput.value.trim();
+      const target = targetInput.value.trim();
+      if (!/^[+-]?\d+(?:(?:\s*,\s*|\s+)[+-]?\d+)*$/.test(raw)) {
+        setStatus("Enter whole numbers separated by commas or spaces, for example: -5, 2, 3, 6, 7, 10.", true);
+        return;
+      }
+      const numbers = raw.split(/[\s,]+/);
+      if (numbers.length < 6 || numbers.length > 9) {
+        setStatus("Please enter between 6 and 9 numbers.", true);
+        return;
+      }
+      if (!/^[+-]?\d+$/.test(target)) {
+        setStatus("The target must be a whole number, which may be negative.", true);
+        return;
+      }
+      stopWorker();
+      solveButton.disabled = true;
+      cancelButton.hidden = false;
+      numbersInput.disabled = true;
+      targetInput.disabled = true;
+      currentDepth = 0;
+      started = performance.now();
+      setStatus("Searching for the shortest solution...");
+      try {
+        workerUrl = URL.createObjectURL(new Blob([`(${solverWorker.toString()})();`], { type: "text/javascript" }));
+        worker = new Worker(workerUrl);
+        worker.onmessage = ({ data }) => {
+          if (data.type === "progress") {
+            if (data.depth) currentDepth = data.depth;
+            setStatus(`Searching up to ${currentDepth} operations; ${data.visited.toLocaleString()} states explored. You can cancel at any time.`);
+            return;
+          }
+          stopWorker();
+          const seconds = ((performance.now() - started) / 1000).toFixed(2);
+          if (!data.solution) {
+            setStatus(`No exact solution exists under these rules. Explored ${data.visited.toLocaleString()} states in ${seconds}s.`);
+            return;
+          }
+          document.getElementById("expression").textContent = data.solution.expression;
+          const steps = document.getElementById("steps");
+          steps.replaceChildren();
+          for (const step of data.solution.steps) {
+            const item = document.createElement("li");
+            const operation = document.createElement("span");
+            operation.className = "operation";
+            operation.textContent = step;
+            item.append(operation);
+            steps.append(item);
+          }
+          document.getElementById("summary").textContent =
+            `Used ${data.solution.used} of ${numbers.length} inputs with ${data.solution.steps.length} operations.` +
+            (data.solution.steps.length === 0 ? " The target is already one of your inputs." : "");
+          result.hidden = false;
+          setStatus(`Found a shortest solution in ${seconds}s.`);
+        };
+        worker.onerror = event => {
+          event.preventDefault();
+          stopWorker();
+          setStatus(`Search failed: ${event.message || "the browser could not run the worker."}`, true);
+        };
+        worker.postMessage({
+          numbers: numbers.map(value => BigInt(value).toString()),
+          target: BigInt(target).toString()
+        });
+      } catch (error) {
+        stopWorker();
+        setStatus(`Could not start the search: ${error.message}`, true);
+      }
+    });
+
+    cancelButton.addEventListener("click", () => {
+      stopWorker();
+      setStatus("Search cancelled. The search was not exhaustive; a solution may still exist.");
+    });
+    window.addEventListener("pagehide", stopWorker);
+  </script>
+</body>
+</html>
