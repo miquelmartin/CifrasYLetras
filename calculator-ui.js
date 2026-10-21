@@ -310,6 +310,7 @@ document.getElementById("solve-myself").addEventListener("click", () => {
   calculatorPanel.hidden = false;
   renderCalculator();
   document.getElementById("calculator-back").focus();
+  document.dispatchEvent(new CustomEvent("calculatorviewchange", { detail: { open: true } }));
 });
 
 for (const button of operatorButtons) {
@@ -322,5 +323,6 @@ document.getElementById("calculator-back").addEventListener("click", () => {
   calculatorPanel.hidden = true;
   document.querySelector("main").classList.remove("manual");
   document.getElementById("solve-myself").focus();
+  document.dispatchEvent(new CustomEvent("calculatorviewchange", { detail: { open: false } }));
 });
 window.addEventListener("pagehide", () => { cancelAutomatic(); targetCelebration.stop(); });

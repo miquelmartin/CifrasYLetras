@@ -8,6 +8,7 @@ function selectTab(selected) {
     tab.tabIndex = active ? 0 : -1;
     document.getElementById(tab.getAttribute("aria-controls")).hidden = !active;
   }
+  document.dispatchEvent(new CustomEvent("puzzlechange"));
 }
 for (const tab of tabs) {
   tab.addEventListener("click", () => selectTab(tab));

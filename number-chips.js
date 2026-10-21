@@ -11,6 +11,7 @@
 
   function sync() {
     raw.value = [...chips, entry.value].filter(Boolean).join(", ");
+    document.dispatchEvent(new CustomEvent("puzzlechange"));
   }
   function render() {
     container.replaceChildren();
@@ -60,5 +61,11 @@
       render();
     }
   });
+  window.setNumberChips = values => {
+    chips.splice(0, chips.length, ...values);
+    entry.value = "";
+    hadError = false;
+    render();
+  };
   render();
 })();

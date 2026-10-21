@@ -65,6 +65,14 @@ Las fusiones y Deshacer animan los operandos y la reorganizacion de los botones
 durante 340 ms; las pulsaciones se bloquean mientras termina cada transicion.
 Con movimiento reducido se actualizan al instante.
 Las dos pestanas y el objetivo empiezan vacios, sin ejemplos precargados.
+El reto se guarda en la direccion con `modo`, `n`, `obj`, `l` y `yo=1`.
+Recargar restaura pestana, cifras exactas (tambien repetidas o negativas),
+letras con sus tildes y la pagina de Resolver yo; no las operaciones realizadas.
+Teclear sustituye la direccion sin llenar el historial. Atras/Adelante permite
+salir y volver a Resolver yo. Los parametros invalidos se omiten con un aviso.
+El icono proporcionado por el usuario se incluye optimizado para cabecera,
+favicon, Apple y el manifest; todos los recursos usan rutas relativas a Pages
+y juntos pesan menos de 100 KB.
 
 - **Cifras:** calculos enteros exactos, uso opcional de las cifras y solucion
   combinando cualquier par de cifras o resultados, con el menor numero de
@@ -94,6 +102,7 @@ Ejecuta las pruebas de regresion con Node.js 18 o posterior:
 
 ```text
 node --test tests/solver.test.js tests/numbers-game.test.js tests/celebration.test.js
+node --test tests/puzzle-url.test.js tests/icons.test.js
 ```
 
 Para ejecutar las comprobaciones reales de interfaz, sirve el sitio y ejecuta
@@ -101,6 +110,7 @@ en la consola del navegador:
 
 ```js
 await (await import("./tests/browser-checks.js")).run()
+await (await import("./tests/url-browser-checks.js")).run()
 ```
 
 Comprueban interacciones y dimensiones reales con ventanas internas de
