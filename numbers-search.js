@@ -120,10 +120,33 @@ function createNumbersWorker() {
   }
 }
 
-function formatNumberStep(step) {
-  const symbol = { "+": "+", "-": "\u2212", "*": "\u00d7", "/": "\u00f7" };
-  const operand = (value, reference) => `${BigInt(value) < 0n ? `(${value})` : value}${reference ? ` [paso ${reference}]` : ""}`;
-  return `${operand(step.left, step.leftStep)} ${symbol[step.operator]} ${operand(step.right, step.rightStep)} = ${step.value}`;
+function formatNumberValue(value) {
+  const text = String(value);
+  return text.length > 12 ? `${text.slice(0, 4)}\u2026${text.slice(-4)}` : text;
 }
 
-if (typeof module !== "undefined") module.exports = { NumbersSearch, formatNumberStep };
+function createNumberStep(step) {
+  const operation = document.createElement("span");
+  operation.className = "operation";
+  const operand = (value, reference, result = false) => {
+    const span = document.createElement("span");
+    span.className = result ? "step-value" : reference ? "step-derived" : "step-original";
+    const display = formatNumberValue(value);
+    span.textContent = BigInt(value) < 0n ? `(${display})` : display;
+    span.title = String(value);
+    span.setAttribute("aria-label", String(value));
+    if (reference) {
+      span.title = "Resultado anterior";
+      span.setAttribute("aria-label", `${value}, resultado anterior`);
+    }
+    return span;
+  };
+  const symbol = { "+": "+", "-": "\u2212", "*": "\u00d7", "/": "\u00f7" };
+  operation.append(
+    operand(step.left, step.leftStep), ` ${symbol[step.operator]} `,
+    operand(step.right, step.rightStep), " = ", operand(step.value, null, true)
+  );
+  return operation;
+}
+
+if (typeof module !== "undefined") module.exports = { NumbersSearch };

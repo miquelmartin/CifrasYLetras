@@ -94,13 +94,17 @@ reducedMotion.addEventListener("change", () => {
 function fitCalculatorNumerals() {
   if (calculatorPanel.hidden || !numeralContext) return;
   const display = document.getElementById("calculator-display");
-  for (const element of [display, ...calculatorKeys.children]) {
+  const target = document.getElementById("calculator-target");
+  const keyMaximum = calculatorKeys.children.length > 6 && innerHeight <= 700 ? 32 : Math.min(48, Math.max(40, innerHeight * .06));
+  for (const element of [display, target, ...calculatorKeys.children]) {
     const styles = getComputedStyle(element);
-    const maximum = Math.min(40, Math.max(32, innerHeight * .045));
+    const maximum = element === target ? 52 : element === display ? 40 : keyMaximum;
     numeralContext.font = `${styles.fontWeight} ${maximum}px ${styles.fontFamily}`;
     const available = element.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight);
     const width = numeralContext.measureText(element.textContent).width;
-    element.style.fontSize = `${Math.max(16, Math.min(maximum, maximum * available * .94 / Math.max(1, width)))}px`;
+    const size = Math.max(16, Math.min(maximum, maximum * available * .94 / Math.max(1, width)));
+    element.style.fontSize = `${size}px`;
+    if (element === target) element.style.color = size >= 24 ? "var(--target)" : "var(--ink)";
   }
 }
 new ResizeObserver(fitCalculatorNumerals).observe(calculatorPanel);
@@ -109,8 +113,11 @@ function renderCalculator(message, error = false) {
   const state = manualGame.state;
   const symbol = { "+": "+", "-": "\u2212", "*": "\u00d7", "/": "\u00f7" }[state.operator] || "";
   const selected = state.tiles.find(tile => tile.id === state.selected);
-  document.getElementById("calculator-display").textContent = selected ?
-    `${selected.value} ${symbol}` : state.current === null ? "\u2014" : String(state.current);
+  const display = document.getElementById("calculator-display");
+  display.textContent = selected ?
+    `${formatNumberValue(selected.value)} ${symbol}` : state.current === null ? "" : formatNumberValue(state.current);
+  display.title = selected ? `${selected.value} ${symbol}` : state.current === null ? "" : String(state.current);
+  display.setAttribute("aria-label", display.title || "Operaci\u00f3n actual");
   const buttons = new Map([...calculatorKeys.children].map(button => [button.dataset.tile, button]));
   const visibleButtons = state.tiles.map(tile => {
     let button = buttons.get(tile.id);
@@ -120,12 +127,13 @@ function renderCalculator(message, error = false) {
       button.dataset.tile = tile.id;
       button.addEventListener("click", () => calculatorAction(() => manualGame.chooseNumber(tile.id)));
     }
-    button.textContent = String(tile.value);
+    button.textContent = formatNumberValue(tile.value);
+    button.title = String(tile.value);
     button.classList.toggle("result-key", tile.step !== null);
-    button.dataset.marker = tile.step === null ? "" : `R${tile.step}`;
+    button.dataset.marker = tile.step === null ? "" : "=";
     button.setAttribute("aria-pressed", String(state.selected === tile.id));
     button.setAttribute("aria-label", tile.step === null ?
-      `Cifra original ${tile.originals[0] + 1}: ${tile.value}` : `Resultado del paso ${tile.step}: ${tile.value}`);
+      `Cifra original ${tile.originals[0] + 1}: ${tile.value}` : `Resultado: ${tile.value}`);
     button.disabled = autoBusy || animationBusy;
     return button;
   });
@@ -135,7 +143,8 @@ function renderCalculator(message, error = false) {
   const used = new Set(manualGame.used);
   manualGame.numbers.forEach((number, index) => {
     const item = document.createElement("li");
-    item.textContent = `${number}${used.has(index) ? " \u2713" : ""}`;
+    item.textContent = `${formatNumberValue(number)}${used.has(index) ? " \u2713" : ""}`;
+    item.title = String(number);
     item.classList.toggle("used", used.has(index));
     item.setAttribute("aria-label", `Cifra ${index + 1}: ${number}, ${used.has(index) ? "utilizada" : "sin usar"}`);
     originals.append(item);
@@ -151,17 +160,18 @@ function renderCalculator(message, error = false) {
   steps.replaceChildren();
   for (const step of state.steps) {
     const item = document.createElement("li");
-    item.textContent = formatNumberStep(step);
+    item.append(createNumberStep(step));
     steps.append(item);
   }
   document.getElementById("calculator-history-title").textContent = `Ver pasos (${state.steps.length})`;
   const reached = manualGame.distance === 0n;
   document.getElementById("calculator-distance").textContent = reached ?
-    "Objetivo alcanzado" : `A ${manualGame.distance} del objetivo`;
+    "Objetivo alcanzado" : `A ${formatNumberValue(manualGame.distance)} del objetivo`;
   document.getElementById("calculator-distance").setAttribute("aria-label", reached ?
     "Objetivo alcanzado" : `Distancia del bot\u00f3n m\u00e1s cercano: ${manualGame.distance}`);
+  document.getElementById("calculator-distance").title = reached ? "Objetivo alcanzado" : `A ${manualGame.distance} del objetivo`;
   calculatorStatus.textContent = message || (reached ? "\u00a1Objetivo alcanzado!" :
-    state.operator ? "Elige el segundo bot\u00f3n." : state.selected ? "Elige una operaci\u00f3n." : "Elige un bot\u00f3n original o un resultado.");
+    state.operator ? "Elige otro n\u00famero." : state.selected ? "Elige una operaci\u00f3n." : "Elige un n\u00famero.");
   calculatorStatus.classList.toggle("error", error);
   calculatorStatus.classList.toggle("success", reached && !error);
   targetCelebration.update(reached);
@@ -304,8 +314,11 @@ document.getElementById("solve-myself").addEventListener("click", () => {
   cancelAutomatic();
   targetCelebration.stop();
   manualGame = new NumbersGame.Game(puzzle.numbers, puzzle.target);
-  document.getElementById("calculator-history").open = false;
-  document.getElementById("calculator-target").textContent = String(puzzle.target);
+  document.getElementById("calculator-history").open = true;
+  const target = document.getElementById("calculator-target");
+  target.textContent = formatNumberValue(puzzle.target);
+  target.title = String(puzzle.target);
+  target.setAttribute("aria-label", String(puzzle.target));
   document.querySelector("main").classList.add("manual");
   calculatorPanel.hidden = false;
   renderCalculator();

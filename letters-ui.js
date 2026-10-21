@@ -43,6 +43,7 @@ function lettersIdle() {
   document.getElementById("letters-fieldset").disabled = false;
   lettersSolve.disabled = false;
   lettersCancel.hidden = true;
+  lettersForm.classList.remove("letters-busy");
 }
 
 function stopLettersWorker() {
@@ -54,6 +55,8 @@ function stopLettersWorker() {
 lettersForm.addEventListener("submit", event => {
   event.preventDefault();
   lettersResult.hidden = true;
+  lettersForm.classList.remove("letter-results");
+  document.getElementById("letters-edit").hidden = true;
   let letters;
   try {
     letters = LettersSolver.parseLetters(lettersInput.value);
@@ -65,6 +68,7 @@ lettersForm.addEventListener("submit", event => {
   document.getElementById("letters-fieldset").disabled = true;
   lettersSolve.disabled = true;
   lettersCancel.hidden = false;
+  lettersForm.classList.add("letters-busy");
   setLettersStatus("Buscando en el diccionario ortogr\u00e1fico...");
   try {
     if (!lettersWorker) {
@@ -113,6 +117,8 @@ lettersForm.addEventListener("submit", event => {
             list.append(item);
           }
           lettersResult.hidden = false;
+          lettersForm.classList.add("letter-results");
+          document.getElementById("letters-edit").hidden = false;
           setLettersStatus("B\u00fasqueda completada. Estas son las candidatas m\u00e1s largas del diccionario incluido y sus reglas de afijos.");
         }
       };

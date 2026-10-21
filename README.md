@@ -1,125 +1,119 @@
 # Cifras y Letras
 
-Un buscador de soluciones estatico que funciona en el navegador. Abre
-`index.html` directamente para usar cifras, o sirve este directorio por HTTP
-para usar ambas pestanas, por ejemplo con `python -m http.server 8000`.
+Un buscador de soluciones estatico, en espanol, que funciona en el navegador.
+Abre `index.html` directamente para cifras, o sirve este directorio por HTTP
+para ambas pestanas, por ejemplo con `python -m http.server 8000`.
 
-El diseno compacto usa la altura visible del movil. Los resultados, las fichas
-y la ayuda tienen desplazamiento interno cuando es necesario; los pasos de
-cifras conservan sus cajas y distintivos. En pantallas con menos de 504 px de
-altura util (por ejemplo, con teclado abierto) se permite desplazar la pagina
-para mantener controles legibles, sin recortar contenido.
-La interfaz usa la paleta Pop: fondo celeste, naranja mandarina, ambar y azul
-electrico, con contornos oscuros y sombras solidas. Se usa tinta oscura sobre
-naranja para mantener el contraste de los textos. En la calculadora
-todas las cifras originales permanecen visibles en una tira compacta: las usadas
-aparecen tachadas y con una marca de verificacion. Los botones disponibles
-desaparecen al usarse y aparece un nuevo boton de resultado, identificado con R
-y su numero de paso. Deshacer restaura los operandos en su posicion.
-Los resultados automaticos muestran tambien cada cifra original, con su
-estado utilizada/sin usar, distinguiendo las instancias repetidas.
-Al encontrar una solucion, los pasos sustituyen al formulario para disponer
-de espacio real en movil; **Editar cifras** recupera la entrada completa.
-El historial manual se despliega con **Ver pasos**, en vez de dejar una lista
-comprimida a unos pocos pixeles bajo el teclado.
-Las teclas numericas ajustan el tamano de fuente y, para enteros muy largos,
-dividen el numero en varias lineas. Nunca incorporan barras de desplazamiento
-ni recortan cifras; si hace falta se desplaza el conjunto de controles.
+## Entrada sin teclado del movil
 
-En cifras, espacio o coma confirma cada entero como ficha. Puedes pegar listas,
-quitar fichas o usar retroceso con el campo vacio para corregir la ultima.
-La ultima cifra escrita se incluye aunque no hayas pulsado un separador.
-En letras, cada letra crea una ficha de inmediato; espacios y comas se ignoran.
-Se respetan la composicion de caracteres, las tildes y la distincion entre N y
-&Ntilde;.
-Los separadores se cancelan antes de editar y se ignoran tambien en los eventos
-de entrada de teclados moviles; los eventos finales de composicion no vuelven
-a confirmar una letra ya insertada. Las repeticiones escritas a proposito se
-conservan.
-Durante la composicion predictiva de palabras (por ejemplo Gboard), cada
-actualizacion sustituye solo las fichas de esa composicion, de modo que las
-letras completas aparecen inmediatamente y las correcciones no se duplican.
-Solo los acentos pendientes esperan a su letra base.
+**Cifras** pide exactamente seis numeros y despues el objetivo. El teclado
+grande de pantalla usa filas `7 8 9`, `4 5 6`, `1 2 3`, `borrar 0 Enter`.
+Enter confirma cada numero; vacio no hace nada. Borrar quita un digito y, si
+no hay ninguno, vuelve al numero anterior. Los seis huecos permiten editar
+cifras ya introducidas sin perder las demas. Tras confirmar el objetivo puedes
+buscar una solucion o abrir Resolver yo. No hay tecla menos, campos editables,
+cursor de texto ni teclado del sistema. Los numeros muy largos se abrevian en
+los huecos, conservando su valor completo en el titulo, nombre accesible y URL.
 
-**Resolver yo** abre una calculadora dentro de la pagina con una tecla por
-cifra, incluidas las repetidas como instancias separadas. Elige una cifra,
-una operacion y otra cifra: el resultado se calcula inmediatamente, sin `=`.
-Cualquier par de botones puede combinarse, incluidos dos resultados anteriores.
-La distancia absoluta al objetivo corresponde al boton disponible mas cercano,
-con enteros exactos, y se actualiza al calcular y deshacer.
-Una division invalida no consume la cifra ni cambia el resultado.
-Al alcanzar el objetivo se dibujan breves fuegos artificiales en canvas,
-sin bloquear controles; se cancelan al salir o deshacer y se limpian al terminar.
-Con la preferencia de movimiento reducido solo se resalta el resultado.
-Los cuatro botones de operacion son azules, cuadrados y grandes.
-La flecha hacia atras (**Deshacer**) cancela primero una seleccion pendiente;
-si no la hay, revierte una operacion completa. Las operaciones solo se habilitan
-cuando se ha elegido el primer operando; mientras se espera una cifra,
-Deshacer sigue disponible si hay una seleccion u operacion que revertir.
+**Letras** muestra todo el abecedario en orden, con N y &Ntilde; separadas,
+en cinco columnas. Cada pulsacion anade una letra; borrar quita la ultima y
+Buscar ocupa dos columnas. Se muestran hasta once letras recientes y, cuando
+hay mas, un contador de las anteriores. El conjunto completo se conserva y no
+se limita la busqueda. Tambien funcionan digitos, letras, Enter y retroceso del
+teclado fisico como comodidad, pero no son necesarios. Espacios y comas no
+repiten letras; se conservan las repeticiones deliberadas, tildes y &Ntilde;.
+
+Los teclados ocupan el espacio libre del movil sin desplazamiento interno,
+con comprobaciones a 360x640, 375x667 y 390x844. Ayuda sustituye temporalmente
+al teclado al desplegarse. La paleta Pop suave combina celeste claro, naranja,
+ambar y azul menos saturados, con contornos y sombras solidas de 2 px.
+
+## Cifras exactas
+
+El motor sigue siendo generico: enteros BigInt, resultados negativos y cero,
+divisiones exactas, cifras opcionales y duplicados separados. El solucionador
+busca el menor numero de operaciones combinando cualquier par de cifras o
+resultados anteriores. No se admiten fracciones ni division entre cero.
+
+**Resolver yo** permite elegir un boton, una operacion y otro boton, sin `=`.
+Los dos operandos desaparecen y aparece el resultado en azul y con un marcador
+`=`. La tira original conserva las cifras, con las consumidas tachadas y
+marcadas. Los operandos intermedios de los pasos son azules, sin referencias
+textuales de paso. Los pasos empiezan desplegados y usan numeros grandes.
+
+Las cuatro operaciones y Deshacer comparten una fila completa de cinco teclas.
+Las operaciones solo se habilitan tras elegir el primer numero. Deshacer
+cancela primero una seleccion pendiente o revierte una operacion completa.
+Las fusiones y sus reversos animan los botones durante 340 ms, bloqueando
+pulsaciones durante la transicion; con movimiento reducido son instantaneas.
+Las teclas numericas ajustan la fuente sin barras de desplazamiento ni recortes.
+Los valores de mas de doce caracteres se abrevian visualmente en la calculadora
+y los pasos; el valor exacto sigue en el titulo, nombre accesible y calculo.
+
+El objetivo grande y su distancia exacta aparecen juntos. La distancia es la
+menor diferencia absoluta entre el objetivo y los botones disponibles.
 **Resolver automaticamente** busca primero desde los botones actuales; si no
 hay continuacion, busca desde las cifras originales y avisa antes de reiniciar.
-La solucion se reproduce paso a paso, se puede cancelar y permite deshacer
-despues cada operacion. **Volver** conserva el reto
-y los resultados automaticos. Los calculos siguen siendo enteros exactos.
-Las fusiones y Deshacer animan los operandos y la reorganizacion de los botones
-durante 340 ms; las pulsaciones se bloquean mientras termina cada transicion.
-Con movimiento reducido se actualizan al instante.
-Las dos pestanas y el objetivo empiezan vacios, sin ejemplos precargados.
-El reto se guarda en la direccion con `modo`, `n`, `obj`, `l` y `yo=1`.
-Recargar restaura pestana, cifras exactas (tambien repetidas o negativas),
-letras con sus tildes y la pagina de Resolver yo; no las operaciones realizadas.
-Teclear sustituye la direccion sin llenar el historial. Atras/Adelante permite
-salir y volver a Resolver yo. Los parametros invalidos se omiten con un aviso.
-El icono proporcionado por el usuario se incluye optimizado para cabecera,
-favicon, Apple y el manifest; todos los recursos usan rutas relativas a Pages
-y juntos pesan menos de 100 KB.
+La reproduccion usa los mismos botones, permite cancelar y admite deshacer.
 
-- **Cifras:** calculos enteros exactos, uso opcional de las cifras y solucion
-  combinando cualquier par de cifras o resultados, con el menor numero de
-  operaciones. Las referencias [paso n] identifican resultados anteriores.
-  Se puede cancelar la busqueda.
-- **Letras:** candidatas mas largas del diccionario ortografico espanol usando
-  algunas o todas las letras; muestra todos los empates de longitud maxima.
-  Respeta las repeticiones. Ignora tildes y dieresis, pero distingue N de
-  &Ntilde;. Las conjugaciones y plurales proceden de las reglas de afijos del
-  diccionario RLA-ES incluido, no de una lista de palabras inventada.
+Al alcanzar el objetivo aparecen fuegos artificiales nativos durante 5,8 s:
+18 estallidos escalonados y 1512 particulas. No bloquean controles y se limpian
+al salir, deshacer o terminar. Movimiento reducido usa solo un resaltado calmo.
 
-Las candidatas **no estan verificadas por la RAE**. El enfoque de diccionario
-ortografico, aprobado por el usuario, proporciona enlaces al DLE para consultar
-los lemas de origen, sin garantizar que la RAE acepte cada candidata.
+## Letras y diccionario
+
+Se muestran todas las candidatas de longitud maxima usando algunas o todas
+las letras, respetando cantidades. Se ignoran tildes y dieresis, pero no se
+confunden N y &Ntilde;. Las conjugaciones y plurales proceden del diccionario
+ortografico RLA-ES y sus afijos, no de una lista inventada.
+
+Las candidatas **no estan verificadas por la RAE**. Este enfoque, aprobado por
+el usuario, ofrece un icono de libro con nombre accesible y zona tactil de
+44 px para consultar cada lema en el DLE. No garantiza aceptacion de la RAE.
 Consulta la [procedencia, licencia y alcance](data/README.md).
-Cada candidata incluye un icono de libro para consultar su lema en el DLE,
-con nombre accesible y una zona tactil de 44 px, sin repetir texto en cada fila.
 
-Las dos busquedas usan procesos independientes en segundo plano. Cambiar de
-pestana conserva entradas y resultados. El diccionario de letras se descarga
-de este sitio solo en la primera busqueda (unos 0,9 MB) y se conserva en memoria
-para las siguientes. Cancelar termina el proceso y descarta esa copia.
-Los errores de carga se muestran y permiten reintentar. No necesita servidor
-de aplicaciones, CDN externo, compilacion ni instalacion de paquetes.
+Las busquedas usan procesos independientes y cancelables. El diccionario
+(unos 0,9 MB) se carga desde este sitio en la primera busqueda y se reutiliza.
+Los errores se muestran y permiten reintentar. No se necesita servidor de
+aplicaciones, CDN externo, compilacion ni instalacion de paquetes.
 
-Ejecuta las pruebas de regresion con Node.js 18 o posterior:
+## Direcciones e iconos
+
+El reto se guarda con `modo`, `n`, `obj`, `l` y `yo=1`. Recargar restaura
+pestana, seis cifras exactas, letras con tildes, objetivo y Resolver yo, pero no
+sus operaciones. Teclear sustituye la URL sin llenar el historial. Atras y
+Adelante cambian de vista. Los parametros invalidos o mas de seis cifras se
+omiten con un aviso. Los enlaces antiguos con enteros negativos se conservan;
+el nuevo teclado no crea signos negativos.
+
+El icono suministrado por el usuario se incluye optimizado para cabecera,
+favicon, Apple y manifest. Todos sus recursos usan rutas relativas a Pages y
+pesan juntos menos de 100 KB.
+
+## Comprobaciones
+
+Con Node.js 18 o posterior:
 
 ```text
 node --test tests/solver.test.js tests/numbers-game.test.js tests/celebration.test.js
-node --test tests/puzzle-url.test.js tests/icons.test.js
+node --test tests/keypad-model.test.js tests/puzzle-url.test.js tests/icons.test.js
 ```
 
-Para ejecutar las comprobaciones reales de interfaz, sirve el sitio y ejecuta
-en la consola del navegador:
+Sirve el sitio y ejecuta en la consola del navegador:
 
 ```js
 await (await import("./tests/browser-checks.js")).run()
 await (await import("./tests/url-browser-checks.js")).run()
 ```
 
-Comprueban interacciones y dimensiones reales con ventanas internas de
-360x640, 375x667, 390x844 y 1280x720, incluidos nueve numeros y ocho pasos,
-numerosos empates, ayuda, enteros largos y negativos, fichas, calculadora,
-continuacion automatica, reinicio, cancelacion y deshacer.
+Incluyen entrada completa con botones, orden alfabetico, teclas visibles sin
+scroll, calculos entre resultados, animacion y deshacer, reproduccion automatica,
+reinicio y cancelacion, palabras reales, iconos DLE, persistencia exacta,
+recarga e historial. Tambien cubren el motor generico con nueve botones,
+valores negativos largos y una solucion de ocho pasos, ademas del contraste
+y la ausencia de anillos de foco. El motor se compara con una referencia exhaustiva
+independiente para conjuntos pequenos.
 
-El lector del diccionario admite intencionadamente solo las directivas de la
-version fijada de RLA-ES. Una actualizacion con nuevas directivas produce un
-error visible, en vez de ignorar restricciones morfologicas. La busqueda aplica
-como maximo dos sufijos, siguiendo los indicadores de continuacion declarados,
-y las combinaciones permitidas con prefijos.
+El lector de RLA-ES admite intencionadamente solo las directivas de la version
+fijada. Las directivas nuevas producen un error visible, no una interpretacion
+parcial de restricciones morfologicas.

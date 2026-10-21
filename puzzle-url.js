@@ -9,7 +9,7 @@ const PuzzleUrl = (() => {
     if (!["cifras", "letras"].includes(mode)) invalid = true;
     const numbers = [];
     for (const token of (params.get("n") || "").trim().split(/[\s,]+/).filter(Boolean)) {
-      if (integer.test(token) && numbers.length < 9) numbers.push(token);
+      if (integer.test(token) && numbers.length < 6) numbers.push(token);
       else invalid = true;
     }
     let target = (params.get("obj") || "").trim();
