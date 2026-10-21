@@ -30,8 +30,11 @@ function renderCalculator(message, error = false) {
   const symbol = { "+": "+", "-": "\u2212", "*": "\u00d7", "/": "\u00f7" }[state.operator] || "";
   document.getElementById("calculator-display").textContent = `${current || "Elige una cifra"} ${symbol}`;
   for (const [index, button] of [...calculatorKeys.children].entries()) {
-    button.disabled = state.used.includes(index) || (state.current !== null && !state.operator);
-    button.setAttribute("aria-label", `Cifra ${index + 1}: ${manualGame.numbers[index]}${state.used.includes(index) ? ", utilizada" : ""}`);
+    const used = state.used.includes(index);
+    button.disabled = used || (state.current !== null && !state.operator);
+    button.classList.toggle("used", used);
+    button.setAttribute("aria-label", `Cifra ${index + 1}: ${manualGame.numbers[index]}, ${used ? "utilizada" : "sin usar"}`);
+    button.title = used ? "Cifra utilizada" : "Cifra sin usar";
   }
   for (const button of operatorButtons) {
     button.disabled = state.current === null;

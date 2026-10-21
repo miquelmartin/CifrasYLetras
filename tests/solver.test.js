@@ -158,6 +158,8 @@ test("numbers solver still finds exact sequential integer solutions", () => {
   ]) {
     const solution = solve(numbers, target);
     assert.ok(solution);
+    assert.equal(new Set(solution.usedIndices).size, solution.used);
+    assert.ok(solution.usedIndices.every(index => index >= 0 && index < numbers.length));
     let previous = null;
     const remaining = numbers.map(BigInt);
     const consume = operand => {

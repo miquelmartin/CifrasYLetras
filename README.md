@@ -9,6 +9,12 @@ y la ayuda tienen desplazamiento interno cuando es necesario; los pasos de
 cifras conservan sus cajas y distintivos. En pantallas con menos de 504 px de
 altura util (por ejemplo, con teclado abierto) se permite desplazar la pagina
 para mantener controles legibles, sin recortar contenido.
+La interfaz usa fondo claro y una paleta naranja y azul. En la calculadora
+todas las cifras originales permanecen visibles: las usadas aparecen tachadas
+y con una marca de verificacion; las no usadas conservan su aspecto aunque
+temporalmente esperen la eleccion de un operador. Deshacer restaura esas marcas.
+Los resultados automaticos muestran tambien cada cifra original, con su
+estado utilizada/sin usar, distinguiendo las instancias repetidas.
 
 En cifras, espacio o coma confirma cada entero como ficha. Puedes pegar listas,
 quitar fichas o usar retroceso con el campo vacio para corregir la ultima.
@@ -16,6 +22,10 @@ La ultima cifra escrita se incluye aunque no hayas pulsado un separador.
 En letras, cada letra crea una ficha de inmediato; espacios y comas se ignoran.
 Se respetan la composicion de caracteres, las tildes y la distincion entre N y
 &Ntilde;.
+Los separadores se cancelan antes de editar y se ignoran tambien en los eventos
+de entrada de teclados moviles; los eventos finales de composicion no vuelven
+a confirmar una letra ya insertada. Las repeticiones escritas a proposito se
+conservan.
 
 **Resolver yo** abre una calculadora dentro de la pagina con una tecla por
 cifra, incluidas las repetidas como instancias separadas. Elige una cifra,
