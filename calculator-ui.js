@@ -4,6 +4,7 @@ const calculatorPanel = document.getElementById("calculator-panel");
 const calculatorStatus = document.getElementById("calculator-status");
 const calculatorKeys = document.getElementById("calculator-keys");
 const operatorButtons = [...document.querySelectorAll("[data-operator]")];
+const targetCelebration = new TargetCelebration(calculatorPanel);
 let manualGame;
 const numeralContext = document.createElement("canvas").getContext("2d");
 
@@ -25,20 +26,17 @@ new ResizeObserver(fitCalculatorNumerals).observe(calculatorPanel);
 
 function renderCalculator(message, error = false) {
   const state = manualGame.state;
-  const pending = state.pending === null ? "" : state.pending.toString();
   const current = state.current === null ? "" : state.current.toString();
   const symbol = { "+": "+", "-": "\u2212", "*": "\u00d7", "/": "\u00f7" }[state.operator] || "";
-  document.getElementById("calculator-display").textContent = `${current || "Elige una cifra"} ${symbol} ${pending}`;
+  document.getElementById("calculator-display").textContent = `${current || "Elige una cifra"} ${symbol}`;
   for (const [index, button] of [...calculatorKeys.children].entries()) {
-    button.disabled = state.used.includes(index) || state.pending !== null ||
-      (state.current !== null && !state.operator);
+    button.disabled = state.used.includes(index) || (state.current !== null && !state.operator);
     button.setAttribute("aria-label", `Cifra ${index + 1}: ${manualGame.numbers[index]}${state.used.includes(index) ? ", utilizada" : ""}`);
   }
   for (const button of operatorButtons) {
-    button.disabled = state.current === null || state.pending !== null;
+    button.disabled = state.current === null;
     button.setAttribute("aria-pressed", String(state.operator === button.dataset.operator));
   }
-  document.getElementById("calculator-equals").disabled = state.pending === null;
   document.getElementById("calculator-undo").disabled = !manualGame.history.length;
   const steps = document.getElementById("calculator-steps");
   steps.replaceChildren();
@@ -47,11 +45,14 @@ function renderCalculator(message, error = false) {
     item.textContent = step;
     steps.append(item);
   }
-  const reached = state.current === manualGame.target && state.pending === null;
+  const reached = manualGame.distance === 0n;
+  document.getElementById("calculator-distance").textContent = manualGame.distance === null ?
+    "Distancia al objetivo: \u2014" : reached ? "Objetivo alcanzado" : `A ${manualGame.distance} del objetivo`;
   calculatorStatus.textContent = message || (reached ? "\u00a1Objetivo alcanzado!" :
-    `Cifras usadas: ${state.used.length} de ${manualGame.numbers.length}. ${state.current === null ? "Elige una cifra para empezar." : state.pending !== null ? "Pulsa = para calcular." : state.operator ? "Elige otra cifra." : "Elige una operaci\u00f3n."}`);
+    `Cifras usadas: ${state.used.length} de ${manualGame.numbers.length}. ${state.current === null ? "Elige una cifra para empezar." : state.operator ? "Elige otra cifra." : "Elige una operaci\u00f3n."}`);
   calculatorStatus.classList.toggle("error", error);
   calculatorStatus.classList.toggle("success", reached && !error);
+  targetCelebration.update(reached);
   fitCalculatorNumerals();
 }
 
@@ -74,6 +75,7 @@ document.getElementById("solve-myself").addEventListener("click", () => {
     status.classList.add("error");
     return;
   }
+  targetCelebration.stop();
   manualGame = new NumbersGame.Game(puzzle.numbers, puzzle.target);
   document.getElementById("calculator-target").textContent = puzzle.target.toString();
   calculatorKeys.replaceChildren();
@@ -93,10 +95,11 @@ document.getElementById("solve-myself").addEventListener("click", () => {
 for (const button of operatorButtons) {
   button.addEventListener("click", () => calculatorAction(() => manualGame.chooseOperator(button.dataset.operator)));
 }
-document.getElementById("calculator-equals").addEventListener("click", () => calculatorAction(() => manualGame.execute()));
 document.getElementById("calculator-undo").addEventListener("click", () => calculatorAction(() => manualGame.undo()));
 document.getElementById("calculator-back").addEventListener("click", () => {
+  targetCelebration.stop();
   calculatorPanel.hidden = true;
   document.querySelector("main").classList.remove("manual");
   document.getElementById("solve-myself").focus();
 });
+window.addEventListener("pagehide", () => targetCelebration.stop());
