@@ -5,24 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cifras y Letras</title>
   <style>
-    :root { color-scheme: light; font: 16px/1.4 system-ui, sans-serif; background: #fff8f0; color: #173653; --muted: #486079; --blue: #2166ad; --orange: #b84b0b; --line: #b9cddd; --soft: #edf5fc; }
+    :root { color-scheme: light; font: 16px/1.4 system-ui, sans-serif; background: #dff1ff; color: #0b1530; --ink: #0b1530; --muted: #33415f; --blue: #0a5cff; --orange: #ff6a13; --amber: #ffb800; --line: #0b1530; --soft: #fff; }
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 12px; background: radial-gradient(ellipse at top right, #ffe1bf, transparent 65%); }
+    body { margin: 0; padding: 12px; }
     main { max-width: 760px; height: calc(100vh - 24px); height: calc(100dvh - 24px); min-height: 480px; margin: auto; display: flex; flex-direction: column; gap: 10px; }
     h1 { font-size: 1.5rem; letter-spacing: -.04em; margin: 0; line-height: 1.2; }
     h2 { font-size: 1.05rem; margin: 0; }
     p { color: var(--muted); margin: 0; }
-    .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; box-shadow: 0 3px 12px #17365308; }
+    .card { background: #fff; border: 3px solid var(--line); border-radius: 14px; padding: 12px; }
     label { display: block; font-weight: 650; margin-bottom: 4px; }
-    input { min-width: 0; width: 100%; background: #fff; color: #173653; border: 1px solid #829bb1; border-radius: 8px; padding: 10px; font: inherit; }
+    input { min-width: 0; width: 100%; background: #fff; color: var(--ink); border: 3px solid var(--line); border-radius: 8px; padding: 8px; font: inherit; }
     input::placeholder { color: #586d80; opacity: 1; }
-    :focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+    :focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
     .hint { display: block; font-size: .875rem; color: var(--muted); margin: 8px 0; }
     .buttons { display: flex; gap: 8px; margin-top: 10px; }
-    button { min-height: 44px; border: 0; border-radius: 8px; padding: 8px 12px; font: inherit; font-weight: 700; cursor: pointer; background: var(--orange); color: #fff; }
+    button { min-height: 44px; border: 3px solid var(--line); border-radius: 8px; padding: 6px 10px; font: inherit; font-weight: 700; cursor: pointer; background: var(--orange); color: var(--ink); box-shadow: 3px 3px 0 var(--ink); }
     .buttons button { flex: 1; }
-    button.secondary { background: #deedfa; color: #174f86; }
-    button:disabled { background: #e4eaf0; color: #536779; cursor: not-allowed; }
+    button.secondary { background: #fff; color: var(--blue); }
+    button:disabled { background: #e5eaf3; color: #45536f; box-shadow: none; cursor: not-allowed; }
     details { color: var(--muted); font-size: .875rem; }
     summary { cursor: pointer; padding: 8px 0; }
     .rules { padding-left: 20px; margin: 8px 0; }
@@ -30,13 +30,13 @@
     #status.error, #letters-status.error { color: #a52826; }
     #expression { overflow-wrap: anywhere; font: 1rem/1.5 ui-monospace, monospace; color: var(--blue); }
     #steps { padding: 3px; margin: 0; list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 6px; }
-    #steps li { counter-increment: step; display: flex; align-items: center; gap: 10px; padding: 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--soft); }
-    #steps li::before { content: counter(step); display: grid; place-items: center; flex: 0 0 26px; height: 26px; border-radius: 50%; background: #ffdfbf; color: #843600; font: 700 .8rem system-ui, sans-serif; }
+    #steps li { counter-increment: step; display: flex; align-items: center; gap: 10px; padding: 8px; border: 3px solid var(--line); border-radius: 9px; background: var(--soft); }
+    #steps li::before { content: counter(step); display: grid; place-items: center; flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--amber); color: var(--ink); font: 700 .8rem system-ui, sans-serif; }
     #steps .operation { min-width: 0; overflow-wrap: anywhere; font: 1rem/1.4 ui-monospace, monospace; }
-    a { color: #175b9d; text-underline-offset: 3px; }
-    .tabs { display: flex; gap: 4px; padding: 4px; background: #fff; border: 1px solid var(--line); border-radius: 12px; }
-    .tabs button { flex: 1; background: transparent; color: var(--muted); }
-    .tabs button[aria-selected="true"] { background: var(--blue); color: #fff; }
+    a { color: var(--blue); text-underline-offset: 3px; }
+    .tabs { display: flex; gap: 4px; padding: 4px; background: #fff; border: 3px solid var(--line); border-radius: 12px; }
+    .tabs button { flex: 1; background: transparent; color: var(--ink); border: 0; box-shadow: none; }
+    .tabs button[aria-selected="true"] { background: var(--amber); color: var(--ink); }
     [role="tabpanel"] { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
     form.card { flex: 0 0 auto; max-height: 62%; overflow: auto; }
     .fields { display: grid; grid-template-columns: minmax(0, 1fr) 92px; gap: 10px; align-items: start; }
@@ -45,10 +45,10 @@
     #result .result-scroll { flex: 1; }
     #summary, #letters-summary { font-size: .875rem; overflow-wrap: anywhere; }
     .word-list { margin: 0; padding: 3px; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(124px, 1fr)); gap: 6px; align-content: start; }
-    .word-list li { display: flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--soft); overflow-wrap: anywhere; }
-    .word-list strong { flex: 1; min-width: 0; font-size: 1rem; color: var(--orange); }
+    .word-list li { display: flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border: 3px solid var(--line); border-radius: 9px; background: var(--soft); overflow-wrap: anywhere; }
+    .word-list strong { flex: 1; min-width: 0; font-size: 1rem; color: var(--ink); }
     .word-list a { display: grid; place-items: center; flex: 0 0 44px; min-height: 44px; border-radius: 6px; }
-    .word-list a:hover { background: #deedfa; }
+    .word-list a:hover { background: #dff1ff; }
     .word-list svg { width: 18px; height: 18px; }
     .notice { font-size: .875rem; color: var(--muted); }
     .caveat { font-size: .875rem; margin-top: 6px; }
@@ -56,37 +56,39 @@
     .manual > .tabs, .manual > [role="tabpanel"] { display: none !important; }
     #calculator-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
     .calculator-toolbar { display: flex; align-items: center; gap: 12px; min-height: 44px; }
-    .calculator-target { min-width: 0; max-height: 3em; overflow: auto; overflow-wrap: anywhere; }
-    #calculator-display { background: var(--soft); border-radius: 8px; padding: 6px; font: clamp(1.75rem, 7vw, 3rem)/1.15 ui-monospace, monospace; color: var(--blue); overflow-wrap: anywhere; max-height: 2.5em; overflow: auto; }
+    .calculator-target { min-width: 0; max-height: 3em; overflow: auto; overflow-wrap: anywhere; background: var(--orange); color: var(--ink); border: 3px solid var(--ink); padding: 4px 8px; border-radius: 8px; font-weight: 700; }
+    #calculator-display { background: var(--soft); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); border-radius: 8px; padding: 6px; font: clamp(1.75rem, 7vw, 3rem)/1.15 ui-monospace, monospace; color: var(--ink); overflow-wrap: anywhere; max-height: 2.5em; overflow: auto; }
     .calculator-controls { flex: 0 0 auto; max-height: 78%; overflow: auto; padding: 8px; }
     #calculator-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
     #calculator-keys button { min-height: clamp(44px, 7dvh, 64px); min-width: 0; font-size: clamp(1.75rem, 8vw, 2.8rem); line-height: 1.3; padding: 4px; white-space: normal; overflow-wrap: anywhere; }
     .calculator-operators { display: grid; grid-template-columns: repeat(4, minmax(0, 80px)); justify-content: space-between; gap: 6px; margin-top: 8px; }
-    .calculator-operators button { aspect-ratio: 1; border-radius: 0; padding: 0; font-size: 2rem; background: #2874c8; color: #fff; }
-    .calculator-operators button:disabled { background: #dbe8f5; color: #52697d; }
-    .calculator-operators button[aria-pressed="true"] { box-shadow: inset 0 0 0 3px #ffca87; background: #164b85; }
+    .calculator-operators button { aspect-ratio: 1; border-radius: 0; padding: 0; font-size: 2rem; background: var(--blue); color: #fff; }
+    .calculator-operators button:disabled { background: #d5e0ff; color: #45536f; }
+    .calculator-operators button[aria-pressed="true"] { box-shadow: inset 0 0 0 3px var(--amber), 3px 3px 0 var(--ink); }
     .calculator-tools { display: flex; gap: 6px; margin-top: 6px; }
     .calculator-tools button { flex: 1; padding: 4px; font-size: 1.75rem; }
     #calculator-status { font-size: .875rem; margin-top: 8px; max-height: 4em; overflow: auto; }
-    #calculator-distance { color: var(--blue); font-size: .875rem; margin-top: 4px; max-height: 2.8em; overflow: auto; overflow-wrap: anywhere; }
+    #calculator-distance { color: var(--ink); background: var(--amber); border: 2px solid var(--ink); border-radius: 12px; width: fit-content; font-size: .875rem; font-weight: 700; margin-top: 8px; padding: 2px 6px; max-height: 3em; overflow: auto; overflow-wrap: anywhere; }
     .error { color: #a52826; }
-    .success { color: #843600; font-weight: 700; }
-    .target-reached #calculator-display { box-shadow: inset 0 0 0 2px var(--orange); background: #fff0df; }
+    .success { color: var(--ink); font-weight: 700; }
+    .target-reached #calculator-display { background: var(--amber); }
     .celebration { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
     #calculator-steps { padding: 3px; margin: 0; list-style: none; counter-reset: manual-step; display: flex; flex-direction: column; gap: 6px; }
-    #calculator-steps li { counter-increment: manual-step; display: flex; gap: 8px; align-items: center; overflow-wrap: anywhere; padding: 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--soft); }
-    #calculator-steps li::before { content: counter(manual-step); display: grid; place-items: center; flex: 0 0 26px; height: 26px; border-radius: 50%; background: #ffdfbf; color: #843600; font-size: .8rem; }
+    #calculator-steps li { counter-increment: manual-step; display: flex; gap: 8px; align-items: center; overflow-wrap: anywhere; padding: 8px; border: 3px solid var(--line); border-radius: 9px; background: var(--soft); }
+    #calculator-steps li::before { content: counter(manual-step); display: grid; place-items: center; flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--amber); color: var(--ink); font-size: .8rem; }
     #calculator-history { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
-    .number-box { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; max-height: 116px; overflow: auto; padding: 5px; border: 1px solid #829bb1; border-radius: 8px; background: #fff; }
+    .number-box { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; max-height: 116px; overflow: auto; padding: 5px; border: 3px solid var(--ink); border-radius: 8px; background: #fff; }
     #number-chips, #letter-chips { display: contents; }
-    .number-chip { min-height: 32px; min-width: 32px; padding: 4px 7px; max-width: 100%; overflow-wrap: anywhere; background: #ffdfbf; color: #743009; font-size: .9rem; }
-    #calculator-keys button { position: relative; background: #ffdfbf; color: #743009; border: 1px solid #dca66d; padding-right: 16px; }
-    #calculator-keys button:disabled { background: #fff3e5; color: #743009; border-style: dashed; }
-    #calculator-keys button.used { background: #e3edf6; color: #374f65; border: 2px solid #829bb1; text-decoration: line-through; }
+    .number-chip { min-height: 32px; min-width: 32px; padding: 4px 7px; max-width: 100%; overflow-wrap: anywhere; background: var(--orange); color: var(--ink); font-size: .9rem; }
+    #letter-chips .number-chip { background: var(--amber); }
+    #calculator-keys { padding: 0 3px 3px 0; }
+    #calculator-keys button { position: relative; background: var(--orange); color: var(--ink); border: 3px solid var(--ink); padding-right: 16px; }
+    #calculator-keys button:disabled { background: var(--orange); color: var(--ink); border-style: dashed; }
+    #calculator-keys button.used { background: #ffd2b8; color: #8a4a26; border: 3px solid var(--ink); text-decoration: line-through; box-shadow: none; }
     #calculator-keys button.used::after { content: "\2713"; position: absolute; top: 1px; right: 3px; font: 700 .8rem/1.2 system-ui, sans-serif; }
     .supplied-numbers { display: flex; gap: 4px; flex-wrap: wrap; max-height: 60px; overflow: auto; flex-shrink: 0; list-style: none; margin: 0; padding: 2px; }
-    .supplied-numbers li { border: 1px solid #dca66d; border-radius: 6px; padding: 2px 6px; background: #fff3e5; color: #743009; font-size: .875rem; overflow-wrap: anywhere; max-width: 100%; }
-    .supplied-numbers li.used { background: #e3edf6; color: #374f65; border-color: #829bb1; }
+    .supplied-numbers li { border: 3px solid var(--ink); border-radius: 6px; padding: 2px 6px; background: var(--orange); color: var(--ink); font-size: .875rem; overflow-wrap: anywhere; max-width: 100%; }
+    .supplied-numbers li.used { background: #ffd2b8; color: #8a4a26; }
     .key-legend { font-size: .75rem; color: var(--muted); margin-top: 4px; }
     #number-entry, #letter-entry { flex: 1; min-width: 64px; width: 64px; border: 0; padding: 6px; min-height: 32px; }
     #number-entry::placeholder, #letter-entry::placeholder { font-size: .875rem; }
@@ -208,7 +210,7 @@
   <script src="numbers-game.js?v=5"></script>
   <script src="number-chips.js?v=5"></script>
   <script src="letter-chips.js?v=9"></script>
-  <script src="celebration.js?v=5"></script>
+  <script src="celebration.js?v=11"></script>
   <script src="calculator-ui.js?v=5"></script>
   <script>
     "use strict";

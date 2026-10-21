@@ -137,7 +137,7 @@ export async function run() {
       for (const button of doc.querySelectorAll("[data-operator]")) {
         const bounds = button.getBoundingClientRect();
         assert(Math.abs(bounds.width - bounds.height) < 1 && bounds.width >= 64, "Operaciones deben ser cuadrados grandes");
-        assert(win.getComputedStyle(button).backgroundColor === "rgb(40, 116, 200)", "Operaciones deben ser azules");
+        assert(win.getComputedStyle(button).backgroundColor === "rgb(10, 92, 255)", "Operaciones deben ser azules");
       }
       assert(byId("calculator-undo").textContent.trim() === "←" && byId("calculator-undo").getAttribute("aria-label") === "Deshacer", "Deshacer debe ser una flecha accesible");
       assert(!byId("calculator-reset") && !byId("calculator-reverse"), "Sobran controles eliminados");
