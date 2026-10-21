@@ -98,9 +98,11 @@ function fitCalculatorNumerals() {
   const keyMaximum = calculatorKeys.children.length > 6 && innerHeight <= 700 ? 32 : Math.min(48, Math.max(40, innerHeight * .06));
   for (const element of [display, target, ...calculatorKeys.children]) {
     const styles = getComputedStyle(element);
-    const maximum = element === target ? 52 : element === display ? 40 : keyMaximum;
+    const maximum = element === target ? 46 : element === display ? 40 : keyMaximum;
     numeralContext.font = `${styles.fontWeight} ${maximum}px ${styles.fontFamily}`;
-    const available = element.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight);
+    const available = element === target ?
+      target.parentElement.clientWidth - document.getElementById("calculator-distance").offsetWidth - 10 :
+      element.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight);
     const width = numeralContext.measureText(element.textContent).width;
     const size = Math.max(16, Math.min(maximum, maximum * available * .94 / Math.max(1, width)));
     element.style.fontSize = `${size}px`;
@@ -165,11 +167,11 @@ function renderCalculator(message, error = false) {
   }
   document.getElementById("calculator-history-title").textContent = `Pasos (${state.steps.length})`;
   const reached = manualGame.distance === 0n;
-  document.getElementById("calculator-distance").textContent = reached ?
-    "Objetivo alcanzado" : `A ${formatNumberValue(manualGame.distance)} del objetivo`;
+  const gap = reached ? "" : `${manualGame.offset < 0n ? "faltan" : "sobran"} ${formatNumberValue(manualGame.distance)}`;
+  document.getElementById("calculator-distance").textContent = reached ? "Objetivo alcanzado" : gap;
   document.getElementById("calculator-distance").setAttribute("aria-label", reached ?
-    "Objetivo alcanzado" : `Distancia del bot\u00f3n m\u00e1s cercano: ${manualGame.distance}`);
-  document.getElementById("calculator-distance").title = reached ? "Objetivo alcanzado" : `A ${manualGame.distance} del objetivo`;
+    "Objetivo alcanzado" : `${manualGame.offset < 0n ? "Faltan" : "Sobran"} ${manualGame.distance} respecto al bot\u00f3n m\u00e1s cercano`);
+  document.getElementById("calculator-distance").title = reached ? "Objetivo alcanzado" : `${gap.split(" ")[0]} ${manualGame.distance}`;
   calculatorStatus.textContent = message || (reached ? "\u00a1Objetivo alcanzado!" :
     state.operator ? "Elige otro n\u00famero." : state.selected ? "Elige una operaci\u00f3n." : "Elige un n\u00famero.");
   calculatorStatus.classList.toggle("error", error);
