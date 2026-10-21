@@ -28,8 +28,7 @@ function renderCalculator(message, error = false) {
   const pending = state.pending === null ? "" : state.pending.toString();
   const current = state.current === null ? "" : state.current.toString();
   const symbol = { "+": "+", "-": "\u2212", "*": "\u00d7", "/": "\u00f7" }[state.operator] || "";
-  document.getElementById("calculator-display").textContent = state.reversed ?
-    `${pending} ${symbol} ${current}` : `${current || "Elige una cifra"} ${symbol} ${pending}`;
+  document.getElementById("calculator-display").textContent = `${current || "Elige una cifra"} ${symbol} ${pending}`;
   for (const [index, button] of [...calculatorKeys.children].entries()) {
     button.disabled = state.used.includes(index) || state.pending !== null ||
       (state.current !== null && !state.operator);
@@ -40,7 +39,6 @@ function renderCalculator(message, error = false) {
     button.setAttribute("aria-pressed", String(state.operator === button.dataset.operator));
   }
   document.getElementById("calculator-equals").disabled = state.pending === null;
-  document.getElementById("calculator-reverse").disabled = state.pending === null;
   document.getElementById("calculator-undo").disabled = !manualGame.history.length;
   const steps = document.getElementById("calculator-steps");
   steps.replaceChildren();
@@ -96,9 +94,7 @@ for (const button of operatorButtons) {
   button.addEventListener("click", () => calculatorAction(() => manualGame.chooseOperator(button.dataset.operator)));
 }
 document.getElementById("calculator-equals").addEventListener("click", () => calculatorAction(() => manualGame.execute()));
-document.getElementById("calculator-reverse").addEventListener("click", () => calculatorAction(() => manualGame.reverse()));
 document.getElementById("calculator-undo").addEventListener("click", () => calculatorAction(() => manualGame.undo()));
-document.getElementById("calculator-reset").addEventListener("click", () => calculatorAction(() => manualGame.reset()));
 document.getElementById("calculator-back").addEventListener("click", () => {
   calculatorPanel.hidden = true;
   document.querySelector("main").classList.remove("manual");

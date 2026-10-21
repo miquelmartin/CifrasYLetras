@@ -5,7 +5,7 @@
   const entry = document.getElementById("number-entry");
   const container = document.getElementById("number-chips");
   const status = document.getElementById("status");
-  const chips = raw.value.trim().split(/[\s,]+/);
+  const chips = raw.value.trim().split(/[\s,]+/).filter(Boolean);
   const integer = /^[+-]?\d+$/;
   let hadError = false;
 
