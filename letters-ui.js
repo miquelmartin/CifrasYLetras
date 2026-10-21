@@ -86,7 +86,7 @@ lettersForm.addEventListener("submit", event => {
             return;
           }
           document.getElementById("letters-summary").textContent =
-            `Letras utilizadas: ${length.toLocaleString("es-ES")} de ${supplied.toLocaleString("es-ES")}. Candidatas de longitud m\u00e1xima: ${matches.length.toLocaleString("es-ES")}. No verificadas por la RAE.`;
+            `Letras utilizadas: ${length.toLocaleString("es-ES")} de ${supplied.toLocaleString("es-ES")}. Candidatas de longitud m\u00e1xima: ${matches.length.toLocaleString("es-ES")}.`;
           for (const { word, lemma } of matches) {
             const item = document.createElement("li");
             const text = document.createElement("strong");
@@ -95,7 +95,18 @@ lettersForm.addEventListener("submit", event => {
             link.href = `https://dle.rae.es/${encodeURIComponent(lemma)}`;
             link.target = "_blank";
             link.rel = "noopener noreferrer";
-            link.textContent = `Consultar en el DLE: ${lemma}`;
+            link.setAttribute("aria-label", `Consultar \u00ab${word}\u00bb en el DLE (lema: ${lemma})`);
+            link.title = `Consultar \u00ab${word}\u00bb en el DLE (lema: ${lemma})`;
+            const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            icon.setAttribute("viewBox", "0 0 24 24");
+            icon.setAttribute("aria-hidden", "true");
+            icon.setAttribute("fill", "none");
+            icon.setAttribute("stroke", "currentColor");
+            icon.setAttribute("stroke-width", "1.8");
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", "M12 5C8 2 4 3 2 4v15c4-2 7-1 10 1 3-2 6-3 10-1V4c-2-1-6-2-10 1Zm0 0v15");
+            icon.append(path);
+            link.append(icon);
             link.lang = "es";
             item.append(text, link);
             list.append(item);
