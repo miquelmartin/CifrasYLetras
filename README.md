@@ -26,6 +26,10 @@ Los separadores se cancelan antes de editar y se ignoran tambien en los eventos
 de entrada de teclados moviles; los eventos finales de composicion no vuelven
 a confirmar una letra ya insertada. Las repeticiones escritas a proposito se
 conservan.
+Durante la composicion predictiva de palabras (por ejemplo Gboard), cada
+actualizacion sustituye solo las fichas de esa composicion, de modo que las
+letras completas aparecen inmediatamente y las correcciones no se duplican.
+Solo los acentos pendientes esperan a su letra base.
 
 **Resolver yo** abre una calculadora dentro de la pagina con una tecla por
 cifra, incluidas las repetidas como instancias separadas. Elige una cifra,
