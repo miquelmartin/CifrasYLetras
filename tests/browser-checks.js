@@ -303,7 +303,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       await idle();
       const restored = [...byId("calculator-keys").children];
       assert(restored.length === 6 && byId("calculator-originals").querySelectorAll(".used").length === 0, "Deshacer no restaura operandos");
-      assert(byId("calculator-distance").textContent === "M\u00e1s cercano: a 1 del objetivo", "Distancia tras deshacer incorrecta");
+      assert(byId("calculator-distance").textContent === "A 1 del objetivo", "Distancia tras deshacer incorrecta");
       byId("calculator-undo").click();
       byId("calculator-undo").click();
       assert(keys.every(key => !key.disabled), "Deshacer repetido no restaura inicio");
@@ -333,7 +333,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       }
       await idle();
       assert(byId("calculator-display").textContent.trim() === "15", "5 por 3 no calcula inmediatamente");
-      assert(byId("calculator-distance").textContent === "M\u00e1s cercano: a 6 del objetivo", "Distancia bajo objetivo incorrecta");
+      assert(byId("calculator-distance").textContent === "A 6 del objetivo", "Distancia bajo objetivo incorrecta");
       byId("calculator-keys").querySelector(".result-key").click(); op("+"); immediateKeys[5].click();
       await idle();
       assert(byId("calculator-display").textContent.trim() === "21", "15 mas 6 no calcula inmediatamente");

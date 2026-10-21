@@ -24,6 +24,7 @@
     button.secondary { background: #fff; color: var(--blue); }
     button:disabled { background: #e5eaf3; color: #45536f; box-shadow: none; cursor: not-allowed; }
     details { color: var(--muted); font-size: .875rem; }
+    details:not([open]) > :not(summary), #calculator-history:not([open]) > #calculator-steps { display: none; }
     summary { cursor: pointer; padding: 8px 0; }
     .rules { padding-left: 20px; margin: 8px 0; }
     #status, #letters-status { margin-top: 4px; font-size: .875rem; max-height: 3.9em; overflow: auto; overflow-wrap: anywhere; }
@@ -91,7 +92,7 @@
     #calculator-auto { font-size: .875rem; }
     #calculator-undo { flex: 0 0 52px; line-height: 1; }
     #calculator-status { font-size: .875rem; margin-top: 8px; max-height: 4em; overflow: auto; }
-    #calculator-distance { color: var(--ink); background: var(--amber); border: 2px solid var(--ink); border-radius: 12px; width: fit-content; font-size: .875rem; font-weight: 700; padding: 2px 6px; max-height: 3em; overflow: auto; overflow-wrap: anywhere; }
+    #calculator-distance { color: var(--ink); background: var(--amber); border: 2px solid var(--ink); border-radius: 12px; width: fit-content; font-size: .875rem; font-weight: 700; padding: 2px 6px; max-height: 4em; overflow: auto; overflow-wrap: anywhere; }
     .error { color: #a52826; }
     .success { color: var(--ink); font-weight: 700; }
     .target-reached #calculator-display { background: var(--amber); }
@@ -246,7 +247,7 @@
   <script src="number-chips.js?v=5"></script>
   <script src="letter-chips.js?v=9"></script>
   <script src="celebration.js?v=11"></script>
-  <script src="calculator-ui.js?v=17"></script>
+  <script src="calculator-ui.js?v=18"></script>
   <script>
     "use strict";
 

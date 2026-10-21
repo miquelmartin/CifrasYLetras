@@ -157,7 +157,9 @@ function renderCalculator(message, error = false) {
   document.getElementById("calculator-history-title").textContent = `Ver pasos (${state.steps.length})`;
   const reached = manualGame.distance === 0n;
   document.getElementById("calculator-distance").textContent = reached ?
-    "Objetivo alcanzado" : `M\u00e1s cercano: a ${manualGame.distance} del objetivo`;
+    "Objetivo alcanzado" : `A ${manualGame.distance} del objetivo`;
+  document.getElementById("calculator-distance").setAttribute("aria-label", reached ?
+    "Objetivo alcanzado" : `Distancia del bot\u00f3n m\u00e1s cercano: ${manualGame.distance}`);
   calculatorStatus.textContent = message || (reached ? "\u00a1Objetivo alcanzado!" :
     state.operator ? "Elige el segundo bot\u00f3n." : state.selected ? "Elige una operaci\u00f3n." : "Elige un bot\u00f3n original o un resultado.");
   calculatorStatus.classList.toggle("error", error);
