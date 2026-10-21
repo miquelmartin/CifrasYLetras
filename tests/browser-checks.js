@@ -20,7 +20,14 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
     });
     const byId = id => doc.getElementById(id);
     const scrollers = new Set(["calculator-steps", "letters-words"]);
-    const snapshot = name => {
+    // Invisible tap extensions (button::before) are excluded from clipping measurements.
+    const withoutHitAreas = measure => {
+      const style = doc.createElement("style");
+      style.textContent = "button::before { display: none !important; }";
+      doc.head.append(style);
+      try { return measure(); } finally { style.remove(); }
+    };
+    const snapshot = name => withoutHitAreas(() => {
       const root = doc.documentElement;
       assert(root.scrollHeight <= height && root.scrollWidth <= width, `${name}: documento desbordado`);
       for (const element of [root, doc.body]) {
@@ -40,17 +47,41 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
         }
       }
       results.push({ name, viewport: [width, height], document: [doc.documentElement.scrollWidth, doc.documentElement.scrollHeight] });
-    };
-    const visible = element => {
+    });
+    const visible = element => withoutHitAreas(() => {
       const rect = element.getBoundingClientRect();
       assert(rect.width >= 44 && rect.height >= 44 && rect.left >= 0 && rect.top >= 0 && rect.right <= width && rect.bottom <= height,
         `${element.id || element.textContent}: tecla oculta o pequena`);
       assert(element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1, "Barra o recorte en una tecla");
-    };
+    });
     const padFits = id => {
       for (const button of byId(id).children) visible(button);
       assert(!doc.querySelector('input:not([type="hidden"]), textarea, [contenteditable="true"]'), "No debe haber campos que abran el teclado del movil");
       assert(doc.activeElement.tagName !== "INPUT", "Foco con cursor de texto");
+    };
+    const gapHits = (selector, name) => {
+      const buttons = [...doc.querySelectorAll(selector)].filter(button => button.getClientRects().length);
+      const rects = buttons.map(button => button.getBoundingClientRect());
+      // Rectangular hit boxes split gaps by axis distance (Chebyshev), not Euclidean distance.
+      const distance = (r, x, y) => Math.max(r.left - x, 0, x - r.right, r.top - y, y - r.bottom);
+      const left = Math.min(...rects.map(r => r.left)), right = Math.max(...rects.map(r => r.right));
+      const top = Math.min(...rects.map(r => r.top)), bottom = Math.max(...rects.map(r => r.bottom));
+      let sampled = 0, gaps = 0;
+      for (let y = Math.ceil(top); y < bottom; y += 2) {
+        for (let x = Math.ceil(left); x < right; x += 2) {
+          const distances = rects.map(r => distance(r, x, y));
+          const nearest = Math.min(...distances);
+          if (nearest > 4.5) continue;
+          sampled++;
+          if (nearest > 0) gaps++;
+          const hit = doc.elementFromPoint(x, y)?.closest("button");
+          const index = buttons.indexOf(hit);
+          assert(index >= 0, `${name}: zona muerta en (${Math.round(x)}, ${Math.round(y)})`);
+          // Pixel snapping may move a gap boundary by up to 1.5px, changing the distance difference by up to 3px.
+          assert(distances[index] <= nearest + 3, `${name}: (${Math.round(x)}, ${Math.round(y)}) activa ${hit.textContent} en vez de la tecla mas cercana`);
+        }
+      }
+      assert(gaps > 50 && sampled > gaps, `${name}: muestreo de huecos insuficiente`);
     };
     const contrast = (element, minimum = 4.5) => {
       const luminance = color => {
@@ -77,7 +108,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
     const manualFits = () => {
       const controlPanel = byId("calculator-keys").closest(".calculator-controls");
       const controls = controlPanel.getBoundingClientRect();
-      assert(controlPanel.scrollHeight <= controlPanel.clientHeight + 1, "Controles con desplazamiento interno");
+      withoutHitAreas(() => assert(controlPanel.scrollHeight <= controlPanel.clientHeight + 1, "Controles con desplazamiento interno"));
       for (const element of doc.querySelectorAll("#calculator-keys button, .calculator-operators button")) {
         visible(element);
         assert(element.getBoundingClientRect().bottom <= controls.bottom, "Control oculto dentro de la calculadora");
@@ -100,12 +131,20 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
     try {
       await load();
       padFits("number-pad");
+      const tabIcon = doc.querySelector(".tabs img");
+      const [cifrasTab, letrasTab] = [byId("numbers-tab").getBoundingClientRect(), byId("letters-tab").getBoundingClientRect()];
+      const iconRect = tabIcon.getBoundingClientRect();
+      assert(!doc.querySelector("h1") && !doc.body.textContent.includes("Cifras y Letras"), "El titulo visible debe desaparecer");
+      assert(tabIcon.getAttribute("aria-hidden") === "true" && tabIcon.alt === "" && win.getComputedStyle(tabIcon).pointerEvents === "none", "Icono debe ser decorativo");
+      assert(iconRect.left >= cifrasTab.right && iconRect.right <= letrasTab.left && Math.abs((iconRect.left + iconRect.right) / 2 - (cifrasTab.right + letrasTab.left) / 2) <= 1, "Icono no esta centrado entre pestanas");
+      assert(iconRect.top >= tabIcon.parentElement.getBoundingClientRect().top && iconRect.bottom <= tabIcon.parentElement.getBoundingClientRect().bottom, "Icono no cabe en la barra");
       const focusKey = byId("number-pad").firstElementChild;
       focusKey.focus();
       assert(win.getComputedStyle(focusKey).outlineStyle === "none", "No debe aparecer anillo de foco");
       assert(win.getComputedStyle(focusKey).borderWidth === "2px", "Pop suave requiere borde de 2 px");
       contrast(focusKey);
       snapshot("Teclado numerico vacio");
+      gapHits("#number-pad button", "Teclado numerico");
       assert([...byId("number-pad").children].map(button => button.dataset.numberKey).join() === "7,8,9,4,5,6,1,2,3,Backspace,0,Enter", "Orden numerico incorrecto");
       numberKey("Enter");
       assert(byId("number-entry-label").textContent.includes("1 de 6"), "Enter vacio avanza");
@@ -122,6 +161,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       assert(new URL(win.location.href).searchParams.get("obj") === "952" && new URL(win.location.href).searchParams.get("yo") === "1", "Objetivo no persiste");
       manualFits();
       snapshot("Resolver yo vacio");
+      gapHits("#calculator-keys button, .calculator-operators button", "Resolver yo");
       assert(byId("calculator-display").textContent === "" && byId("calculator-display").getBoundingClientRect().height >= 60, "Pantalla vacia muestra signo o colapsa");
       assert(parseFloat(win.getComputedStyle(byId("calculator-target")).fontSize) >= 32, "Objetivo demasiado pequeno");
       contrast(byId("calculator-target"), 3);
@@ -157,6 +197,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       assert(fireworks && win.getComputedStyle(fireworks).pointerEvents === "none", "Faltan fuegos no bloqueantes");
       manualFits();
       snapshot("Dos resultados fusionados");
+      gapHits("#calculator-keys button, .calculator-operators button", "Resolver yo con resultados");
       byId("calculator-undo").click();
       await idle();
       assert(tile(17) && tile(56) && !doc.querySelector(".celebration"), "Deshacer no restaura resultados o limpia fuegos");
@@ -197,7 +238,9 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
 
       await load("?modo=letras");
       padFits("letter-pad");
+      assert(!byId("letters-source").getClientRects().length, "La nota del diccionario debe aparecer solo tras Buscar");
       snapshot("Abecedario completo");
+      gapHits("#letter-pad button", "Teclado de letras");
       assert([...doc.querySelectorAll("[data-letter-key]")].map(button => button.dataset.letterKey).join() === [..."ABCDEFGHIJKLMN\u00d1OPQRSTUVWXYZ", "Backspace"].join(), "Abecedario desordenado o sin enye");
       letterKey("A"); letterKey("A");
       key(" "); key(","); key(" ");
@@ -211,6 +254,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       snapshot("Ocho letras y todas las teclas");
       byId("letters-solve").click();
       await wait(() => !byId("letters-solve").disabled);
+      assert(byId("letters-source").getClientRects().length && byId("letters-source").textContent.includes("no verificadas por la RAE"), "Falta la nota del diccionario tras Buscar");
       assert(!byId("letters-result").hidden && byId("letters-words").children.length >= 8, "Faltan candidatas reales");
       for (const link of byId("letters-words").querySelectorAll("a")) {
         assert(link.querySelector("svg") && link.getAttribute("aria-label").includes("DLE") && link.getBoundingClientRect().width >= 44, "Icono DLE inaccesible");
@@ -236,9 +280,9 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
 
       const huge = "9".repeat(180);
       await load("?n=" + ["-" + huge, "2", "0", "0", "0", "0"].join(",") + "&obj=10&yo=1");
-      for (const button of byId("calculator-keys").children) {
+      for (const button of byId("calculator-keys").children) withoutHitAreas(() => {
         assert(button.scrollWidth <= button.clientWidth + 1 && button.scrollHeight <= button.clientHeight + 1, "Numero largo con scroll o recorte");
-      }
+      });
       manualFits();
       assert(byId("calculator-keys").firstElementChild.title === "-" + huge, "Abreviar no debe perder el valor exacto");
       snapshot("Enteros exactos de 180 digitos");
