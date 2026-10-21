@@ -9,7 +9,9 @@ y la ayuda tienen desplazamiento interno cuando es necesario; los pasos de
 cifras conservan sus cajas y distintivos. En pantallas con menos de 504 px de
 altura util (por ejemplo, con teclado abierto) se permite desplazar la pagina
 para mantener controles legibles, sin recortar contenido.
-La interfaz usa fondo claro y una paleta naranja y azul. En la calculadora
+La interfaz usa la paleta Pop: fondo celeste, naranja mandarina, ambar y azul
+electrico, con contornos oscuros y sombras solidas. Se usa tinta oscura sobre
+naranja para mantener el contraste de los textos. En la calculadora
 todas las cifras originales permanecen visibles: las usadas aparecen tachadas
 y con una marca de verificacion; las no usadas conservan su aspecto aunque
 temporalmente esperen la eleccion de un operador. Deshacer restaura esas marcas.
