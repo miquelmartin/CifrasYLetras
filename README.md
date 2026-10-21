@@ -12,9 +12,10 @@ para mantener controles legibles, sin recortar contenido.
 La interfaz usa la paleta Pop: fondo celeste, naranja mandarina, ambar y azul
 electrico, con contornos oscuros y sombras solidas. Se usa tinta oscura sobre
 naranja para mantener el contraste de los textos. En la calculadora
-todas las cifras originales permanecen visibles: las usadas aparecen tachadas
-y con una marca de verificacion; las no usadas conservan su aspecto aunque
-temporalmente esperen la eleccion de un operador. Deshacer restaura esas marcas.
+todas las cifras originales permanecen visibles en una tira compacta: las usadas
+aparecen tachadas y con una marca de verificacion. Los botones disponibles
+desaparecen al usarse y aparece un nuevo boton de resultado, identificado con R
+y su numero de paso. Deshacer restaura los operandos en su posicion.
 Los resultados automaticos muestran tambien cada cifra original, con su
 estado utilizada/sin usar, distinguiendo las instancias repetidas.
 Las teclas numericas ajustan el tamano de fuente y, para enteros muy largos,
@@ -39,20 +40,32 @@ Solo los acentos pendientes esperan a su letra base.
 **Resolver yo** abre una calculadora dentro de la pagina con una tecla por
 cifra, incluidas las repetidas como instancias separadas. Elige una cifra,
 una operacion y otra cifra: el resultado se calcula inmediatamente, sin `=`.
-Cada paso reutiliza el resultado anterior. La distancia absoluta al objetivo
-se actualiza con enteros exactos al elegir cifras, calcular y deshacer.
+Cualquier par de botones puede combinarse, incluidos dos resultados anteriores.
+La distancia absoluta al objetivo corresponde al boton disponible mas cercano,
+con enteros exactos, y se actualiza al calcular y deshacer.
 Una division invalida no consume la cifra ni cambia el resultado.
 Al alcanzar el objetivo se dibujan breves fuegos artificiales en canvas,
 sin bloquear controles; se cancelan al salir o deshacer y se limpian al terminar.
 Con la preferencia de movimiento reducido solo se resalta el resultado.
 Los cuatro botones de operacion son azules, cuadrados y grandes.
-La flecha hacia atras (**Deshacer**) revierte cada accion, incluida la seleccion
-de una cifra. **Volver** conserva el reto
+La flecha hacia atras (**Deshacer**) cancela primero una seleccion pendiente;
+si no la hay, revierte una operacion completa. Las operaciones solo se habilitan
+cuando se ha elegido el primer operando; mientras se espera una cifra,
+Deshacer sigue disponible si hay una seleccion u operacion que revertir.
+**Resolver automaticamente** busca primero desde los botones actuales; si no
+hay continuacion, busca desde las cifras originales y avisa antes de reiniciar.
+La solucion se reproduce paso a paso, se puede cancelar y permite deshacer
+despues cada operacion. **Volver** conserva el reto
 y los resultados automaticos. Los calculos siguen siendo enteros exactos.
+Las fusiones y Deshacer animan los operandos y la reorganizacion de los botones
+durante 340 ms; las pulsaciones se bloquean mientras termina cada transicion.
+Con movimiento reducido se actualizan al instante.
 Las dos pestanas y el objetivo empiezan vacios, sin ejemplos precargados.
 
 - **Cifras:** calculos enteros exactos, uso opcional de las cifras y solucion
-  secuencial con el menor numero de operaciones. Se puede cancelar la busqueda.
+  combinando cualquier par de cifras o resultados, con el menor numero de
+  operaciones. Las referencias [paso n] identifican resultados anteriores.
+  Se puede cancelar la busqueda.
 - **Letras:** candidatas mas largas del diccionario ortografico espanol usando
   algunas o todas las letras; muestra todos los empates de longitud maxima.
   Respeta las repeticiones. Ignora tildes y dieresis, pero distingue N de
@@ -87,8 +100,9 @@ await (await import("./tests/browser-checks.js")).run()
 ```
 
 Comprueban interacciones y dimensiones reales con ventanas internas de
-360x640, 390x844 y 1280x720, incluidos ocho pasos, numerosos empates, ayuda,
-enteros largos, fichas y calculadora con deshacer.
+360x640, 375x667, 390x844 y 1280x720, incluidos nueve numeros y ocho pasos,
+numerosos empates, ayuda, enteros largos y negativos, fichas, calculadora,
+continuacion automatica, reinicio, cancelacion y deshacer.
 
 El lector del diccionario admite intencionadamente solo las directivas de la
 version fijada de RLA-ES. Una actualizacion con nuevas directivas produce un

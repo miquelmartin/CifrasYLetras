@@ -3,6 +3,7 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { parsePuzzle, Game } = require("../numbers-game.js");
+const { NumbersSearch } = require("../numbers-search.js");
 
 test("both solvers share exact puzzle parsing and Spanish validation", () => {
   assert.deepEqual(parsePuzzle("-5, 2 2 0 6 900719925474099312345", "-12"), {
@@ -13,91 +14,142 @@ test("both solvers share exact puzzle parsing and Spanish validation", () => {
   }
 });
 
-test("duplicate numbers retain identity and each selection can be undone", () => {
-  const game = new Game([2n, 2n, 0n, 3n, 4n, 5n], 4n);
-  game.chooseNumber(0);
-  game.chooseOperator("+");
-  game.chooseNumber(1);
-  assert.equal(game.state.current, 4n);
-  assert.deepEqual(game.state.used, [0, 1]);
-  assert.throws(() => game.chooseNumber(0), /disponible/);
+function combine(game, left, operator, right) {
+  game.chooseNumber(left);
+  game.chooseOperator(operator);
+  return game.chooseNumber(right);
+}
+
+test("merges two intermediate results and undo restores operands in place", () => {
+  const game = new Game([25n, 8n, 6n, 50n, 3n, 7n], 952n);
+  const a = combine(game, "input:0", "-", "input:1");
+  const b = combine(game, "input:2", "+", "input:3");
+  const before = [...game.state.tiles];
+  const c = combine(game, a, "*", b);
+  assert.equal(game.state.tiles.find(tile => tile.id === c).value, 952n);
+  assert.equal(game.distance, 0n);
+  assert.deepEqual(game.used.sort(), [0, 1, 2, 3]);
+  assert.equal(game.state.tiles.length, 3);
+  assert.equal(game.state.steps[2].leftStep, 1);
+  assert.equal(game.state.steps[2].rightStep, 2);
   game.undo();
-  assert.equal(game.state.current, 2n);
-  assert.deepEqual(game.state.used, [0]);
-  assert.equal(game.state.operator, "+");
+  assert.deepEqual(game.state.tiles, before);
+  assert.equal(game.state.current, 56n);
+  game.undo();
+  game.undo();
+  assert.deepEqual(game.state.tiles.map(tile => tile.id), ["input:0", "input:1", "input:2", "input:3", "input:4", "input:5"]);
+  assert.equal(game.state.steps.length, 0);
+  assert.deepEqual(game.used, []);
+});
+
+test("duplicate identities remain distinct and one undo reverses one operation", () => {
+  const game = new Game([2n, 2n, 0n], 4n);
+  const result = combine(game, "input:0", "+", "input:1");
+  assert.equal(game.state.tiles[0].id, result);
+  assert.equal(game.state.tiles[0].value, 4n);
+  assert.equal(game.history.length, 1);
+  assert.throws(() => game.chooseNumber("input:0"), /disponible/);
+  game.undo();
+  assert.deepEqual(game.state.tiles.map(tile => tile.id), ["input:0", "input:1", "input:2"]);
+  assert.equal(game.history.length, 0);
+});
+
+test("undo clears a pending operator then operand before undoing a completed operation", () => {
+  const game = new Game([2n, 3n, 4n], 9n);
+  const result = combine(game, "input:0", "+", "input:1");
+  game.chooseNumber(result);
+  game.chooseOperator("*");
   game.undo();
   assert.equal(game.state.operator, null);
+  assert.equal(game.state.selected, result);
+  assert.equal(game.history.length, 1);
   game.undo();
-  assert.equal(game.state.current, null);
-  assert.deepEqual(game.state.used, []);
+  assert.equal(game.state.selected, null);
+  assert.equal(game.history.length, 1);
   game.undo();
-  assert.equal(game.state.current, null);
+  assert.equal(game.history.length, 0);
+  assert.equal(game.state.tiles.length, 3);
 });
 
-test("fractional division and division by zero fail without altering state", () => {
-  const game = new Game([6n, 4n, 0n, 3n, 2n, 5n], 2n);
-  game.chooseNumber(0);
+test("invalid divisions and same-button selection do not mutate state or consume operands", () => {
+  const game = new Game([6n, 4n, 0n, 3n], 2n);
+  game.chooseNumber("input:0");
   game.chooseOperator("/");
   const before = structuredClone(game.state);
-  const historyLength = game.history.length;
-  assert.throws(() => game.chooseNumber(1), /sin fracciones/);
-  assert.deepEqual(game.state, before);
-  assert.equal(game.history.length, historyLength);
-  assert.throws(() => game.chooseNumber(2), /entre cero/);
-  assert.deepEqual(game.state, before);
-  game.chooseNumber(3);
+  for (const [id, message] of [["input:1", /sin fracciones/], ["input:2", /entre cero/], ["input:0", /distintos/]]) {
+    assert.throws(() => game.chooseNumber(id), message);
+    assert.deepEqual(game.state, before);
+    assert.equal(game.history.length, 0);
+  }
+  game.chooseNumber("input:3");
   assert.equal(game.state.current, 2n);
-  assert.deepEqual(game.state.used, [0, 3]);
-  while (game.history.length) game.undo();
-  assert.equal(game.history.length, 0);
-  assert.deepEqual(game.state.used, []);
+  assert.equal(game.state.tiles.length, 3);
 });
 
-test("supports negatives, exact large integers and sequential steps", () => {
-  const game = new Game([5n, 2n, 900719925474099312345n, 0n, 3n, 6n], -3n);
-  game.chooseNumber(1);
-  game.chooseOperator("-");
-  game.chooseNumber(0);
-  assert.equal(game.state.current, -3n);
-  game.chooseOperator("*");
-  game.chooseNumber(2);
-  assert.equal(game.state.current, -2702159776422297937035n);
-  assert.equal(game.state.steps.length, 2);
-  while (game.history.length) game.undo();
-  game.chooseNumber(5);
-  game.chooseOperator("/");
-  game.chooseNumber(1);
-  assert.equal(game.state.current, 3n);
-});
-
-test("requested 5 times 3 then plus 6 flow evaluates on each number click", () => {
-  const game = new Game([5n, 3n, 6n, 0n, 2n, 2n], 21n);
-  assert.equal(game.distance, null);
-  game.chooseNumber(0);
-  assert.equal(game.distance, 16n);
-  game.chooseOperator("*");
-  game.chooseNumber(1);
+test("exact requested flow and large negative values work without equals", () => {
+  const game = new Game([5n, 3n, 6n, -900719925474099312345n], 21n);
+  const a = combine(game, "input:0", "*", "input:1");
   assert.equal(game.state.current, 15n);
   assert.equal(game.distance, 6n);
-  game.chooseOperator("+");
-  game.chooseNumber(2);
+  const b = combine(game, a, "+", "input:2");
   assert.equal(game.state.current, 21n);
   assert.equal(game.distance, 0n);
+  combine(game, b, "*", "input:3");
+  assert.equal(game.state.current, -18915118434956085559245n);
   game.undo();
-  assert.equal(game.state.current, 15n);
-  assert.equal(game.state.operator, "+");
-  assert.deepEqual(game.state.used, [0, 1]);
-  assert.equal(game.distance, 6n);
+  assert.equal(game.distance, 0n);
 });
 
-test("absolute distance covers above, below, negatives and very large targets", () => {
-  for (const [target, current, distance] of [[6n, 10n, 4n], [10n, 6n, 4n],
-    [-6n, -10n, 4n], [-10n, 6n, 16n], [0n, 0n, 0n],
-    [900719925474099312345n, -5n, 900719925474099312350n]]) {
-    const game = new Game([current], target);
-    game.chooseNumber(0);
-    assert.equal(game.distance, distance);
-    game.undo();
-    assert.equal(game.distance, null);
+test("closest-button distance covers above, below, negatives, and target in any tile", () => {
+  for (const [target, numbers, expected] of [
+    [6n, [10n, -5n], 4n], [10n, [6n, 20n], 4n], [-6n, [-10n, 10n], 4n],
+    [0n, [0n, 3n], 0n], [900719925474099312345n, [-5n], 900719925474099312350n]
+  ]) {
+    const game = new Game(numbers, target);
+    assert.equal(game.distance, expected);
   }
+});
+
+function reference(numbers) {
+  const best = new Map();
+  const tables = new Map();
+  for (let mask = 1; mask < 1 << numbers.length; mask++) {
+    const values = new Set();
+    if ((mask & (mask - 1)) === 0) values.add(numbers[Math.log2(mask)]);
+    for (let left = (mask - 1) & mask; left; left = (left - 1) & mask) {
+      const right = mask ^ left;
+      if (!right || left > right) continue;
+      for (const a of tables.get(left) || []) for (const b of tables.get(right) || []) {
+        values.add(a + b); values.add(a - b); values.add(b - a); values.add(a * b);
+        if (b !== 0n && a % b === 0n) values.add(a / b);
+        if (a !== 0n && b % a === 0n) values.add(b / a);
+      }
+    }
+    tables.set(mask, values);
+    const operations = mask.toString(2).replace(/0/g, "").length - 1;
+    for (const value of values) if (!best.has(value) || operations < best.get(value)) best.set(value, operations);
+  }
+  return best;
+}
+
+test("general solver shortest answers match exhaustive independent subset reference", () => {
+  for (const numbers of [[1n, 2n, 3n], [-2n, 0n, 3n, 3n], [2n, 2n, 3n, 4n], [1n, 2n, 3n, 4n, 5n]]) {
+    const expected = reference(numbers);
+    for (let target = -15n; target <= 45n; target++) {
+      const { solution } = NumbersSearch.solve(numbers.map(String), String(target));
+      assert.equal(solution?.steps.length ?? null, expected.get(target) ?? null, `${numbers} -> ${target}`);
+      if (solution) {
+        const game = new Game(numbers, target);
+        const ids = new Map(game.state.tiles.map(tile => [tile.id, tile.id]));
+        for (const step of solution.steps) ids.set(step.id, combine(game, ids.get(step.leftId), step.operator, ids.get(step.rightId)));
+        assert.equal(game.distance, 0n);
+      }
+    }
+  }
+});
+
+test("general search solves the two-results 952 example in three operations", () => {
+  const { solution } = NumbersSearch.solve(["25", "8", "6", "50"], "952");
+  assert.equal(solution.steps.length, 3);
+  assert.ok(solution.steps.at(-1).leftStep && solution.steps.at(-1).rightStep);
 });
