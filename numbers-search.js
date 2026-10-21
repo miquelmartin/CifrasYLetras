@@ -4,13 +4,18 @@ const NumbersSearch = {
   solve(numbers, targetText, ids = numbers.map((_, index) => `input:${index}`), progress = () => {}) {
     const target = BigInt(targetText);
     const initial = numbers.map((value, index) => ({
-      value: BigInt(value), index, id: ids[index],
+      value: BigInt(value), index, id: ids[index], ops: 0,
       expression: BigInt(value) < 0n ? `(${value})` : String(value)
     }));
     const failed = new Map();
     let visited = 0;
     let lastProgress = Date.now();
     const abs = value => value < 0n ? -value : value;
+    let closest = null;
+    const consider = node => {
+      const distance = abs(node.value - target);
+      if (!closest || distance < closest.distance || (distance === closest.distance && node.ops < closest.node.ops)) closest = { node, distance };
+    };
     const keyFor = nodes => nodes.map(node => node.value).sort((a, b) => a < b ? -1 : a > b ? 1 : 0).join(",");
 
     function search(nodes, remaining) {
@@ -36,7 +41,7 @@ const NumbersSearch = {
           function add(value, left, operator, right) {
             if (value === a.value || value === b.value || outcomes.has(value)) return;
             outcomes.set(value, {
-              value, left, right, operator,
+              value, left, right, operator, ops: left.ops + right.ops + 1,
               expression: `(${left.expression} ${operator} ${right.expression})`
             });
           }
@@ -48,6 +53,7 @@ const NumbersSearch = {
           if (a.value !== 0n && b.value % a.value === 0n) add(b.value / a.value, b, "/", a);
           for (const node of outcomes.values()) {
             if (node.value === target) return node;
+            consider(node);
             if (remaining > 1) candidates.push({ i, j, node, distance: abs(node.value - target) });
           }
         }
@@ -65,12 +71,13 @@ const NumbersSearch = {
     }
 
     let answer = initial.find(node => node.value === target);
+    initial.forEach(consider);
     let currentDepth = 0;
     for (currentDepth = 1; !answer && currentDepth < initial.length; currentDepth++) {
       progress({ visited, depth: currentDepth });
       answer = search(initial, currentDepth);
     }
-    if (!answer) return { solution: null, visited };
+    function build(answer) {
     const steps = [];
     const usedIndices = [];
     function collect(node) {
@@ -90,9 +97,13 @@ const NumbersSearch = {
       return { id, step };
     }
     collect(answer);
-    return { visited, solution: {
-      expression: `${answer.expression} = ${target}`, steps, used: usedIndices.length, usedIndices
-    } };
+    return {
+      expression: `${answer.expression} = ${answer.value}`, steps, used: usedIndices.length, usedIndices,
+      value: String(answer.value), distance: String(abs(answer.value - target))
+    };
+    }
+    if (answer) return { visited, solution: build(answer) };
+    return { visited, solution: null, closest: build(closest.node) };
   }
 };
 

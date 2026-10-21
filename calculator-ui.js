@@ -155,7 +155,7 @@ function renderCalculator(message, error = false) {
   }
   document.getElementById("calculator-undo").disabled = autoBusy || animationBusy || (!manualGame.history.length && state.selected === null);
   autoButton.disabled = animationBusy && !autoBusy;
-  autoButton.textContent = autoBusy ? "Cancelar autom\u00e1tico" : "Resolver autom\u00e1ticamente";
+  autoButton.textContent = autoBusy ? "Cancelar" : "Auto-resolver";
   const steps = document.getElementById("calculator-steps");
   steps.replaceChildren();
   for (const step of state.steps) {
@@ -163,7 +163,7 @@ function renderCalculator(message, error = false) {
     item.append(createNumberStep(step));
     steps.append(item);
   }
-  document.getElementById("calculator-history-title").textContent = `Ver pasos (${state.steps.length})`;
+  document.getElementById("calculator-history-title").textContent = `Pasos (${state.steps.length})`;
   const reached = manualGame.distance === 0n;
   document.getElementById("calculator-distance").textContent = reached ?
     "Objetivo alcanzado" : `A ${formatNumberValue(manualGame.distance)} del objetivo`;
@@ -220,7 +220,7 @@ function searchTiles(tiles) {
         clearSearchWorker();
         rejectSearch = null;
         if (data.type === "error") reject(new Error(data.message));
-        else resolve(data.solution);
+        else resolve(data.solution ? { solution: data.solution, exact: true } : { solution: data.closest, exact: false });
       };
       autoWorker.onerror = event => {
         event.preventDefault();
@@ -256,24 +256,25 @@ autoButton.addEventListener("click", async () => {
   autoBusy = true;
   renderCalculator("Buscando una continuaci\u00f3n desde los botones actuales...");
   try {
-    let solution = await searchTiles(manualGame.state.tiles);
+    let found = await searchTiles(manualGame.state.tiles);
     if (generation !== autoGeneration) return;
-    if (!solution && manualGame.history.length) {
-      renderCalculator("No hay continuaci\u00f3n. Buscando desde las cifras originales...");
+    if (!found.exact && manualGame.history.length) {
+      renderCalculator("No hay continuaci\u00f3n exacta. Buscando desde las cifras originales...");
       const fresh = new NumbersGame.Game(manualGame.numbers, manualGame.target);
-      solution = await searchTiles(fresh.state.tiles);
+      const restart = await searchTiles(fresh.state.tiles);
       if (generation !== autoGeneration) return;
-      if (solution) {
+      if (restart.exact || BigInt(restart.solution.distance) < BigInt(found.solution.distance)) {
+        found = restart;
         manualGame = fresh;
         targetCelebration.stop();
-        renderCalculator("Sin continuaci\u00f3n: empezamos desde las cifras originales.");
+        renderCalculator(restart.exact ? "Sin continuaci\u00f3n: empezamos desde las cifras originales." :
+          "Desde las cifras originales se llega m\u00e1s cerca.");
         if (!await playbackDelay(800)) return;
       }
     }
-    if (!solution) {
-      renderCalculator("No existe una soluci\u00f3n exacta con estas cifras.", true);
-      return;
-    }
+    const solution = found.solution;
+    const closestMessage = found.exact ? "" :
+      `No hay soluci\u00f3n exacta \u00b7 la m\u00e1s cercana: ${formatNumberValue(solution.value)} (a ${formatNumberValue(solution.distance)})`;
     manualGame.state.selected = null;
     manualGame.state.operator = null;
     const mapping = new Map(manualGame.state.tiles.map(tile => [tile.id, tile.id]));
@@ -281,14 +282,14 @@ autoButton.addEventListener("click", async () => {
       if (generation !== autoGeneration) return;
       manualGame.chooseNumber(mapping.get(step.leftId));
       manualGame.chooseOperator(step.operator);
-      renderCalculator("Reproduciendo la soluci\u00f3n...");
+      renderCalculator(closestMessage || "Reproduciendo la soluci\u00f3n...");
       if (!await playbackDelay(350)) return;
       let resultId;
-      applyTileAction(() => { resultId = manualGame.chooseNumber(mapping.get(step.rightId)); }, "Reproduciendo la soluci\u00f3n...");
+      applyTileAction(() => { resultId = manualGame.chooseNumber(mapping.get(step.rightId)); }, closestMessage || "Reproduciendo la soluci\u00f3n...");
       mapping.set(step.id, resultId);
       if (!await playbackDelay(450)) return;
     }
-    renderCalculator("Soluci\u00f3n introducida. Puedes deshacer cada operaci\u00f3n.");
+    renderCalculator(closestMessage || "Soluci\u00f3n introducida. Puedes deshacer cada operaci\u00f3n.", Boolean(closestMessage));
   } catch (error) {
     if (generation === autoGeneration && error.name !== "AbortError") renderCalculator(`Error: ${error.message}`, true);
   } finally {
@@ -314,7 +315,6 @@ document.getElementById("solve-myself").addEventListener("click", () => {
   cancelAutomatic();
   targetCelebration.stop();
   manualGame = new NumbersGame.Game(puzzle.numbers, puzzle.target);
-  document.getElementById("calculator-history").open = true;
   const target = document.getElementById("calculator-target");
   target.textContent = formatNumberValue(puzzle.target);
   target.title = String(puzzle.target);

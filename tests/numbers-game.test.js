@@ -153,3 +153,34 @@ test("general search solves the two-results 952 example in three operations", ()
   assert.equal(solution.steps.length, 3);
   assert.ok(solution.steps.at(-1).leftStep && solution.steps.at(-1).rightStep);
 });
+
+test("without an exact answer the solver plays the closest value with fewest operations", () => {
+  const abs = value => value < 0n ? -value : value;
+  for (const numbers of [[1n, 2n, 3n], [-2n, 0n, 3n, 3n], [2n, 2n, 3n, 4n], [1n, 2n, 3n, 4n, 5n], [3n, 7n, 7n, 50n]]) {
+    const reachable = reference(numbers);
+    for (const target of [-200n, -61n, 97n, 151n, 389n, 1000n, 99999n]) {
+      if (reachable.has(target)) continue;
+      let distance = null, operations = null;
+      for (const [value, count] of reachable) {
+        const d = abs(value - target);
+        if (distance === null || d < distance || (d === distance && count < operations)) { distance = d; operations = count; }
+      }
+      const { solution, closest } = NumbersSearch.solve(numbers.map(String), String(target));
+      assert.equal(solution, null);
+      assert.equal(closest.distance, String(distance), `${numbers} -> ${target}`);
+      assert.equal(closest.steps.length, operations, `${numbers} -> ${target} operaciones`);
+      const game = new Game(numbers, target);
+      const ids = new Map(game.state.tiles.map(tile => [tile.id, tile.id]));
+      for (const step of closest.steps) ids.set(step.id, combine(game, ids.get(step.leftId), step.operator, ids.get(step.rightId)));
+      assert.equal(game.distance, distance);
+      assert.equal(abs(BigInt(closest.value) - target), distance);
+    }
+  }
+});
+
+test("classic unreachable puzzle reports the nearest result", () => {
+  const { solution, closest } = NumbersSearch.solve(["1", "1", "1", "1", "1", "1"], "1000");
+  assert.equal(solution, null);
+  assert.equal(closest.value, "9");
+  assert.equal(closest.distance, "991");
+});

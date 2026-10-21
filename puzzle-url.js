@@ -19,6 +19,10 @@ const PuzzleUrl = (() => {
       letters = "";
       invalid = true;
     }
+    if ([...letters].length > 12) {
+      letters = [...letters].slice(0, 12).join("");
+      invalid = true;
+    }
     const manualValue = params.get("yo");
     if (manualValue !== null && !["0", "1"].includes(manualValue)) invalid = true;
     let manual = manualValue === "1";

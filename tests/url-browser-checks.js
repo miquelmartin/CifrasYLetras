@@ -24,12 +24,16 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844]]) {
       await load("?" + query);
       let win = frame.contentWindow;
       let doc = frame.contentDocument;
+      assert(!doc.getElementById("calculator-panel").hidden && new URL(win.location.href).searchParams.get("yo") === "1", "Reto completo debe abrir Resolver yo");
+      doc.getElementById("calculator-back").click();
       assert(doc.getElementById("number-slots").querySelectorAll(".done").length === 6, "No se restauran seis cifras");
       assert(doc.getElementById("numbers").value.endsWith(huge), "Se pierde precision en URL");
       assert(doc.getElementById("target").value === "-" + huge, "No se restaura objetivo exacto");
       await refresh();
       win = frame.contentWindow; doc = frame.contentDocument;
       assert(doc.getElementById("numbers").value.startsWith("-5, -5, 0"), "Recargar pierde negativos o duplicados");
+      assert(!doc.getElementById("calculator-panel").hidden, "Recargar reto completo debe abrir Resolver yo");
+      doc.getElementById("calculator-back").click();
       doc.getElementById("solve-myself").click();
       assert(new URL(win.location.href).searchParams.get("yo") === "1", "No se guarda Resolver yo");
       win.history.back();

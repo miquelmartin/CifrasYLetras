@@ -36,25 +36,23 @@
     }
   }
 
-  function restore() {
+  function restore(initial = false) {
     const puzzle = PuzzleUrl.decode(location.search);
     restoring = true;
-    stopWorker();
     stopLettersWorker();
     if (!calculator.hidden) document.getElementById("calculator-back").click();
     target.value = puzzle.target;
     setNumberChips(puzzle.numbers);
     setLetterChips(puzzle.letters);
     selectTab(document.getElementById(puzzle.mode === "letras" ? "letters-tab" : "numbers-tab"));
-    document.getElementById("result").hidden = true;
     document.getElementById("letters-result").hidden = true;
-    document.getElementById("numbers-panel").classList.remove("has-number-result");
     for (const id of ["status", "letters-status"]) {
       const status = document.getElementById(id);
       status.textContent = "";
       status.classList.remove("error");
     }
-    if (puzzle.manual) document.getElementById("solve-myself").click();
+    const complete = puzzle.mode === "cifras" && puzzle.numbers.length === 6 && puzzle.target !== "";
+    if (puzzle.manual || (initial === true && complete)) document.getElementById("solve-myself").click();
     if (puzzle.invalid) {
       const status = document.getElementById(puzzle.manual ? "calculator-status" : puzzle.mode === "letras" ? "letters-status" : "status");
       status.textContent = warning;
@@ -70,6 +68,6 @@
     if (restoring) return;
     write(detail.open);
   });
-  window.addEventListener("popstate", restore);
-  restore();
+  window.addEventListener("popstate", () => restore());
+  restore(true);
 })();
