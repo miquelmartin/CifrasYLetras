@@ -32,6 +32,7 @@
       container.append(button);
     });
     raw.value = chips.join("") + entry.value;
+    document.dispatchEvent(new CustomEvent("puzzlechange"));
   }
   function commit() {
     let draft = normalizeDraft(entry.value);
@@ -138,5 +139,16 @@
       render();
     }
   });
+  window.getLetterChips = () => chips.join("");
+  window.setLetterChips = value => {
+    chips.splice(0, chips.length, ...value.normalize("NFC"));
+    entry.value = "";
+    composing = false;
+    hadError = false;
+    lastCommitted = "";
+    compositionTail = null;
+    compositionStart = 0;
+    render();
+  };
   render();
 })();

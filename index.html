@@ -4,12 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cifras y Letras</title>
+  <meta name="theme-color" content="#dff1ff">
+  <link rel="icon" href="favicon.ico?v=1" sizes="16x16 32x32 48x48">
+  <link rel="icon" href="icons/favicon-32.png?v=1" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1" sizes="180x180">
+  <link rel="manifest" href="site.webmanifest?v=1">
   <style>
     :root { color-scheme: light; font: 16px/1.4 system-ui, sans-serif; background: #dff1ff; color: #0b1530; --ink: #0b1530; --muted: #33415f; --blue: #0a5cff; --orange: #ff6a13; --amber: #ffb800; --line: #0b1530; --soft: #fff; }
     * { box-sizing: border-box; }
     body { margin: 0; padding: 12px; }
     main { max-width: 760px; height: calc(100vh - 24px); height: calc(100dvh - 24px); min-height: 480px; margin: auto; display: flex; flex-direction: column; gap: 10px; }
-    h1 { font-size: 1.5rem; letter-spacing: -.04em; margin: 0; line-height: 1.2; }
+    h1 { display: flex; align-items: center; gap: 8px; font-size: 1.5rem; letter-spacing: -.04em; margin: 0; line-height: 1.2; }
+    h1 img { width: 28px; height: 28px; border-radius: 6px; }
     h2 { font-size: 1.05rem; margin: 0; }
     p { color: var(--muted); margin: 0; }
     .card { background: #fff; border: 3px solid var(--line); border-radius: 14px; padding: 12px; }
@@ -129,7 +135,7 @@
 </head>
 <body>
   <main>
-    <h1>Cifras y Letras</h1>
+    <h1><img src="icons/icon-64.png?v=1" width="28" height="28" alt="">Cifras y Letras</h1>
     <div class="tabs" role="tablist" aria-label="Elige un reto">
       <button id="numbers-tab" type="button" role="tab" aria-selected="true" aria-controls="numbers-panel">Cifras</button>
       <button id="letters-tab" type="button" role="tab" aria-selected="false" aria-controls="letters-panel" tabindex="-1">Letras</button>
@@ -241,13 +247,13 @@
     </section>
   </main>
   <script src="letters-core.js?v=5"></script>
-  <script src="letters-ui.js?v=10"></script>
+  <script src="letters-ui.js?v=19"></script>
   <script src="numbers-game.js?v=16"></script>
   <script src="numbers-search.js?v=12"></script>
-  <script src="number-chips.js?v=5"></script>
-  <script src="letter-chips.js?v=9"></script>
+  <script src="number-chips.js?v=20"></script>
+  <script src="letter-chips.js?v=20"></script>
   <script src="celebration.js?v=11"></script>
-  <script src="calculator-ui.js?v=18"></script>
+  <script src="calculator-ui.js?v=19"></script>
   <script>
     "use strict";
 
@@ -379,5 +385,7 @@
     });
     window.addEventListener("pagehide", stopWorker);
   </script>
+  <script src="puzzle-url.js?v=19"></script>
+  <script src="puzzle-state.js?v=19"></script>
 </body>
 </html>
