@@ -8,6 +8,8 @@
   const chips = [...raw.value.replace(/[\s,]/g, "").normalize("NFC")];
   let composing = false;
   let hadError = false;
+  let lastCommitted = "";
+  let compositionTail = null;
 
   function render() {
     container.replaceChildren();
@@ -45,6 +47,7 @@
     }
     if (mergePrevious) chips.pop();
     chips.push(...draft);
+    if (draft) lastCommitted = draft;
     entry.value = "";
     render();
     if (hadError) {
@@ -53,10 +56,39 @@
       hadError = false;
     }
   }
-  entry.addEventListener("compositionstart", () => { composing = true; });
-  entry.addEventListener("compositionend", () => { composing = false; commit(); });
+  entry.addEventListener("beforeinput", event => {
+    if (composing || event.isComposing || hadError) return;
+    const separator = typeof event.data === "string" && /^[\s,]+$/u.test(event.data);
+    const replay = event.inputType === "insertReplacementText" && typeof event.data === "string" &&
+      /[\s,]$/u.test(event.data) && event.data.replace(/[\s,]/gu, "").normalize("NFC") === lastCommitted;
+    if (separator || replay) {
+      event.preventDefault();
+      entry.value = "";
+      raw.value = chips.join("");
+    }
+  });
+  entry.addEventListener("compositionstart", () => { composing = true; compositionTail = null; });
+  entry.addEventListener("compositionend", () => {
+    composing = false;
+    compositionTail = entry.value.normalize("NFC");
+    commit();
+  });
   entry.addEventListener("input", event => {
-    if (!event.isComposing) commit();
+    if (event.isComposing || composing) return;
+    // Some IMEs replay their committed buffer in the final input or space event.
+    const finalComposition = compositionTail !== null &&
+      ["insertCompositionText", "insertFromComposition"].includes(event.inputType) &&
+      entry.value.normalize("NFC") === compositionTail;
+    const separator = typeof event.data === "string" && /^[\s,]+$/u.test(event.data);
+    const replay = event.inputType === "insertReplacementText" && typeof event.data === "string" &&
+      /[\s,]$/u.test(event.data) && event.data.replace(/[\s,]/gu, "").normalize("NFC") === lastCommitted;
+    compositionTail = null;
+    if (!hadError && (finalComposition || separator || replay)) {
+      entry.value = "";
+      raw.value = chips.join("");
+      return;
+    }
+    commit();
   });
   entry.addEventListener("keydown", event => {
     if (!composing && event.key === "Backspace" && !entry.value && chips.length) {

@@ -12,7 +12,7 @@ export async function run() {
   for (const [width, height] of [[360, 640], [390, 844], [1280, 720]]) {
     const frame = document.createElement("iframe");
     frame.style.cssText = `position:fixed;left:0;top:0;border:0;width:${width}px;height:${height}px;z-index:1000;background:#10141e`;
-    frame.src = new URL("../index.html", import.meta.url).href;
+    frame.src = new URL(`../index.html?browser-check=${Date.now()}`, import.meta.url).href;
     document.body.append(frame);
     try {
       await new Promise((resolve, reject) => { frame.onload = resolve; frame.onerror = reject; });
@@ -43,7 +43,24 @@ export async function run() {
         const bounds = byId(id).getBoundingClientRect();
         assert(bounds.height >= 80 && bounds.bottom <= height, `${id}: resultados sin espacio visible`);
       };
+      const contrast = element => {
+        const styles = win.getComputedStyle(element);
+        const luminance = color => {
+          const channels = color.match(/[\d.]+/g).slice(0, 3).map(value => {
+            const channel = Number(value) / 255;
+            return channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4;
+          });
+          return channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
+        };
+        const foreground = luminance(styles.color);
+        const background = luminance(styles.backgroundColor);
+        assert((Math.max(foreground, background) + .05) / (Math.min(foreground, background) + .05) >= 4.5,
+          `Contraste insuficiente: ${element.id || element.textContent}`);
+      };
       snapshot("Cifras inicial");
+      assert(win.getComputedStyle(doc.documentElement).colorScheme === "light", "Debe usarse el tema claro");
+      contrast(byId("solve"));
+      contrast(byId("numbers-tab"));
       assert(byId("number-chips").children.length === 0 && byId("numbers").value === "" && byId("target").value === "", "Cifras debe empezar vacio");
       input("number-entry", " , , ");
       assert(byId("number-chips").children.length === 0 && byId("numbers").value === "", "Los separadores crean una ficha fantasma");
@@ -80,6 +97,8 @@ export async function run() {
       byId("solver").requestSubmit();
       await wait(() => !byId("solve").disabled);
       assert(!byId("result").hidden, "El solver no incluye la ultima cifra sin separador");
+      assert(byId("solution-inputs").children.length === 6 &&
+        byId("solution-inputs").querySelectorAll(".used").length === 1, "Falta conjunto original con uso de solucion");
       byId("solve-myself").click();
       assert(byId("calculator-keys").children[5].textContent === "900719925474099312345", "Resolver yo pierde la cifra pendiente");
       byId("calculator-back").click();
@@ -121,8 +140,14 @@ export async function run() {
       byId("letters-tab").click();
       snapshot("Letras inicial");
       clear("letter-chips");
-      input("letter-entry", "n");
+      byId("letter-entry").value = "n";
+      byId("letter-entry").dispatchEvent(new win.InputEvent("input", { inputType: "insertText", data: "n", bubbles: true }));
       assert(byId("letter-chips").children.length === 1, "La letra no crea ficha inmediatamente");
+      for (const separator of [" ", " ", ","]) {
+        byId("letter-entry").value = "n" + separator;
+        byId("letter-entry").dispatchEvent(new win.InputEvent("input", { inputType: "insertText", data: separator, bubbles: true }));
+        assert(byId("letters").value === "n", "Espacios tras una letra la duplican");
+      }
       input("letter-entry", "\u0303");
       assert(byId("letters").value === "ñ", "La tilde combinante no se une a n");
       clear("letter-chips");
@@ -133,6 +158,26 @@ export async function run() {
       letterEntry.value = "n\u0303";
       letterEntry.dispatchEvent(new win.CompositionEvent("compositionend"));
       assert(byId("letters").value === "ñ", "Composicion de ñ incorrecta");
+      letterEntry.value = "n\u0303";
+      letterEntry.dispatchEvent(new win.InputEvent("input", { inputType: "insertCompositionText", data: "ñ", bubbles: true }));
+      assert(byId("letters").value === "ñ", "Se repite el cierre de composicion");
+      for (const separator of [" ", "  ", ","]) {
+        const before = new win.InputEvent("beforeinput", { inputType: "insertText", data: separator, cancelable: true, bubbles: true });
+        letterEntry.dispatchEvent(before);
+        assert(before.defaultPrevented && byId("letters").value === "ñ", "Separador no es una operacion nula");
+      }
+      letterEntry.value = "ñ ";
+      letterEntry.dispatchEvent(new win.InputEvent("input", { inputType: "insertText", data: " ", bubbles: true }));
+      assert(byId("letters").value === "ñ", "Espacio movil repite letra anterior");
+      letterEntry.value = "ñ ";
+      letterEntry.dispatchEvent(new win.InputEvent("input", { inputType: "insertReplacementText", data: "ñ ", bubbles: true }));
+      assert(byId("letters").value === "ñ", "Reemplazo movil repite letra anterior");
+      const replacement = new win.InputEvent("beforeinput", { inputType: "insertReplacementText", data: "ñ ", cancelable: true, bubbles: true });
+      letterEntry.dispatchEvent(replacement);
+      assert(replacement.defaultPrevented, "No se bloquea reemplazo repetido");
+      input("letter-entry", "ñ");
+      assert(byId("letters").value === "ññ", "Se pierde repeticion deliberada");
+      byId("letter-entry").dispatchEvent(new win.KeyboardEvent("keydown", { key: "Backspace", bubbles: true }));
       input("letter-entry", " A\u0301, ü A ");
       assert(byId("letters").value === "ñÁüA", "Acentos, repeticiones o separadores incorrectos");
       byId("letter-entry").dispatchEvent(new win.KeyboardEvent("keydown", { key: "Backspace", bubbles: true }));
@@ -161,14 +206,20 @@ export async function run() {
       const keys = [...byId("calculator-keys").children];
       const op = symbol => doc.querySelector(`[data-operator="${symbol}"]`).click();
       keys[0].click();
+      contrast(keys[0]);
+      contrast(keys[1]);
       assert(keys[0].disabled && keys[1].disabled, "Tras elegir cifra se espera operacion");
+      assert(keys[0].classList.contains("used") && !keys[1].classList.contains("used"), "Se confunde usada con espera de operador");
+      assert(keys.every(key => key.getBoundingClientRect().height > 0 && win.getComputedStyle(key).visibility === "visible"), "Se ocultan cifras al elegir operador");
       op("+");
       assert(!keys[1].disabled && keys[0].disabled, "No se distingue la cifra duplicada");
       keys[1].click();
+      assert(keys[0].classList.contains("used") && keys[1].classList.contains("used"), "Duplicados usados sin marcas");
       assert(byId("calculator-status").textContent.includes("Objetivo alcanzado"), "No reconoce objetivo");
       assert(byId("calculator-distance").textContent === "Objetivo alcanzado", "Distancia cero incorrecta");
       byId("calculator-undo").click();
       assert(!keys[1].disabled && keys[0].disabled, "Deshacer no restaura cifra duplicada");
+      assert(!keys[1].classList.contains("used") && keys[0].classList.contains("used"), "Deshacer no restaura marcas de uso");
       assert(byId("calculator-distance").textContent === "A 2 del objetivo", "Distancia tras deshacer incorrecta");
       byId("calculator-undo").click();
       byId("calculator-undo").click();

@@ -37,7 +37,7 @@ class TargetCelebration {
     if (!context) return;
     this.canvas = canvas;
     document.body.append(canvas);
-    const colors = ["#8ce2c0", "#62acff", "#f3cf72"];
+    const colors = ["#b84b0b", "#2166ad", "#e87921"];
     const particles = [];
     for (let burst = 0; burst < 3; burst++) {
       const x = canvas.width * (.25 + burst * .25);
