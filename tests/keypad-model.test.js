@@ -65,5 +65,36 @@ test("UI cannot create a minus sign; legacy signed URLs remain exact and editabl
   assert.equal(legacy.ready, true);
   legacy.edit(0);
   legacy.backspace();
-  assert.throws(() => legacy.enter(), /Completa/);
+  assert.equal(legacy.enter(), false);
+  assert.deepEqual(legacy.numbers, ["2", "3", "4", "5", "6"]);
+  assert.deepEqual(legacy.slots, ["", "2", "3", "4", "5", "6"]);
+});
+
+test("after editing a complete puzzle, backspace deletes the target and all six numbers", () => {
+  const entry = new NumberEntry(["100", "75", "50", "25", "3", "6"], "952");
+  entry.edit(6);
+  for (let index = 0; index < 40; index++) entry.backspace();
+  assert.deepEqual(entry.numbers, []);
+  assert.equal(entry.target, "");
+  assert.equal(entry.draft, "");
+  assert.equal(entry.cursor, 0);
+  assert.deepEqual(entry.slots, ["", "", "", "", "", ""]);
+  assert.equal(entry.ready, false);
+});
+
+test("deleting a middle number leaves an insertion gap that can be refilled", () => {
+  const entry = new NumberEntry(["1", "2", "3", "4", "5", "6"], "21");
+  entry.edit(2);
+  entry.backspace();
+  assert.deepEqual(entry.numbers, ["1", "2", "4", "5", "6"]);
+  assert.equal(entry.inserting, true);
+  assert.deepEqual(entry.slots, ["1", "2", "", "4", "5", "6"]);
+  type(entry, "9");
+  assert.deepEqual(entry.slots, ["1", "2", "9", "4", "5", "6"]);
+  entry.enter();
+  assert.deepEqual(entry.numbers, ["1", "2", "9", "4", "5", "6"]);
+  assert.equal(entry.cursor, 3);
+  entry.edit(6);
+  entry.enter();
+  assert.equal(entry.ready, true);
 });

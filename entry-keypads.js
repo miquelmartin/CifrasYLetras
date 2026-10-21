@@ -10,21 +10,23 @@
   const letterSlots = document.getElementById("letter-slots");
   let numberEntry = new NumberEntry();
   let letters = [];
+  const MAX_LETTERS = 12;
   const changed = () => document.dispatchEvent(new CustomEvent("puzzlechange"));
   const shortValue = value => value.length > 6 ? `${value.slice(0, 2)}\u2026${value.slice(-2)}` : value;
 
   function renderNumbers() {
     numberSlots.replaceChildren();
+    const slots = numberEntry.slots;
     for (let index = 0; index < 6; index++) {
-      const value = numberEntry.numbers[index] || "";
+      const value = slots[index];
       const current = !numberEntry.ready && numberEntry.cursor === index;
       const button = document.createElement("button");
       button.type = "button";
       button.className = `entry-slot ${current ? "current" : value ? "done" : "empty"}`;
-      button.textContent = shortValue(current ? numberEntry.draft : value);
+      button.textContent = shortValue(value);
       button.style.fontSize = button.textContent.length > 3 ? ".7rem" : "1.1rem";
-      button.title = current ? numberEntry.draft : value;
-      button.disabled = index > numberEntry.numbers.length;
+      button.title = value;
+      button.disabled = index > numberEntry.numbers.length + (numberEntry.inserting ? 1 : 0);
       button.setAttribute("aria-label", `N\u00famero ${index + 1}: ${value || "vac\u00edo"}${current ? ", actual" : ""}`);
       button.addEventListener("click", () => { numberEntry.edit(index); renderNumbers(); });
       numberSlots.append(button);
@@ -53,28 +55,25 @@
 
   function renderLetters() {
     letterSlots.replaceChildren();
-    const start = letters.length > 11 ? letters.length - 10 : 0;
-    if (start) {
-      const more = document.createElement("span");
-      more.className = "entry-slot letter-slot";
-      more.textContent = `+${start}`;
-      more.setAttribute("aria-label", `${start} letras anteriores`);
-      more.title = letters.slice(0, start).join("");
-      letterSlots.append(more);
-    }
-    letters.slice(start).forEach((letter, offset) => {
+    letters.forEach((letter, index) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "entry-slot letter-slot";
       button.textContent = letter.toUpperCase();
-      button.setAttribute("aria-label", `Quitar letra ${start + offset + 1}: ${letter}`);
-      button.addEventListener("click", () => { letters.splice(start + offset, 1); clearLetterResults(); renderLetters(); });
+      button.setAttribute("aria-label", `Quitar letra ${index + 1}: ${letter}`);
+      button.addEventListener("click", () => { letters.splice(index, 1); clearLetterResults(); renderLetters(); });
       letterSlots.append(button);
     });
-    const next = document.createElement("span");
-    next.className = "entry-slot current";
-    next.setAttribute("aria-label", `Siguiente letra; ${letters.length} letras introducidas`);
-    letterSlots.append(next);
+    const full = letters.length >= MAX_LETTERS;
+    if (!full) {
+      const next = document.createElement("span");
+      next.className = "entry-slot current";
+      next.setAttribute("aria-label", `Siguiente letra; ${letters.length} de ${MAX_LETTERS} letras introducidas`);
+      letterSlots.append(next);
+    }
+    for (const button of document.querySelectorAll("[data-letter-key]")) {
+      if (button.dataset.letterKey !== "Backspace") button.disabled = full;
+    }
     while (letterSlots.children.length < 6) {
       const empty = document.createElement("span");
       empty.className = "entry-slot empty";
@@ -100,9 +99,11 @@
     document.getElementById("status").textContent = "";
     document.getElementById("status").classList.remove("error");
     renderNumbers();
+    if (key === "Enter" && numberEntry.ready) document.getElementById("solve-myself").click();
   }
   function letterKey(letter) {
     if (document.getElementById("letters-fieldset").disabled) return;
+    if (letter !== "Backspace" && letters.length >= MAX_LETTERS) return;
     clearLetterResults();
     if (letter === "Backspace") letters.pop();
     else letters.push(letter.normalize("NFC"));
@@ -139,17 +140,16 @@
     document.getElementById("letters-status").textContent = "";
   });
   document.addEventListener("keydown", event => {
-    if (event.ctrlKey || event.metaKey || event.altKey || event.target.closest('[role="tab"], summary, #letters-cancel, #letters-edit, #letters-solve, #cancel, #edit-numbers, #solve-myself, #solve') ||
+    if (event.ctrlKey || event.metaKey || event.altKey || event.target.closest('[role="tab"], summary, #letters-cancel, #letters-edit, #letters-solve, #edit-numbers, #solve-myself') ||
         !document.getElementById("calculator-panel").hidden) return;
     const numbersActive = document.getElementById("numbers-tab").getAttribute("aria-selected") === "true";
     if (numbersActive) {
-      if (numberForm.querySelector("details[open]") || numberForm.closest(".has-number-result")) return;
       if (/^\d$/.test(event.key) || ["Backspace", "Enter"].includes(event.key)) {
         if (numberEntry.ready && event.key !== "Backspace") return;
         event.preventDefault();
         numberKey(event.key);
       }
-    } else if (!letterForm.querySelector("details[open]") && !document.getElementById("letters-fieldset").disabled) {
+    } else if (!document.getElementById("letters-fieldset").disabled) {
       if (/^[a-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00fc\u00f1]$/iu.test(event.key) || event.key === "Backspace") {
         event.preventDefault();
         letterKey(event.key);
@@ -159,12 +159,26 @@
       } else if (/^[\s,]$/.test(event.key)) event.preventDefault();
     }
   });
+  document.addEventListener("resetpuzzle", ({ detail }) => {
+    const status = document.getElementById(detail === "letras" ? "letters-status" : "status");
+    status.textContent = "";
+    status.classList.remove("error");
+    if (detail === "letras") {
+      letters = [];
+      clearLetterResults();
+      renderLetters();
+    } else {
+      target.value = "";
+      numberEntry = new NumberEntry();
+      renderNumbers();
+    }
+  });
   window.setNumberChips = values => {
     numberEntry = new NumberEntry(values, target.value);
     renderNumbers();
   };
   window.setLetterChips = value => {
-    letters = [...value.normalize("NFC")];
+    letters = [...value.normalize("NFC")].slice(0, MAX_LETTERS);
     clearLetterResults();
     renderLetters();
   };

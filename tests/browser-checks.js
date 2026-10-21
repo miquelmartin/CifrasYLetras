@@ -19,8 +19,26 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       if (!frame.isConnected) document.body.append(frame);
     });
     const byId = id => doc.getElementById(id);
+    const scrollers = new Set(["calculator-steps", "letters-words"]);
     const snapshot = name => {
-      assert(doc.documentElement.scrollHeight <= height && doc.documentElement.scrollWidth <= width, `${name}: documento desbordado`);
+      const root = doc.documentElement;
+      assert(root.scrollHeight <= height && root.scrollWidth <= width, `${name}: documento desbordado`);
+      for (const element of [root, doc.body]) {
+        assert(win.getComputedStyle(element).overflowY === "hidden" && element.scrollTop === 0, `${name}: la pagina puede desplazarse`);
+      }
+      for (const element of doc.querySelectorAll("body *")) {
+        if (!element.getClientRects().length || element.closest(".celebration")) continue;
+        const style = win.getComputedStyle(element);
+        const inner = element.parentElement.closest("#calculator-steps, #letters-words");
+        if (/auto|scroll/.test(style.overflowX + style.overflowY)) assert(scrollers.has(element.id), `${name}: ${element.id || element.className} se desplaza por dentro`);
+        else if (element.matches("form, section, fieldset, .card, .supplied-numbers, #calculator-display, .calculator-target, .entry-pad, .entry-slots, .calculator-operators, #calculator-keys")) {
+          assert(element.scrollHeight <= element.clientHeight + 1 && element.scrollWidth <= element.clientWidth + 1, `${name}: ${element.id || element.className} recortado`);
+        }
+        if (!inner && element.matches("button, a, .entry-slot, #calculator-target, #calculator-distance, h2")) {
+          const rect = element.getBoundingClientRect();
+          assert(rect.top >= 0 && rect.left >= 0 && rect.bottom <= height + .5 && rect.right <= width + .5, `${name}: ${element.id || element.textContent} fuera de pantalla`);
+        }
+      }
       results.push({ name, viewport: [width, height], document: [doc.documentElement.scrollWidth, doc.documentElement.scrollHeight] });
     };
     const visible = element => {
@@ -60,14 +78,20 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       const controlPanel = byId("calculator-keys").closest(".calculator-controls");
       const controls = controlPanel.getBoundingClientRect();
       assert(controlPanel.scrollHeight <= controlPanel.clientHeight + 1, "Controles con desplazamiento interno");
-      for (const element of doc.querySelectorAll("#calculator-keys button, .calculator-operators button, #calculator-auto")) {
+      for (const element of doc.querySelectorAll("#calculator-keys button, .calculator-operators button")) {
         visible(element);
         assert(element.getBoundingClientRect().bottom <= controls.bottom, "Control oculto dentro de la calculadora");
       }
+      const auto = byId("calculator-auto");
+      visible(auto);
+      const autoRect = auto.getBoundingClientRect();
+      const operatorRect = doc.querySelector("[data-operator]").getBoundingClientRect();
+      assert(autoRect.top >= byId("calculator-history").getBoundingClientRect().bottom + 6 && autoRect.top - controls.bottom >= 40, "Auto-resolver debe estar separado de los controles");
+      assert(autoRect.width <= controls.width * .6 && parseFloat(win.getComputedStyle(auto).fontSize) < parseFloat(win.getComputedStyle(doc.querySelector("[data-operator]")).fontSize) / 1.5 && autoRect.height <= operatorRect.height, "Auto-resolver debe ser pequeno y secundario");
       const target = byId("calculator-target").getBoundingClientRect();
       const distance = byId("calculator-distance").getBoundingClientRect();
       assert(distance.top < target.bottom && distance.bottom > target.top, "Distancia no esta junto al objetivo");
-      assert(byId("calculator-history").open, "Pasos deben empezar desplegados");
+      assert(!byId("calculator-history").querySelector("details, summary") && byId("calculator-steps").getBoundingClientRect().height >= 44, "Pasos deben estar siempre desplegados");
       const firstStep = byId("calculator-steps").firstElementChild;
       if (firstStep) assert(firstStep.getBoundingClientRect().bottom <= Math.min(height, byId("calculator-history").getBoundingClientRect().bottom - 2), "No cabe un paso completo");
       const originals = byId("calculator-originals");
@@ -92,16 +116,10 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       key("-");
       assert(byId("number-draft").textContent === "", "No debe introducirse signo negativo");
       for (const digit of "952") key(digit);
+      assert(!doc.querySelector("#solve, #result, #steps, .entry-help, details"), "Sobran solucion automatica, resultados o ayuda en la entrada");
       key("Enter");
-      assert(byId("number-pad").hidden && !byId("number-actions").hidden, "No finaliza entrada de objetivo");
-      assert(new URL(win.location.href).searchParams.get("obj") === "952", "Objetivo no persiste");
-      byId("solve").click();
-      await wait(() => !byId("solve").disabled);
-      assert(!byId("result").hidden && byId("steps").children.length === 3, "Falla solucion general de 952");
-      assert(!byId("steps").textContent.includes("paso") && byId("steps").querySelector(".step-derived"), "Referencia intermedia debe ser solo numero azul");
-      contrast(byId("steps").querySelector(".step-derived"));
-      snapshot("Solucion automatica");
-      byId("solve-myself").click();
+      assert(!byId("calculator-panel").hidden && !byId("numbers-panel").getClientRects().length, "El objetivo debe abrir Resolver yo directamente");
+      assert(new URL(win.location.href).searchParams.get("obj") === "952" && new URL(win.location.href).searchParams.get("yo") === "1", "Objetivo no persiste");
       manualFits();
       snapshot("Resolver yo vacio");
       assert(byId("calculator-display").textContent === "" && byId("calculator-display").getBoundingClientRect().height >= 60, "Pantalla vacia muestra signo o colapsa");
@@ -143,7 +161,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       await idle();
       assert(tile(17) && tile(56) && !doc.querySelector(".celebration"), "Deshacer no restaura resultados o limpia fuegos");
       byId("calculator-auto").click();
-      await wait(() => byId("calculator-auto").textContent === "Resolver autom\u00e1ticamente");
+      await wait(() => byId("calculator-auto").textContent === "Auto-resolver");
       assert(byId("calculator-display").textContent === "952", "Automatico no continua desde resultados");
       byId("calculator-undo").click(); await idle();
       byId("calculator-auto").click();
@@ -156,13 +174,20 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       duplicates[0].click(); op("-"); duplicates[1].click(); await idle();
       byId("calculator-auto").click();
       await wait(() => byId("calculator-status").textContent.includes("empezamos"));
-      await wait(() => byId("calculator-auto").textContent === "Resolver autom\u00e1ticamente");
+      await wait(() => byId("calculator-auto").textContent === "Auto-resolver");
       assert(byId("calculator-display").textContent === "4" && byId("calculator-steps").children.length === 1, "Falla reinicio automatico");
       snapshot("Automatico reinicia sin continuacion");
       await load("?n=0,0,0,0,0,0&obj=1&yo=1");
       byId("calculator-auto").click();
-      await wait(() => byId("calculator-auto").textContent === "Resolver autom\u00e1ticamente");
-      assert(byId("calculator-status").classList.contains("error") && byId("calculator-status").textContent.includes("No existe"), "Falta aviso sin solucion");
+      await wait(() => byId("calculator-auto").textContent === "Auto-resolver");
+      assert(byId("calculator-status").textContent === "No hay soluci\u00f3n exacta \u00b7 la m\u00e1s cercana: 0 (a 1)", "Falta aviso de solucion mas cercana");
+      await load("?n=1,1,1,1,1,1&obj=1000");
+      byId("calculator-auto").click();
+      await wait(() => byId("calculator-auto").textContent === "Auto-resolver" && byId("calculator-panel").dataset.animating !== "true");
+      assert(byId("calculator-display").textContent === "9" && byId("calculator-status").textContent.includes("la m\u00e1s cercana: 9 (a 991)"), "No reproduce la solucion mas cercana");
+      manualFits();
+      snapshot("Solucion mas cercana");
+      await load("?n=0,0,0,0,0,0&obj=1&yo=1");
       win.eval("Object.defineProperty(reducedMotion,'matches',{value:true,configurable:true}); reducedMotion.dispatchEvent(new Event('change'));");
       const zeros = [...byId("calculator-keys").children];
       zeros[0].click(); op("+"); zeros[1].click();
@@ -193,9 +218,21 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       snapshot("Candidatas compactas");
       byId("letters-edit").click();
       for (const letter of "ABCDEFGHIJKLMN\u00d1OPQRST") letterKey(letter);
-      assert(byId("letter-slots").children.length <= 12 && byId("letters").value.length > 20, "Se limita o pierde el conjunto largo de letras");
+      key("z");
+      assert(byId("letters").value === "CAMIONESABCD" && byId("letter-slots").children.length === 12, "Maximo de doce letras");
+      assert(doc.querySelector('[data-letter-key="A"]').disabled && !doc.querySelector('[data-letter-key="Backspace"]').disabled && !byId("letters-solve").disabled, "Teclas de letra deben bloquearse a las doce");
+      const chips = [...byId("letter-slots").children].map(chip => chip.getBoundingClientRect());
+      assert(chips.every(rect => Math.abs(rect.top - chips[0].top) < 1 && rect.right <= byId("letter-slots").getBoundingClientRect().right + .5), "Las letras deben caber en una sola fila");
+      for (const chip of byId("letter-slots").children) assert(chip.scrollWidth <= chip.clientWidth + 1, "Letra recortada");
       padFits("letter-pad");
-      snapshot("Muchas letras sin desplazar teclado");
+      snapshot("Doce letras en una fila");
+      letterKey("Backspace");
+      assert(!doc.querySelector('[data-letter-key="A"]').disabled && byId("letter-slots").children.length === 12, "Borrar debe reactivar las letras");
+      byId("letters-tab").click();
+      assert(byId("letters").value === "" && byId("letter-slots").querySelector(".current") && !new URL(win.location.href).searchParams.has("l"), "Pulsar Letras debe vaciar");
+      await load("?modo=letras&l=" + "abcdefghijklmnop");
+      assert(byId("letters").value === "abcdefghijkl" && byId("letters-status").classList.contains("error"), "URL debe recortar a doce letras con aviso");
+      snapshot("URL de letras recortada");
 
       const huge = "9".repeat(180);
       await load("?n=" + ["-" + huge, "2", "0", "0", "0", "0"].join(",") + "&obj=10&yo=1");
@@ -207,20 +244,45 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       snapshot("Enteros exactos de 180 digitos");
 
       await load("?n=2,2,2,2,2,2&obj=512");
+      assert(!byId("calculator-panel").hidden, "URL completa debe abrir Resolver yo");
+      byId("calculator-back").click();
       byId("numbers").value = Array(9).fill("2").join(", ");
-      byId("solve").click();
-      await wait(() => !byId("solve").disabled);
-      assert(byId("steps").children.length === 8, "El solver generico debe admitir nueve numeros y ocho pasos");
-      for (const step of byId("steps").children) {
-        const bounds = step.getBoundingClientRect();
-        assert(bounds.bottom <= height && bounds.top >= byId("steps").getBoundingClientRect().top, "Paso de solucion larga oculto");
-      }
+      byId("solve-myself").click();
+      byId("calculator-auto").click();
+      await wait(() => byId("calculator-auto").textContent === "Auto-resolver" && byId("calculator-panel").dataset.animating !== "true");
+      const longSteps = byId("calculator-steps");
+      assert(longSteps.children.length === 8 && byId("calculator-display").textContent === "512", "El solver generico debe admitir nueve numeros y ocho pasos");
+      manualFits();
+      longSteps.scrollTop = longSteps.scrollHeight;
+      assert(doc.documentElement.scrollTop === 0, "Desplazar los pasos mueve la pagina");
+      const lastStep = longSteps.lastElementChild.getBoundingClientRect();
+      assert(lastStep.bottom <= longSteps.getBoundingClientRect().bottom + 1, "El ultimo paso no es alcanzable dentro de su caja");
       snapshot("Nueve numeros y ocho pasos automaticos");
+
+      await load("?n=100,75,50,25,3,6&obj=952");
+      assert(!byId("calculator-panel").hidden, "Reto completo debe abrir Resolver yo");
+      byId("calculator-back").click();
+      assert(!byId("number-actions").hidden && !byId("solve-myself").hidden, "Volver debe permitir editar o resolver");
+      snapshot("Reto completo tras volver");
+      byId("edit-numbers").click();
+      for (let index = 0; index < 40; index++) numberKey("Backspace");
+      assert(byId("numbers").value === "" && byId("target").value === "" && byId("number-entry-label").textContent === "N\u00famero 1 de 6", "Borrar tras Editar cifras debe vaciarlo todo");
+      assert([...byId("number-slots").children].every(slot => slot.textContent === ""), "Quedan cifras en los huecos");
+      snapshot("Todo borrado tras editar");
+      for (const value of ["4", "5"]) typeNumber(value);
+      byId("numbers-tab").click();
+      assert(byId("numbers").value === "" && byId("number-entry-label").textContent === "N\u00famero 1 de 6" && !new URL(win.location.href).searchParams.has("n"), "Pulsar Cifras activa debe vaciar");
+      await load("?n=100,75,50,25,3,6&obj=952");
+      byId("calculator-back").click();
+      byId("letters-tab").click();
+      byId("numbers-tab").click();
+      assert(byId("numbers").value === "" && byId("target").value === "" && !byId("number-pad").hidden && !new URL(win.location.href).searchParams.has("obj"), "Cambiar a Cifras debe vaciar");
       for (const values of [
         [100, 75, 50, 25, 10, 9, 8, 7, 6],
         [-123456, 987654, -55555, 4444444, 31415926, -27182818, 99999, -1, 123456789]
       ]) {
         await load("?n=1,2,3,4,5,6&obj=271828");
+        byId("calculator-back").click();
         byId("numbers").value = values.join(", ");
         byId("solve-myself").click();
         assert(byId("calculator-keys").children.length === 9, "Calculadora generica limitada a seis");

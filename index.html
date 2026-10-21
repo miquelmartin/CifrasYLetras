@@ -12,6 +12,7 @@
   <style>
     :root { color-scheme: light; font: 16px/1.4 system-ui, sans-serif; background: #eef5fb; color: #1d2a44; --ink: #1d2a44; --muted: #3f6fc4; --blue: #3f6fc4; --orange: #f4a77c; --amber: #f6c96b; --line: #2b3a5a; --soft: #f7fafd; --operator: #5b84d1; --target: #e2733a; --result: #8fb0e6; }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
     body { margin: 0; padding: 12px; }
     main { max-width: 760px; height: calc(100vh - 24px); height: calc(100dvh - 24px); min-height: 480px; margin: auto; display: flex; flex-direction: column; gap: 10px; }
     h1 { display: flex; align-items: center; gap: 8px; font-size: 1.5rem; letter-spacing: -.04em; margin: 0; line-height: 1.2; }
@@ -23,49 +24,23 @@
     input { min-width: 0; width: 100%; background: #fff; color: var(--ink); border: 2px solid var(--line); border-radius: 8px; padding: 8px; font: inherit; }
     input::placeholder { color: #586d80; opacity: 1; }
     :focus, :focus-visible { outline: none; }
-    button:focus-visible, summary:focus-visible, a:focus-visible { filter: brightness(.86); }
+    button:focus-visible, a:focus-visible { filter: brightness(.86); }
     .hint { display: block; font-size: .875rem; color: var(--muted); margin: 8px 0; }
     .buttons { display: flex; gap: 8px; margin-top: 10px; }
     button { min-height: 44px; border: 2px solid var(--line); border-radius: 8px; padding: 6px 10px; font: inherit; font-weight: 700; cursor: pointer; background: var(--orange); color: var(--ink); box-shadow: 2px 2px 0 var(--line); }
     .buttons button { flex: 1; }
     button.secondary { background: #fff; color: var(--blue); }
     button:disabled { background: #e7eef6; color: #4d607c; box-shadow: none; cursor: not-allowed; }
-    details { color: var(--muted); font-size: .875rem; }
-    details:not([open]) > :not(summary), #calculator-history:not([open]) > #calculator-steps { display: none; }
-    summary { cursor: pointer; padding: 8px 0; }
-    .rules { padding-left: 20px; margin: 8px 0; }
-    #status, #letters-status { margin-top: 4px; font-size: .875rem; max-height: 3.9em; overflow: auto; overflow-wrap: anywhere; }
+    #status, #letters-status { margin-top: 4px; font-size: .875rem; max-height: 3.9em; overflow: hidden; overflow-wrap: anywhere; }
     #status.error, #letters-status.error { color: #a52826; }
-    #expression { overflow-wrap: anywhere; font: 1rem/1.5 ui-monospace, monospace; color: var(--blue); }
-    #steps { padding: 3px; margin: 0; list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 6px; }
-    #steps li { counter-increment: step; display: flex; align-items: center; gap: 10px; padding: 8px; border: 2px solid var(--line); border-radius: 9px; background: var(--soft); }
-    #steps li::before { content: counter(step); display: grid; place-items: center; flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--amber); color: var(--ink); font: 700 .8rem system-ui, sans-serif; }
-    #steps .operation { min-width: 0; overflow-wrap: anywhere; font: 1rem/1.4 ui-monospace, monospace; }
     a { color: var(--blue); text-underline-offset: 3px; }
     .tabs { display: flex; gap: 4px; padding: 4px; background: #fff; border: 2px solid var(--line); border-radius: 12px; }
     .tabs button { flex: 1; background: transparent; color: var(--ink); border: 0; box-shadow: none; }
     .tabs button[aria-selected="true"] { background: var(--amber); color: var(--ink); }
     [role="tabpanel"] { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
-    form.card { flex: 0 0 auto; max-height: 62%; overflow: auto; }
-    #numbers-panel > form { max-height: none; }
-    #numbers-panel > form:has(details[open]) { max-height: 75%; }
-    #edit-numbers { display: none; }
-    .has-number-result #solver { padding: 8px; }
-    .has-number-result #solver .fields, .has-number-result #solver > details,
-    .has-number-result #status, .has-number-result #solve { display: none; }
-    .has-number-result #edit-numbers { display: block; }
-    .has-number-result #solver .buttons { margin: 0; }
-    #result #solution-inputs { max-height: none; }
-    #result #solution-inputs li { font-size: .75rem; border-width: 2px; padding: 1px 4px; }
-    #result { gap: 4px; }
-    #result .expression-details summary { padding: 0; }
-    #steps { gap: 4px; }
-    #steps li { padding: 4px; border-width: 2px; gap: 6px; }
-    #steps li::before { flex-basis: 20px; height: 20px; }
-    #steps .operation { font-size: .8rem; line-height: 1.25; }
-    #result, #letters-result { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
-    .result-scroll { min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
-    #result .result-scroll { flex: 1; }
+    form.card { flex: 0 0 auto; }
+    #letters-result { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+    .result-scroll { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
     #summary, #letters-summary { font-size: .875rem; overflow-wrap: anywhere; }
     .word-list { margin: 0; padding: 3px; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(124px, 1fr)); gap: 6px; align-content: start; }
     .word-list li { display: flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border: 2px solid var(--line); border-radius: 9px; background: #fff; overflow-wrap: anywhere; }
@@ -75,17 +50,16 @@
     .word-list svg { width: 18px; height: 18px; }
     .notice { font-size: .875rem; color: var(--muted); }
     .caveat { font-size: .875rem; margin-top: 6px; }
-    .expression-details { flex-shrink: 0; max-height: 30%; overflow: auto; }
     .manual > .tabs, .manual > [role="tabpanel"] { display: none !important; }
     .manual > h1 { display: none; }
     #calculator-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
     .calculator-toolbar { display: flex; align-items: center; gap: 8px; min-height: 72px; }
     .calculator-goal { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: center; }
-    .calculator-target { min-width: 0; height: 72px; overflow: auto; overflow-wrap: anywhere; background: #fff; color: var(--target); border: 2px solid var(--line); padding: 3px 6px; border-radius: 8px; font-weight: 700; }
-    #calculator-title { display: block; font-size: .7rem; color: var(--blue); }
-    #calculator-target { display: block; font-size: 3rem; line-height: 1; }
-    #calculator-display { background: var(--soft); border: 2px solid var(--line); box-shadow: 2px 2px 0 var(--line); border-radius: 8px; padding: 4px; font: clamp(1.75rem, 7vw, 3rem)/1.15 ui-monospace, monospace; color: var(--ink); overflow-wrap: anywhere; height: 60px; min-height: 60px; max-height: 60px; overflow: auto; }
-    .calculator-controls { flex: 0 0 auto; max-height: calc(100dvh - 212px); overflow: auto; padding: 8px; }
+    .calculator-target { min-width: 0; height: 72px; overflow: hidden; overflow-wrap: anywhere; background: #fff; color: var(--target); border: 2px solid var(--line); padding: 1px 6px; border-radius: 8px; font-weight: 700; }
+    #calculator-title { display: block; font-size: .7rem; line-height: 1.1; color: var(--blue); }
+    #calculator-target { display: block; font-size: 3rem; line-height: 1; overflow: hidden; }
+    #calculator-display { background: var(--soft); border: 2px solid var(--line); box-shadow: 2px 2px 0 var(--line); border-radius: 8px; padding: 4px; font: clamp(1.75rem, 7vw, 3rem)/1.15 ui-monospace, monospace; color: var(--ink); overflow-wrap: anywhere; height: 60px; min-height: 60px; max-height: 60px; overflow: hidden; }
+    .calculator-controls { flex: 0 0 auto; overflow: hidden; padding: 8px; }
     .calculator-readout { margin-bottom: 6px; }
     #calculator-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
     #calculator-keys button { min-height: clamp(44px, 7dvh, 64px); min-width: 0; font-size: clamp(1.75rem, 8vw, 2.8rem); line-height: 1.3; padding: 4px; white-space: normal; overflow-wrap: anywhere; }
@@ -95,12 +69,11 @@
     .calculator-operators #calculator-undo { background: #fff; color: var(--blue); }
     .calculator-operators button:disabled { background: #cbd9f0; color: #4d607c; border-style: dashed; }
     .calculator-operators button[aria-pressed="true"] { filter: brightness(.86); }
-    .calculator-tools { display: flex; gap: 6px; margin-top: 4px; }
-    .calculator-tools button { flex: 1; padding: 4px; font-size: 1.75rem; }
-    #calculator-auto { font-size: .875rem; }
+    .calculator-footer { flex: 0 0 auto; display: flex; justify-content: flex-end; margin-top: 6px; }
+    #calculator-auto { flex: 0 0 auto; min-height: 44px; padding: 4px 14px; font-size: .875rem; font-weight: 650; background: #fff; color: var(--blue); }
     #calculator-undo { flex: 0 0 52px; line-height: 1; }
-    #calculator-status { font-size: .875rem; margin-top: 4px; max-height: 2.8em; overflow: auto; }
-    #calculator-distance { color: #6b3f12; background: #fbe6c4; border: 2px solid var(--line); border-radius: 12px; width: fit-content; font-size: .875rem; font-weight: 700; padding: 2px 6px; max-height: 4em; overflow: auto; overflow-wrap: anywhere; }
+    #calculator-status { font-size: .875rem; margin-top: 4px; max-height: 2.8em; overflow: hidden; }
+    #calculator-distance { color: #6b3f12; background: #fbe6c4; border: 2px solid var(--line); border-radius: 12px; width: fit-content; font-size: .875rem; font-weight: 700; padding: 2px 6px; max-height: 4em; overflow: hidden; overflow-wrap: anywhere; }
     .error { color: #a52826; }
     .success { color: var(--ink); font-weight: 700; }
     .target-reached #calculator-display { background: var(--amber); }
@@ -108,16 +81,13 @@
     #calculator-steps { padding: 3px; margin: 0; list-style: none; counter-reset: manual-step; display: flex; flex-direction: column; gap: 6px; }
     #calculator-steps li { counter-increment: manual-step; display: flex; gap: 8px; align-items: center; overflow-wrap: anywhere; padding: 8px; border: 2px solid var(--line); border-radius: 9px; background: var(--soft); }
     #calculator-steps li::before { content: counter(manual-step); display: grid; place-items: center; flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--amber); color: var(--ink); font-size: .8rem; }
-    #calculator-history { flex: 0 0 auto; min-height: 44px; padding: 2px 8px; max-height: 28%; overflow: auto; }
-    #calculator-history summary { font-weight: 700; }
-    #calculator-history[open] { flex: 1; min-height: 112px; }
-    .manual:has(#calculator-history[open]) .calculator-controls { max-height: calc(100dvh - 212px); }
+    #calculator-history { flex: 1; min-height: 96px; padding: 4px 8px; overflow: hidden; display: flex; flex-direction: column; gap: 4px; }
+    #calculator-history h2 { flex: 0 0 auto; font-size: .875rem; color: var(--blue); }
     #calculator-steps li { font-size: 1.1rem; line-height: 1.3; padding: 6px; }
     #calculator-steps li::before { flex-basis: 30px; height: 30px; background: var(--blue); color: #fff; font-size: 1.2rem; }
     .step-derived { color: var(--blue); font-weight: 800; }
     .operation { color: var(--ink); }
     .step-value { background: var(--amber); color: var(--ink); border-radius: 4px; padding: 0 3px; font-weight: 800; }
-    #steps .operation { font-size: 1rem; }
     #calculator-keys { padding: 0 3px 3px 0; margin-top: 4px; }
     #calculator-keys button { position: relative; background: var(--orange); color: var(--ink); border: 2px solid var(--line); }
     #calculator-keys button:disabled { background: #f6d5c1; color: var(--ink); box-shadow: none; }
@@ -125,7 +95,7 @@
     #calculator-keys button.result-key { background: var(--result); color: var(--ink); border-style: double; padding-right: 12px; }
     #calculator-keys button.result-key:disabled { background: #d6e1f3; }
     #calculator-keys button.result-key::after { content: attr(data-marker); position: absolute; top: 1px; right: 3px; font: 700 .75rem/1.2 system-ui, sans-serif; }
-    .supplied-numbers { display: flex; gap: 4px; flex-wrap: wrap; max-height: 60px; overflow: auto; flex-shrink: 0; list-style: none; margin: 0; padding: 2px; }
+    .supplied-numbers { display: flex; gap: 4px; flex-wrap: wrap; max-height: 60px; overflow: hidden; flex-shrink: 0; list-style: none; margin: 0; padding: 2px; }
     .supplied-numbers li { border: 2px solid var(--line); border-radius: 6px; padding: 2px 6px; background: var(--orange); color: var(--ink); font-size: .875rem; overflow-wrap: anywhere; max-width: 100%; }
     .supplied-numbers li.used { background: #f7dfd0; color: #77513c; text-decoration: line-through; }
     #calculator-originals { gap: 2px; }
@@ -138,6 +108,9 @@
     .entry-slot { display: grid; place-items: center; height: 44px; min-height: 44px; min-width: 0; padding: 2px; border: 2px solid var(--line); border-radius: 9px; box-shadow: 2px 2px 0 var(--line); font-weight: 800; background: #fff; }
     .entry-slot.done { background: var(--orange); }
     .entry-slot.letter-slot { background: var(--amber); }
+    #letter-slots { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; }
+    #letter-slots .entry-slot { padding: 0; border-radius: 7px; font-size: clamp(.85rem, 4.4vw, 1.25rem); }
+    #letter-pad button:disabled:not(.delete-key):not(.enter-key) { background: #e7eef6; color: #4d607c; border-style: dashed; box-shadow: none; }
     .entry-slot.empty, .entry-slot:disabled { background: #f7fafd; border-color: #a7b6ca; box-shadow: none; }
     .entry-slot.current { background: #fff; border: 2px dashed var(--blue); color: var(--blue); box-shadow: none; }
     .entry-display { flex: 0 0 auto; min-height: 62px; border: 2px solid var(--line); border-radius: 12px; background: #fff; padding: 4px 10px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 8px; }
@@ -152,17 +125,11 @@
     #letters-solve { grid-column: span 2; }
     .keypad-form > .buttons { margin: 0; }
     #letters-solver > .buttons:not(:has(button:not([hidden]))) { display: none; }
-    #solver.number-ready, .has-number-result #solver.keypad-form, #letters-solver.letter-results, #letters-solver.letters-busy { flex: 0 0 auto; }
+    #solver.number-ready, #letters-solver.letter-results, #letters-solver.letters-busy { flex: 0 0 auto; }
     #solver.number-ready #numbers-fieldset, #letters-solver.letters-busy #letters-fieldset { flex: 0 0 auto; }
-    #solver.number-ready #edit-numbers { display: block; }
-    .has-number-result #solver #numbers-fieldset, #letters-solver.letter-results #letters-fieldset, #letters-solver.letters-busy #letter-pad { display: none; }
-    .entry-help summary { padding: 2px 0; font-size: .75rem; }
-    #solver.keypad-form:has(details[open]), #letters-solver.keypad-form:has(details[open]) { max-height: none; }
-    .keypad-form:has(details[open]) .entry-pad { display: none; }
-    #solver.keypad-form:has(details[open]) #numbers-fieldset, #letters-solver.keypad-form:has(details[open]) #letters-fieldset { flex: 0 0 auto; }
-    .entry-help[open] { flex: 1; min-height: 0; overflow: auto; }
+    #letters-solver.letter-results #letters-fieldset, #letters-solver.letters-busy #letter-pad { display: none; }
     #status:empty, #letters-status:empty { display: none; }
-    @media (min-width: 700px) { body { padding: 20px; } main { height: calc(100dvh - 40px); } .card { padding: 16px; } .calculator-controls { max-height: calc(100dvh - 228px); padding: 8px; } }
+    @media (min-width: 700px) { body { padding: 20px; } main { height: calc(100dvh - 40px); } .card { padding: 16px; } }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -186,34 +153,11 @@
         <div id="number-pad" class="entry-pad number-pad" role="group" aria-label="Teclado num&eacute;rico"></div>
       </fieldset>
       <div id="number-actions" class="buttons" hidden>
-        <button id="solve" type="submit">Buscar soluci&oacute;n</button>
-        <button id="edit-numbers" type="button">Editar cifras</button>
-        <button id="solve-myself" type="button" class="secondary">Resolver yo</button>
-        <button id="cancel" type="button" class="secondary" hidden>Cancelar</button>
+        <button id="edit-numbers" type="button" class="secondary">Editar cifras</button>
+        <button id="solve-myself" type="button">Resolver yo</button>
       </div>
-      <details class="entry-help">
-        <summary>Reglas y ayuda</summary>
-        <small id="numbers-hint" class="hint">Introduce seis n&uacute;meros con el teclado de pantalla. Enter confirma cada uno; despu&eacute;s escribe el objetivo. &#9003; borra un d&iacute;gito y, si est&aacute; vac&iacute;o, vuelve al n&uacute;mero anterior. Pulsa un hueco para editarlo. No se necesita el teclado del m&oacute;vil.</small>
-        <ul class="rules">
-          <li>Puedes usar algunas o todas las cifras, cada una como m&aacute;ximo una vez.</li>
-          <li>Se permiten resultados negativos y cero, pero no fracciones.</li>
-          <li>Combina dos botones cualesquiera: cifras originales o resultados anteriores. Cada operando se consume y aparece el resultado.</li>
-          <li>Los c&aacute;lculos son exactos, incluso con enteros muy grandes.</li>
-        </ul>
-        <p>Privado y sin conexi&oacute;n. Busca la soluci&oacute;n con menos operaciones. Los operandos azules son resultados anteriores. Puedes cancelar cuando quieras.</p>
-      </details>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
-    <section id="result" class="card" hidden aria-labelledby="result-title">
-      <h2 id="result-title">Soluci&oacute;n</h2>
-      <p id="summary"></p>
-      <ul id="solution-inputs" class="supplied-numbers" aria-label="Cifras del reto y su uso" tabindex="0"></ul>
-      <ol id="steps" class="result-scroll" role="list" tabindex="0" aria-label="Pasos de la soluci&oacute;n"></ol>
-      <details class="expression-details">
-        <summary>Expresi&oacute;n completa</summary>
-        <div id="expression"></div>
-      </details>
-    </section>
     </section>
     <section id="letters-panel" role="tabpanel" aria-labelledby="letters-tab" hidden>
       <form id="letters-solver" class="card keypad-form" novalidate>
@@ -228,12 +172,7 @@
           <button id="letters-edit" type="button" hidden>Cambiar letras</button>
           <button id="letters-cancel" type="button" class="secondary" hidden>Cancelar</button>
         </div>
-        <details class="entry-help">
-          <summary>Candidatas RLA-ES, no verificadas por la RAE &middot; Ayuda</summary>
-          <small id="letters-hint" class="hint">Pulsa cada letra para a&ntilde;adirla de inmediato; &#9003; borra la &uacute;ltima. El abecedario incluye &ntilde; despu&eacute;s de n. Se muestran hasta once letras recientes y un contador para las anteriores, sin limitar la b&uacute;squeda. Busca las palabras m&aacute;s largas sin repetir letras m&aacute;s veces de las que aparecen. Las tildes y la di&eacute;resis de &uuml; no afectan a la b&uacute;squeda; &ntilde; y n son distintas.</small>
-          <p id="letters-source" class="notice">Usa el diccionario ortogr&aacute;fico abierto RLA-ES, con conjugaciones y plurales. Las candidatas <strong>no est&aacute;n verificadas por la RAE</strong>. Los enlaces al DLE permiten consultar sus lemas de origen; la RAE no acepta necesariamente todas las candidatas ni todos los lemas.</p>
-          <p class="hint">B&uacute;squeda privada en tu navegador. Descarga unos 0,9 MB de datos de este sitio la primera vez. Sin nombres propios ni siglas. <a href="data/README.md">Fuente y alcance</a> &middot; <a href="https://github.com/sbosio/rla-es">RLA-ES</a>, de Santiago Bosio y colaboradores &middot; <a href="data/MPL-1.1.txt">Licencia MPL 1.1</a>.</p>
-        </details>
+        <p id="letters-source" class="caveat">Candidatas del diccionario abierto <a href="https://github.com/sbosio/rla-es">RLA-ES</a> (Santiago Bosio y colaboradores), <strong>no verificadas por la RAE</strong> &middot; <a href="data/MPL-1.1.txt">MPL 1.1</a> &middot; <a href="data/README.md">Fuente y alcance</a></p>
         <p id="letters-status" role="status" aria-live="polite"></p>
       </form>
       <section id="letters-result" class="card" aria-labelledby="letters-result-title" hidden>
@@ -254,7 +193,7 @@
         <div class="calculator-readout">
         <div id="calculator-display" aria-label="Operaci&oacute;n actual"></div>
         </div>
-        <ul id="calculator-originals" class="supplied-numbers" aria-label="Cifras originales y su uso" tabindex="0"></ul>
+        <ul id="calculator-originals" class="supplied-numbers" aria-label="Cifras originales y su uso"></ul>
         <div id="calculator-keys" role="group" aria-label="Botones disponibles: cifras y resultados" aria-describedby="key-legend"></div>
         <p id="key-legend" class="key-legend">Botones azules con =: resultados anteriores.</p>
         <div class="calculator-operators" role="group" aria-label="Operaciones">
@@ -264,155 +203,34 @@
           <button type="button" data-operator="/" aria-label="Dividir">&divide;</button>
           <button id="calculator-undo" type="button" class="secondary" aria-label="Deshacer" title="Deshacer">&larr;</button>
         </div>
-        <div class="calculator-tools">
-          <button id="calculator-auto" type="button">Resolver autom&aacute;ticamente</button>
-        </div>
         <p id="calculator-status" role="status" aria-live="polite"></p>
       </div>
-      <details class="card" id="calculator-history" open>
-        <summary id="calculator-history-title">Ver pasos</summary>
+      <section class="card" id="calculator-history" aria-labelledby="calculator-history-title">
+        <h2 id="calculator-history-title">Pasos</h2>
         <ol id="calculator-steps" class="result-scroll" tabindex="0" aria-label="Pasos realizados"></ol>
-      </details>
+      </section>
+      <div class="calculator-footer">
+        <button id="calculator-auto" type="button">Auto-resolver</button>
+      </div>
     </section>
   </main>
   <script src="letters-core.js?v=5"></script>
-  <script src="letters-ui.js?v=22"></script>
+  <script src="letters-ui.js?v=25"></script>
   <script src="numbers-game.js?v=16"></script>
-  <script src="numbers-search.js?v=23"></script>
-  <script src="keypad-model.js?v=22"></script>
-  <script src="entry-keypads.js?v=22"></script>
+  <script src="numbers-search.js?v=25"></script>
+  <script src="keypad-model.js?v=25"></script>
+  <script src="entry-keypads.js?v=25"></script>
   <script src="celebration.js?v=22"></script>
-  <script src="calculator-ui.js?v=24"></script>
+  <script src="calculator-ui.js?v=25"></script>
   <script>
     "use strict";
 
-    const form = document.getElementById("solver");
-    const numbersInput = document.getElementById("numbers");
-    const targetInput = document.getElementById("target");
-    const solveButton = document.getElementById("solve");
-    const cancelButton = document.getElementById("cancel");
-    const status = document.getElementById("status");
-    const result = document.getElementById("result");
-    const numbersPanel = document.getElementById("numbers-panel");
     document.getElementById("edit-numbers").addEventListener("click", () => {
-      numbersPanel.classList.remove("has-number-result");
-      result.hidden = true;
       document.dispatchEvent(new CustomEvent("editnumberpuzzle"));
     });
-    let worker = null;
-    let workerUrl = null;
-    let started = 0;
-    let currentDepth = 0;
-
-    function setStatus(message, error = false) {
-      status.textContent = message;
-      status.classList.toggle("error", error);
-    }
-
-    function stopWorker() {
-      if (worker) worker.terminate();
-      if (workerUrl) URL.revokeObjectURL(workerUrl);
-      worker = null;
-      workerUrl = null;
-      solveButton.disabled = false;
-      cancelButton.hidden = true;
-      numbersInput.disabled = false;
-      document.getElementById("numbers-fieldset").disabled = false;
-      targetInput.disabled = false;
-    }
-
-    form.addEventListener("submit", event => {
-      event.preventDefault();
-      result.hidden = true;
-      numbersPanel.classList.remove("has-number-result");
-      let puzzle;
-      try {
-        puzzle = NumbersGame.parsePuzzle(numbersInput.value, targetInput.value);
-      } catch (error) {
-        setStatus(error.message, true);
-        return;
-      }
-      const { numbers, target } = puzzle;
-      stopWorker();
-      solveButton.disabled = true;
-      cancelButton.hidden = false;
-      numbersInput.disabled = true;
-      document.getElementById("numbers-fieldset").disabled = true;
-      targetInput.disabled = true;
-      currentDepth = 0;
-      started = performance.now();
-      setStatus("Buscando la soluci\u00f3n con menos operaciones...");
-      try {
-        const created = createNumbersWorker();
-        workerUrl = created.url;
-        worker = created.worker;
-        worker.onmessage = ({ data }) => {
-          if (data.type === "progress") {
-            if (data.depth) currentDepth = data.depth;
-            setStatus(`Buscando con hasta ${currentDepth} operaciones; ${data.visited.toLocaleString("es-ES")} estados explorados. Puedes cancelar cuando quieras.`);
-            return;
-          }
-          stopWorker();
-          if (data.type === "error") {
-            setStatus(data.message, true);
-            return;
-          }
-          const seconds = ((performance.now() - started) / 1000).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          if (!data.solution) {
-            setStatus(`No existe una soluci\u00f3n exacta con estas reglas. Se exploraron ${data.visited.toLocaleString("es-ES")} estados en ${seconds} s.`);
-            return;
-          }
-          document.getElementById("expression").textContent = data.solution.expression;
-          const supplied = document.getElementById("solution-inputs");
-          supplied.replaceChildren();
-          numbers.forEach((number, index) => {
-            const item = document.createElement("li");
-            const used = data.solution.usedIndices.includes(index);
-            item.classList.toggle("used", used);
-            item.textContent = `${number}${used ? "\u2713" : ""}`;
-            item.setAttribute("aria-label", `Cifra ${index + 1}: ${number}, ${used ? "utilizada" : "sin usar"}`);
-            item.title = used ? "Utilizada" : "Sin usar";
-            supplied.append(item);
-          });
-          const steps = document.getElementById("steps");
-          steps.replaceChildren();
-          for (const step of data.solution.steps) {
-            const item = document.createElement("li");
-            const operation = createNumberStep(step);
-            item.append(operation);
-            steps.append(item);
-          }
-          document.getElementById("summary").textContent =
-            `Objetivo ${target} \u00b7 ${data.solution.used}/${numbers.length} cifras \u00b7 ${data.solution.steps.length} pasos.` +
-            (data.solution.steps.length === 0 ? " El objetivo ya es una de tus cifras." : "");
-          result.hidden = false;
-          numbersPanel.classList.add("has-number-result");
-          setStatus(`Soluci\u00f3n con el menor n\u00famero de operaciones encontrada en ${seconds} s.`);
-        };
-        worker.onerror = event => {
-          event.preventDefault();
-          console.error("Error en el proceso de cifras:", event.message);
-          stopWorker();
-          setStatus(`Error en la b\u00fasqueda. El navegador no pudo ejecutar el proceso. Int\u00e9ntalo de nuevo.`, true);
-        };
-        worker.postMessage({
-          numbers: numbers.map(value => BigInt(value).toString()),
-          target: BigInt(target).toString()
-        });
-      } catch (error) {
-        console.error("Error al iniciar el proceso de cifras:", error);
-        stopWorker();
-        setStatus("No se pudo iniciar la b\u00fasqueda. Comprueba que tu navegador permite los procesos en segundo plano.", true);
-      }
-    });
-
-    cancelButton.addEventListener("click", () => {
-      stopWorker();
-      setStatus("B\u00fasqueda cancelada. No se han explorado todas las opciones; puede existir una soluci\u00f3n.");
-    });
-    window.addEventListener("pagehide", stopWorker);
+    document.getElementById("solver").addEventListener("submit", event => event.preventDefault());
   </script>
-  <script src="puzzle-url.js?v=22"></script>
-  <script src="puzzle-state.js?v=22"></script>
+  <script src="puzzle-url.js?v=25"></script>
+  <script src="puzzle-state.js?v=25"></script>
 </body>
 </html>

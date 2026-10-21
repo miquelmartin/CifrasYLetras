@@ -11,7 +11,15 @@ function selectTab(selected) {
   document.dispatchEvent(new CustomEvent("puzzlechange"));
 }
 for (const tab of tabs) {
-  tab.addEventListener("click", () => selectTab(tab));
+  tab.addEventListener("click", () => {
+    const mode = tab.id === "letters-tab" ? "letras" : "cifras";
+    if (mode === "letras") {
+      stopLettersWorker();
+      lettersResult.hidden = true;
+    }
+    selectTab(tab);
+    document.dispatchEvent(new CustomEvent("resetpuzzle", { detail: mode }));
+  });
   tab.addEventListener("keydown", event => {
     let index = tabs.indexOf(tab);
     if (event.key === "ArrowRight") index = (index + 1) % tabs.length;

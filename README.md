@@ -10,22 +10,23 @@ para ambas pestanas, por ejemplo con `python -m http.server 8000`.
 grande de pantalla usa filas `7 8 9`, `4 5 6`, `1 2 3`, `borrar 0 Enter`.
 Enter confirma cada numero; vacio no hace nada. Borrar quita un digito y, si
 no hay ninguno, vuelve al numero anterior. Los seis huecos permiten editar
-cifras ya introducidas sin perder las demas. Tras confirmar el objetivo puedes
-buscar una solucion o abrir Resolver yo. No hay tecla menos, campos editables,
+cifras ya introducidas sin perder las demas; tras **Editar cifras**, borrar sigue
+retrocediendo por el objetivo y las seis cifras hasta vaciarlo todo. Al
+confirmar el objetivo se abre directamente Resolver yo. No hay tecla menos, campos editables,
 cursor de texto ni teclado del sistema. Los numeros muy largos se abrevian en
 los huecos, conservando su valor completo en el titulo, nombre accesible y URL.
 
 **Letras** muestra todo el abecedario en orden, con N y &Ntilde; separadas,
 en cinco columnas. Cada pulsacion anade una letra; borrar quita la ultima y
-Buscar ocupa dos columnas. Se muestran hasta once letras recientes y, cuando
-hay mas, un contador de las anteriores. El conjunto completo se conserva y no
-se limita la busqueda. Tambien funcionan digitos, letras, Enter y retroceso del
+Buscar ocupa dos columnas. Se admiten como maximo doce letras, siempre en una
+sola fila de fichas que se estrechan; al llegar a doce se desactivan las letras. Tambien funcionan digitos, letras, Enter y retroceso del
 teclado fisico como comodidad, pero no son necesarios. Espacios y comas no
 repiten letras; se conservan las repeticiones deliberadas, tildes y &Ntilde;.
 
-Los teclados ocupan el espacio libre del movil sin desplazamiento interno,
-con comprobaciones a 360x640, 375x667 y 390x844. Ayuda sustituye temporalmente
-al teclado al desplegarse. La paleta Pop suave combina celeste claro, naranja,
+La pagina nunca se desplaza. Solo la lista de Pasos y la de palabras halladas
+pueden desplazarse dentro de su propia caja; teclados, operaciones, objetivo y
+botones quedan siempre visibles (comprobado a 360x640, 375x667 y 390x844).
+Pulsar la pestana Cifras o Letras, aunque ya este activa, vacia ese modo y su URL. La paleta Pop suave combina celeste claro, naranja,
 ambar y azul menos saturados, con contornos y sombras solidas de 2 px.
 
 ## Cifras exactas
@@ -52,8 +53,12 @@ y los pasos; el valor exacto sigue en el titulo, nombre accesible y calculo.
 
 El objetivo grande y su distancia exacta aparecen juntos. La distancia es la
 menor diferencia absoluta entre el objetivo y los botones disponibles.
-**Resolver automaticamente** busca primero desde los botones actuales; si no
-hay continuacion, busca desde las cifras originales y avisa antes de reiniciar.
+**Auto-resolver**, un boton pequeno y separado al pie de Resolver yo, busca
+primero desde los botones actuales; si no hay continuacion exacta, busca desde
+las cifras originales y avisa antes de reiniciar. Si ninguna combinacion da el
+objetivo, reproduce la mas cercana (menor diferencia y, a igualdad, menos
+operaciones) e indica, por ejemplo, "No hay solucion exacta · la mas cercana:
+951 (a 1)".
 La reproduccion usa los mismos botones, permite cancelar y admite deshacer.
 
 Al alcanzar el objetivo aparecen fuegos artificiales nativos durante 5,8 s:
@@ -83,7 +88,8 @@ El reto se guarda con `modo`, `n`, `obj`, `l` y `yo=1`. Recargar restaura
 pestana, seis cifras exactas, letras con tildes, objetivo y Resolver yo, pero no
 sus operaciones. Teclear sustituye la URL sin llenar el historial. Atras y
 Adelante cambian de vista. Los parametros invalidos o mas de seis cifras se
-omiten con un aviso. Los enlaces antiguos con enteros negativos se conservan;
+omiten con un aviso; mas de doce letras se recortan a doce, tambien con aviso.
+Una URL con el reto completo abre Resolver yo. Los enlaces antiguos con enteros negativos se conservan;
 el nuevo teclado no crea signos negativos.
 
 El icono suministrado por el usuario se incluye optimizado para cabecera,

@@ -46,3 +46,11 @@ test("removing inputs removes obsolete query keys, while accents and enye remain
   const result = encode({ mode: "cifras", numbers: [], letters: "", target: "", manual: false }, "?l=old&n=1&obj=2&yo=1");
   assert.equal(result, "?modo=cifras");
 });
+
+test("URL letters are capped at twelve", () => {
+  const puzzle = decode("?modo=letras&l=" + "abcdefghijklmn");
+  assert.equal(puzzle.letters, "abcdefghijkl");
+  assert.equal(puzzle.invalid, true);
+  assert.equal(decode("?modo=letras&l=abcdefghijk%C3%B1").letters, "abcdefghijk\u00f1");
+  assert.equal(decode("?modo=letras&l=abcdefghijk%C3%B1").invalid, false);
+});
