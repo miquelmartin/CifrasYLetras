@@ -48,17 +48,16 @@ test("fractional division and division by zero fail without altering state", () 
   game.undo();
   game.chooseNumber(2);
   assert.throws(() => game.execute(), /entre cero/);
-  game.reset();
+  while (game.history.length) game.undo();
   assert.equal(game.history.length, 0);
   assert.deepEqual(game.state.used, []);
 });
 
-test("supports reversed operands, negatives, exact large integers and sequential steps", () => {
+test("supports negatives, exact large integers and sequential steps", () => {
   const game = new Game([5n, 2n, 900719925474099312345n, 0n, 3n, 6n], -3n);
-  game.chooseNumber(0);
-  game.chooseOperator("-");
   game.chooseNumber(1);
-  game.reverse();
+  game.chooseOperator("-");
+  game.chooseNumber(0);
   game.execute();
   assert.equal(game.state.current, -3n);
   game.chooseOperator("*");
@@ -66,11 +65,10 @@ test("supports reversed operands, negatives, exact large integers and sequential
   game.execute();
   assert.equal(game.state.current, -2702159776422297937035n);
   assert.equal(game.state.steps.length, 2);
-  game.reset();
-  game.chooseNumber(1);
-  game.chooseOperator("/");
+  while (game.history.length) game.undo();
   game.chooseNumber(5);
-  game.reverse();
+  game.chooseOperator("/");
+  game.chooseNumber(1);
   game.execute();
   assert.equal(game.state.current, 3n);
 });

@@ -58,11 +58,11 @@
     .calculator-controls { flex: 0 0 auto; max-height: 78%; overflow: auto; padding: 8px; }
     #calculator-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
     #calculator-keys button { min-height: clamp(44px, 7dvh, 64px); font-size: clamp(1.75rem, 8vw, 2.8rem); line-height: 1.1; padding: 4px; overflow-wrap: anywhere; max-height: 76px; overflow: auto; }
-    .calculator-operators { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
-    .calculator-operators button { font-size: 1.2rem; }
-    .calculator-operators button[aria-pressed="true"] { box-shadow: inset 0 0 0 3px #e8edf7; background: #303e56; color: #8ce2c0; }
-    .calculator-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-    .calculator-tools button { flex: 1; padding: 6px; font-size: .875rem; }
+    .calculator-operators { display: grid; grid-template-columns: repeat(4, minmax(0, 80px)); justify-content: space-between; gap: 6px; margin-top: 8px; }
+    .calculator-operators button { aspect-ratio: 1; border-radius: 0; padding: 0; font-size: 2rem; background: #2874c8; color: #fff; }
+    .calculator-operators button[aria-pressed="true"] { box-shadow: inset 0 0 0 3px #e8edf7; background: #164b85; }
+    .calculator-tools { display: flex; gap: 6px; margin-top: 6px; }
+    .calculator-tools button { flex: 1; padding: 4px; font-size: 1.75rem; }
     #calculator-status { font-size: .875rem; margin-top: 8px; max-height: 4em; overflow: auto; }
     .error { color: #ffb0b0; }
     .success { color: #8ce2c0; font-weight: 700; }
@@ -92,7 +92,7 @@
       <div class="fields">
       <fieldset id="numbers-fieldset">
       <label for="number-entry">Tus cifras</label>
-      <input id="numbers" type="hidden" value="25, 50, 3, 6, 7, 8">
+      <input id="numbers" type="hidden" value="">
       <div class="number-box">
         <span id="number-chips"></span>
         <input id="number-entry" type="text" placeholder="A&ntilde;adir" autocomplete="off" spellcheck="false" aria-describedby="numbers-hint">
@@ -100,7 +100,7 @@
       </fieldset>
       <div>
       <label for="target">Objetivo</label>
-      <input id="target" type="text" value="952" required autocomplete="off" spellcheck="false">
+      <input id="target" type="text" placeholder="Ej. 952" required autocomplete="off" spellcheck="false">
       </div>
       </div>
       <div class="buttons">
@@ -135,7 +135,7 @@
       <form id="letters-solver" class="card" novalidate>
         <fieldset id="letters-fieldset">
           <label for="letter-entry">Tus letras</label>
-          <input id="letters" type="hidden" value="C A N T A B A M O S">
+          <input id="letters" type="hidden" value="">
           <div class="number-box">
             <span id="letter-chips"></span>
             <input id="letter-entry" type="text" placeholder="A&ntilde;adir" autocomplete="off" spellcheck="false" aria-describedby="letters-hint letters-source">
@@ -173,12 +173,10 @@
           <button type="button" data-operator="-" aria-label="Restar">&minus;</button>
           <button type="button" data-operator="*" aria-label="Multiplicar">&times;</button>
           <button type="button" data-operator="/" aria-label="Dividir">&divide;</button>
-          <button id="calculator-equals" type="button" aria-label="Calcular">=</button>
         </div>
         <div class="calculator-tools">
-          <button id="calculator-undo" type="button" class="secondary">Deshacer</button>
-          <button id="calculator-reset" type="button" class="secondary">Reiniciar</button>
-          <button id="calculator-reverse" type="button" class="secondary" title="Intercambiar los operandos de la operaci&oacute;n pendiente">Invertir orden</button>
+          <button id="calculator-undo" type="button" class="secondary" aria-label="Deshacer" title="Deshacer">&larr;</button>
+          <button id="calculator-equals" type="button" aria-label="Calcular">=</button>
         </div>
         <p id="calculator-status" role="status" aria-live="polite"></p>
       </div>

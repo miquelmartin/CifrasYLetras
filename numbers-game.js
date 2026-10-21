@@ -17,10 +17,7 @@ const NumbersGame = (() => {
     constructor(numbers, target) {
       this.numbers = numbers;
       this.target = target;
-      this.reset();
-    }
-    reset() {
-      this.state = { current: null, operator: null, pending: null, reversed: false, used: [], steps: [] };
+      this.state = { current: null, operator: null, pending: null, used: [], steps: [] };
       this.history = [];
     }
     save() {
@@ -46,18 +43,13 @@ const NumbersGame = (() => {
       this.save();
       this.state.operator = operator;
     }
-    reverse() {
-      if (this.state.pending === null) throw new Error("Elige las dos cifras antes de invertir su orden.");
-      this.save();
-      this.state.reversed = !this.state.reversed;
-    }
     execute() {
       const state = this.state;
       if (state.pending === null || !state.operator) throw new Error("Elige una operaci\u00f3n y otra cifra.");
-      const a = state.reversed ? state.pending : state.current;
-      const b = state.reversed ? state.current : state.pending;
+      const a = state.current;
+      const b = state.pending;
       if (state.operator === "/" && b === 0n) throw new Error("No se puede dividir entre cero. Usa Deshacer para cambiar la cifra.");
-      if (state.operator === "/" && a % b !== 0n) throw new Error("La divisi\u00f3n debe ser exacta, sin fracciones. Usa Deshacer o invierte el orden.");
+      if (state.operator === "/" && a % b !== 0n) throw new Error("La divisi\u00f3n debe ser exacta, sin fracciones. Usa Deshacer para cambiar la operaci\u00f3n.");
       const value = state.operator === "+" ? a + b : state.operator === "-" ? a - b :
         state.operator === "*" ? a * b : a / b;
       this.save();
@@ -67,7 +59,6 @@ const NumbersGame = (() => {
       state.current = value;
       state.operator = null;
       state.pending = null;
-      state.reversed = false;
     }
     undo() {
       if (this.history.length) this.state = this.history.pop();

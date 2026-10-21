@@ -44,7 +44,17 @@ export async function run() {
         assert(bounds.height >= 80 && bounds.bottom <= height, `${id}: resultados sin espacio visible`);
       };
       snapshot("Cifras inicial");
-      assert(byId("number-chips").children.length === 6, "Faltan fichas iniciales");
+      assert(byId("number-chips").children.length === 0 && byId("numbers").value === "" && byId("target").value === "", "Cifras debe empezar vacio");
+      byId("solver").requestSubmit();
+      assert(byId("status").classList.contains("error"), "Falta validacion de cifras vacias");
+      byId("solve-myself").click();
+      assert(byId("calculator-panel").hidden, "No debe abrir calculadora vacia");
+      byId("letters-tab").click();
+      assert(byId("letter-chips").children.length === 0 && byId("letters").value === "", "Letras debe empezar vacio");
+      byId("letters-solver").requestSubmit();
+      assert(byId("letters-status").classList.contains("error"), "Falta validacion de letras vacias");
+      byId("numbers-tab").click();
+      input("number-entry", "25 50 3 6 7 8 ");
       byId("number-entry").dispatchEvent(new win.KeyboardEvent("keydown", { key: "Backspace", bubbles: true }));
       assert(byId("number-entry").value === "8" && byId("number-chips").children.length === 5, "Retroceso no permite corregir la ficha");
       input("number-entry", "8 ");
@@ -84,6 +94,13 @@ export async function run() {
       snapshot("Calculadora ocho operaciones");
       assert(byId("calculator-steps").children.length === 8, "Calculadora pierde pasos");
       assert(parseFloat(win.getComputedStyle(nineKeys[0]).fontSize) >= 28, "Numeros demasiado pequenos");
+      for (const button of doc.querySelectorAll("[data-operator]")) {
+        const bounds = button.getBoundingClientRect();
+        assert(Math.abs(bounds.width - bounds.height) < 1 && bounds.width >= 64, "Operaciones deben ser cuadrados grandes");
+        assert(win.getComputedStyle(button).backgroundColor === "rgb(40, 116, 200)", "Operaciones deben ser azules");
+      }
+      assert(byId("calculator-undo").textContent.trim() === "←" && byId("calculator-undo").getAttribute("aria-label") === "Deshacer", "Deshacer debe ser una flecha accesible");
+      assert(!byId("calculator-reset") && !byId("calculator-reverse"), "Sobran controles eliminados");
       reachEnd("calculator-steps");
       byId("calculator-back").click();
       byId("solver").querySelector("details").open = true;
@@ -149,8 +166,8 @@ export async function run() {
       byId("calculator-undo").click();
       keys[2].click(); byId("calculator-equals").click();
       assert(byId("calculator-status").textContent.includes("entre cero"), "Division entre cero aceptada");
-      byId("calculator-reset").click();
-      assert(keys.every(key => !key.disabled), "Reiniciar no restaura cifras");
+      while (!byId("calculator-undo").disabled) byId("calculator-undo").click();
+      assert(keys.every(key => !key.disabled), "Deshacer no restaura cifras");
       snapshot("Calculadora");
       byId("calculator-back").click();
       assert(byId("target").value === "4" && byId("numbers").value === "2, 2, 0, 5, 3, 6", "Volver pierde el reto");

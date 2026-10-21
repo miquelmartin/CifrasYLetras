@@ -20,10 +20,11 @@ Se respetan la composicion de caracteres, las tildes y la distincion entre N y
 **Resolver yo** abre una calculadora dentro de la pagina con una tecla por
 cifra, incluidas las repetidas como instancias separadas. Elige una cifra,
 una operacion, otra cifra y pulsa `=`. Cada paso reutiliza el resultado anterior.
-**Invertir orden** intercambia los operandos pendientes para restas o divisiones
-en sentido inverso. **Deshacer** revierte cada accion, incluida la seleccion de
-una cifra; **Reiniciar** devuelve todas las cifras. **Volver** conserva el reto
+Los cuatro botones de operacion son azules, cuadrados y grandes.
+La flecha hacia atras (**Deshacer**) revierte cada accion, incluida la seleccion
+de una cifra. **Volver** conserva el reto
 y los resultados automaticos. Los calculos siguen siendo enteros exactos.
+Las dos pestanas y el objetivo empiezan vacios, sin ejemplos precargados.
 
 - **Cifras:** calculos enteros exactos, uso opcional de las cifras y solucion
   secuencial con el menor numero de operaciones. Se puede cancelar la busqueda.
