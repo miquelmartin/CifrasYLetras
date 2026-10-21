@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Number Workshop</title>
+  <title>Cifras y Letras</title>
   <style>
     :root { color-scheme: dark; font: 16px/1.6 system-ui, sans-serif; background: #10141e; color: #e8edf7; }
     * { box-sizing: border-box; }
@@ -32,44 +32,89 @@
     #steps li::before { content: counter(step); display: grid; place-items: center; flex: 0 0 28px; height: 28px; border-radius: 50%; background: #303e56; color: #aebbd0; font: 700 .8rem system-ui, sans-serif; }
     #steps .operation { min-width: 0; overflow-wrap: anywhere; font: 1.1rem/1.6 ui-monospace, monospace; }
     #result h2 { margin-top: 0; }
+    a { color: #8ce2c0; text-underline-offset: 3px; }
+    .tabs { display: flex; gap: 8px; margin: 28px 0; padding: 6px; background: #101826; border: 1px solid #303e56; border-radius: 14px; }
+    .tabs button { flex: 1; background: transparent; color: #aebbd0; }
+    .tabs button[aria-selected="true"] { background: #8ce2c0; color: #10291f; }
+    .panel-intro { margin-bottom: 0; }
+    .panel-intro h2 { margin-bottom: 0; }
+    #letters-status { min-height: 1.6em; overflow-wrap: anywhere; margin-bottom: 0; }
+    #letters-status.error { color: #ffb0b0; }
+    #letters-result h2 { margin-top: 0; }
+    .word-list { padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .word-list li { padding: 16px; border: 1px solid #394a63; border-radius: 12px; background: #101826; overflow-wrap: anywhere; }
+    .word-list strong { display: block; font-size: 1.3rem; color: #8ce2c0; }
+    .word-list a { font-size: .85rem; }
+    .notice { font-size: .85rem; color: #aebbd0; }
     [hidden] { display: none !important; }
     @media (max-width: 480px) { body { padding: 28px 14px; } .card { padding: 20px; } }
   </style>
 </head>
 <body>
   <main>
-    <div class="eyebrow">Number Workshop</div>
-    <h1>Your numbers. One target.</h1>
-    <p>Find an exact route using addition, subtraction, multiplication, and integer division.</p>
-    <form id="solver" class="card">
-      <label for="numbers">Your numbers</label>
+    <div class="eyebrow">Un reto para tu mente</div>
+    <h1>Cifras y Letras</h1>
+    <p>Unas cifras. Unas letras. Descubre hasta d&oacute;nde puedes llegar.</p>
+    <div class="tabs" role="tablist" aria-label="Elige un reto">
+      <button id="numbers-tab" type="button" role="tab" aria-selected="true" aria-controls="numbers-panel">Cifras</button>
+      <button id="letters-tab" type="button" role="tab" aria-selected="false" aria-controls="letters-panel" tabindex="-1">Letras</button>
+    </div>
+    <section id="numbers-panel" role="tabpanel" aria-labelledby="numbers-tab">
+    <div class="panel-intro"><h2>Tus cifras. Un objetivo.</h2></div>
+    <p>Encuentra una soluci&oacute;n exacta con sumas, restas, multiplicaciones y divisiones enteras.</p>
+    <form id="solver" class="card" novalidate>
+      <label for="numbers">Tus cifras</label>
       <input id="numbers" type="text" value="25, 50, 3, 6, 7, 8" required autocomplete="off" spellcheck="false" aria-describedby="numbers-hint">
-      <small id="numbers-hint" class="hint">Enter 6-9 integers, separated by commas or spaces. Negative numbers and duplicates are welcome.</small>
-      <label for="target">Target</label>
+      <small id="numbers-hint" class="hint">Introduce entre 6 y 9 enteros, separados por comas o espacios. Puedes repetir cifras y usar negativos.</small>
+      <label for="target">Objetivo</label>
       <input id="target" type="text" value="952" required autocomplete="off" spellcheck="false">
       <details>
-        <summary>The rules</summary>
+        <summary>Las reglas</summary>
         <ul class="rules">
-          <li>Use any subset of the inputs, each at most once.</li>
-          <li>Negative and zero results are allowed; fractional results are not.</li>
-          <li>Start with two inputs, then combine the previous result with one unused input per step.</li>
-          <li>All arithmetic is exact, even for very large integers.</li>
+          <li>Puedes usar algunas o todas las cifras, cada una como m&aacute;ximo una vez.</li>
+          <li>Se permiten resultados negativos y cero, pero no fracciones.</li>
+          <li>Empieza con dos cifras y combina el resultado anterior con una cifra sin usar en cada paso.</li>
+          <li>Los c&aacute;lculos son exactos, incluso con enteros muy grandes.</li>
         </ul>
       </details>
       <div class="buttons">
-        <button id="solve" type="submit">Find a solution</button>
-        <button id="cancel" type="button" class="secondary" hidden>Cancel search</button>
+        <button id="solve" type="submit">Buscar soluci&oacute;n</button>
+        <button id="cancel" type="button" class="secondary" hidden>Cancelar b&uacute;squeda</button>
       </div>
-      <p id="status" role="status" aria-live="polite">Ready when you are.</p>
+      <p id="status" role="status" aria-live="polite">Todo listo para empezar.</p>
     </form>
     <section id="result" class="card" hidden aria-labelledby="result-title">
-      <h2 id="result-title">Solution</h2>
+      <h2 id="result-title">Soluci&oacute;n</h2>
       <div id="expression"></div>
       <ol id="steps" role="list"></ol>
       <p id="summary"></p>
     </section>
-    <p class="hint">Private, offline, and no downloads needed. Finds the fewest operations. Tricky searches may take a while; cancel anytime.</p>
+    <p class="hint">Privado, sin conexi&oacute;n y sin descargar datos. Busca la soluci&oacute;n con menos operaciones. Los retos dif&iacute;ciles pueden tardar; puedes cancelar cuando quieras.</p>
+    </section>
+    <section id="letters-panel" role="tabpanel" aria-labelledby="letters-tab" hidden>
+      <div class="panel-intro"><h2>Tus letras. La palabra m&aacute;s larga.</h2></div>
+      <p>Busca las palabras candidatas m&aacute;s largas en espa&ntilde;ol usando algunas o todas tus letras.</p>
+      <form id="letters-solver" class="card" novalidate>
+        <label for="letters">Tus letras</label>
+        <input id="letters" type="text" value="C A N T A B A M O S" required autocomplete="off" spellcheck="false" aria-describedby="letters-hint letters-source">
+        <small id="letters-hint" class="hint">Escr&iacute;belas juntas o separadas por espacios o comas. Cada letra se usa como m&aacute;ximo tantas veces como aparezca. Las tildes y la di&eacute;resis de &uuml; no afectan a la b&uacute;squeda; &ntilde; y n son distintas.</small>
+        <p id="letters-source" class="notice">Usa el diccionario ortogr&aacute;fico abierto RLA-ES, con conjugaciones y plurales. Las candidatas <strong>no est&aacute;n verificadas por la RAE</strong>. Los enlaces al DLE permiten consultar sus lemas de origen; la RAE no acepta necesariamente todas las candidatas ni todos los lemas.</p>
+        <div class="buttons">
+          <button id="letters-solve" type="submit">Buscar palabras m&aacute;s largas</button>
+          <button id="letters-cancel" type="button" class="secondary" hidden>Cancelar b&uacute;squeda</button>
+        </div>
+        <p id="letters-status" role="status" aria-live="polite">El diccionario se carga al iniciar la b&uacute;squeda.</p>
+      </form>
+      <section id="letters-result" class="card" aria-labelledby="letters-result-title" hidden>
+        <h2 id="letters-result-title">Las candidatas m&aacute;s largas</h2>
+        <p id="letters-summary"></p>
+        <ul id="letters-words" class="word-list" lang="es"></ul>
+      </section>
+      <p class="hint">B&uacute;squeda privada en tu navegador. Descarga unos 0,9 MB de datos de este sitio la primera vez. Sin nombres propios ni siglas. <a href="data/README.md">Fuente y alcance</a> &middot; <a href="https://github.com/sbosio/rla-es">RLA-ES</a>, de Santiago Bosio y colaboradores &middot; <a href="data/MPL-1.1.txt">Licencia MPL 1.1</a>.</p>
+    </section>
   </main>
+  <script src="letters-core.js"></script>
+  <script src="letters-ui.js"></script>
   <script>
     "use strict";
 
@@ -205,16 +250,16 @@
       const raw = numbersInput.value.trim();
       const target = targetInput.value.trim();
       if (!/^[+-]?\d+(?:(?:\s*,\s*|\s+)[+-]?\d+)*$/.test(raw)) {
-        setStatus("Enter whole numbers separated by commas or spaces, for example: -5, 2, 3, 6, 7, 10.", true);
+        setStatus("Introduce enteros separados por comas o espacios, por ejemplo: -5, 2, 3, 6, 7, 10.", true);
         return;
       }
       const numbers = raw.split(/[\s,]+/);
       if (numbers.length < 6 || numbers.length > 9) {
-        setStatus("Please enter between 6 and 9 numbers.", true);
+        setStatus("Introduce entre 6 y 9 cifras.", true);
         return;
       }
       if (!/^[+-]?\d+$/.test(target)) {
-        setStatus("The target must be a whole number, which may be negative.", true);
+        setStatus("El objetivo debe ser un entero; puede ser negativo.", true);
         return;
       }
       stopWorker();
@@ -224,20 +269,20 @@
       targetInput.disabled = true;
       currentDepth = 0;
       started = performance.now();
-      setStatus("Searching for the shortest solution...");
+      setStatus("Buscando la soluci\u00f3n con menos operaciones...");
       try {
         workerUrl = URL.createObjectURL(new Blob([`(${solverWorker.toString()})();`], { type: "text/javascript" }));
         worker = new Worker(workerUrl);
         worker.onmessage = ({ data }) => {
           if (data.type === "progress") {
             if (data.depth) currentDepth = data.depth;
-            setStatus(`Searching up to ${currentDepth} operations; ${data.visited.toLocaleString()} states explored. You can cancel at any time.`);
+            setStatus(`Buscando con hasta ${currentDepth} operaciones; ${data.visited.toLocaleString("es-ES")} estados explorados. Puedes cancelar cuando quieras.`);
             return;
           }
           stopWorker();
-          const seconds = ((performance.now() - started) / 1000).toFixed(2);
+          const seconds = ((performance.now() - started) / 1000).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
           if (!data.solution) {
-            setStatus(`No exact solution exists under these rules. Explored ${data.visited.toLocaleString()} states in ${seconds}s.`);
+            setStatus(`No existe una soluci\u00f3n exacta con estas reglas. Se exploraron ${data.visited.toLocaleString("es-ES")} estados en ${seconds} s.`);
             return;
           }
           document.getElementById("expression").textContent = data.solution.expression;
@@ -252,29 +297,31 @@
             steps.append(item);
           }
           document.getElementById("summary").textContent =
-            `Used ${data.solution.used} of ${numbers.length} inputs with ${data.solution.steps.length} operations.` +
-            (data.solution.steps.length === 0 ? " The target is already one of your inputs." : "");
+            `Cifras utilizadas: ${data.solution.used} de ${numbers.length}. Operaciones: ${data.solution.steps.length}.` +
+            (data.solution.steps.length === 0 ? " El objetivo ya es una de tus cifras." : "");
           result.hidden = false;
-          setStatus(`Found a shortest solution in ${seconds}s.`);
+          setStatus(`Soluci\u00f3n con el menor n\u00famero de operaciones encontrada en ${seconds} s.`);
         };
         worker.onerror = event => {
           event.preventDefault();
+          console.error("Error en el proceso de cifras:", event.message);
           stopWorker();
-          setStatus(`Search failed: ${event.message || "the browser could not run the worker."}`, true);
+          setStatus(`Error en la b\u00fasqueda. El navegador no pudo ejecutar el proceso. Int\u00e9ntalo de nuevo.`, true);
         };
         worker.postMessage({
           numbers: numbers.map(value => BigInt(value).toString()),
           target: BigInt(target).toString()
         });
       } catch (error) {
+        console.error("Error al iniciar el proceso de cifras:", error);
         stopWorker();
-        setStatus(`Could not start the search: ${error.message}`, true);
+        setStatus("No se pudo iniciar la b\u00fasqueda. Comprueba que tu navegador permite los procesos en segundo plano.", true);
       }
     });
 
     cancelButton.addEventListener("click", () => {
       stopWorker();
-      setStatus("Search cancelled. The search was not exhaustive; a solution may still exist.");
+      setStatus("B\u00fasqueda cancelada. No se han explorado todas las opciones; puede existir una soluci\u00f3n.");
     });
     window.addEventListener("pagehide", stopWorker);
   </script>
