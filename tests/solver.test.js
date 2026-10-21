@@ -140,13 +140,12 @@ test("worker exposes download timeout and malformed data errors in Spanish", asy
   }
 });
 
-test("numbers solver still finds exact sequential integer solutions", () => {
-  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  const workerSource = html.match(/function solverWorker\(\) \{[\s\S]*?\n    \}/)[0];
+test("serialized numbers worker finds exact general integer solutions", () => {
+  const source = fs.readFileSync(path.join(root, "numbers-search.js"), "utf8");
   function solve(numbers, target) {
     const messages = [];
     const context = { self: { postMessage: message => messages.push(message) } };
-    vm.runInNewContext(`(${workerSource})();`, context);
+    vm.runInNewContext(source + "\nnumbersSearchWorker();", context);
     context.self.onmessage({ data: { numbers: numbers.map(String), target: String(target) } });
     return messages.at(-1).solution;
   }
@@ -160,26 +159,22 @@ test("numbers solver still finds exact sequential integer solutions", () => {
     assert.ok(solution);
     assert.equal(new Set(solution.usedIndices).size, solution.used);
     assert.ok(solution.usedIndices.every(index => index >= 0 && index < numbers.length));
-    let previous = null;
-    const remaining = numbers.map(BigInt);
-    const consume = operand => {
-      const index = remaining.indexOf(operand);
-      assert.ok(index >= 0, `Input ${operand} was unavailable`);
-      remaining.splice(index, 1);
+    const remaining = new Map(numbers.map((value, index) => [`input:${index}`, BigInt(value)]));
+    const consume = (id, operand) => {
+      assert.equal(remaining.get(id), operand, `Input ${id} was unavailable`);
+      remaining.delete(id);
     };
     for (const step of solution.steps) {
-      const [, left, operator, right, output] = step.match(/^\(?(-?\d+)\)? ([+*/-]) \(?(-?\d+)\)? = (-?\d+)$/);
+      const { left, operator, right, value: output } = step;
       const a = BigInt(left), b = BigInt(right), value = BigInt(output);
-      if (previous === null) { consume(a); consume(b); }
-      else if (a === previous) consume(b);
-      else { assert.equal(b, previous); consume(a); }
+      consume(step.leftId, a); consume(step.rightId, b);
       if (operator === "+") assert.equal(a + b, value);
       if (operator === "-") assert.equal(a - b, value);
       if (operator === "*") assert.equal(a * b, value);
       if (operator === "/") { assert.notEqual(b, 0n); assert.equal(a % b, 0n); assert.equal(a / b, value); }
-      previous = value;
+      remaining.set(step.id, value);
     }
-    assert.equal(previous, BigInt(target));
+    assert.ok([...remaining.values()].includes(BigInt(target)));
   }
   assert.equal(solve([25, 50, 3, 6, 7, 8], 25).steps.length, 0);
   assert.equal(solve([0, 0, 0, 0, 0, 0], 1), null);
