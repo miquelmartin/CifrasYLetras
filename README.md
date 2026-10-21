@@ -9,7 +9,10 @@ para ambas pestanas, por ejemplo con `python -m http.server 8000`.
 **Cifras** pide exactamente seis numeros y despues el objetivo. El teclado
 grande de pantalla usa filas `7 8 9`, `4 5 6`, `1 2 3`, `borrar 0 Enter`.
 Enter confirma cada numero; vacio no hace nada. Borrar quita un digito y, si
-no hay ninguno, vuelve al numero anterior. Los seis huecos permiten editar
+no hay ninguno, vuelve al numero anterior. Lo tecleado aparece directamente en
+el hueco actual (borde azul discontinuo); no hay franja de "Numero N de 6". Debajo
+de los seis huecos, la caja **Objetivo** espera con `···` hasta su turno y muestra
+el objetivo grande en naranja. Los seis huecos permiten editar
 cifras ya introducidas sin perder las demas; tras **Editar cifras**, borrar sigue
 retrocediendo por el objetivo y las seis cifras hasta vaciarlo todo. Al
 confirmar el objetivo se abre directamente Resolver yo. No hay tecla menos, campos editables,
@@ -31,6 +34,17 @@ Cada tecla de los teclados, botones de Resolver yo y operaciones extiende de for
 invisible su zona tactil hasta la mitad del hueco vecino: tocar entre teclas activa
 la mas cercana. En Letras, la nota del diccionario aparece tras pulsar Buscar. La paleta Pop suave combina celeste claro, naranja,
 ambar y azul menos saturados, con contornos y sombras solidas de 2 px.
+
+En Resolver yo, una flecha solida (Volver) tan alta como la caja Objetivo vuelve a
+la entrada; junto al objetivo se indica en pequeno "faltan N" o "sobran N" respecto
+al boton mas cercano. Las operaciones tienen las mismas esquinas redondeadas que las cifras.
+
+## Estadisticas
+
+Se usan visitas anonimas de [GoatCounter](https://www.goatcounter.com/)
+(visitas, visitantes unicos y pais). Solo se envia la ruta con `?modo=cifras` o
+`?modo=letras`, tambien al cambiar de pestana; nunca numeros, objetivo ni letras.
+GoatCounter no cuenta archivos locales, `localhost` ni pruebas automatizadas.
 
 ## Cifras exactas
 

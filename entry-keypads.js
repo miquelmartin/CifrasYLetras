@@ -20,25 +20,27 @@
     for (let index = 0; index < 6; index++) {
       const value = slots[index];
       const current = !numberEntry.ready && numberEntry.cursor === index;
+      const text = shortValue(value);
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `entry-slot ${current ? "current" : value ? "done" : "empty"}`;
-      button.textContent = shortValue(value);
-      button.style.fontSize = button.textContent.length > 3 ? ".7rem" : "1.1rem";
+      const size = text.length >= 5 ? " len-long" : text.length === 4 ? " len-4" : text.length === 3 ? " len-3" : "";
+      button.className = `entry-slot ${current ? "current" : value ? "done" : "empty"}${size}`;
+      button.textContent = text;
       button.title = value;
       button.disabled = index > numberEntry.numbers.length + (numberEntry.inserting ? 1 : 0);
       button.setAttribute("aria-label", `N\u00famero ${index + 1}: ${value || "vac\u00edo"}${current ? ", actual" : ""}`);
       button.addEventListener("click", () => { numberEntry.edit(index); renderNumbers(); });
       numberSlots.append(button);
     }
-    const label = numberEntry.cursor === 6 ? "Objetivo" : `N\u00famero ${numberEntry.cursor + 1} de 6`;
-    document.getElementById("number-entry-label").textContent = label;
-    const display = document.getElementById("number-draft");
-    const value = numberEntry.draft;
-    display.textContent = value.length > 24 ? `${value.slice(0, 8)}\u2026${value.slice(-8)}` : value;
-    display.style.fontSize = value.length > 8 ? "1.1rem" : "";
-    display.title = value;
-    display.setAttribute("aria-label", `${label}: ${value || "vac\u00edo"}`);
+    const targetSlot = document.getElementById("number-target-slot");
+    const targetValue = document.getElementById("number-target-value");
+    const targetCurrent = !numberEntry.ready && numberEntry.cursor === 6;
+    const targetText = numberEntry.target;
+    targetValue.textContent = targetText.length > 12 ? `${targetText.slice(0, 5)}\u2026${targetText.slice(-5)}` : targetText || (targetCurrent ? "" : "\u00b7\u00b7\u00b7");
+    targetSlot.className = `entry-target ${targetCurrent ? "current" : targetText ? "done" : "empty"}${targetText.length > 6 ? " long" : ""}`;
+    targetSlot.title = targetText;
+    targetSlot.disabled = numberEntry.numbers.length < 6 || targetCurrent;
+    targetSlot.setAttribute("aria-label", `Objetivo: ${targetText || "vac\u00edo"}${targetCurrent ? ", actual" : ""}`);
     rawNumbers.value = numberEntry.numbers.join(", ");
     target.value = numberEntry.target;
     numberForm.classList.toggle("number-ready", numberEntry.ready);
@@ -131,6 +133,11 @@
     button.addEventListener("click", () => letterKey(letter));
     document.getElementById("letter-pad").insertBefore(button, document.getElementById("letters-solve"));
   }
+  document.getElementById("number-target-slot").addEventListener("click", () => {
+    if (numberEntry.numbers.length < 6) return;
+    numberEntry.edit(6);
+    renderNumbers();
+  });
   document.addEventListener("editnumberpuzzle", () => {
     numberEntry.edit(Math.min(6, numberEntry.numbers.length));
     renderNumbers();

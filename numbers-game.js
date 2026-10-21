@@ -70,10 +70,17 @@ const NumbersGame = (() => {
       return this.state.tiles.filter(tile => tile.step !== null).flatMap(tile => tile.originals);
     }
     get distance() {
+      const offset = this.offset;
+      return offset === null ? null : offset < 0n ? -offset : offset;
+    }
+    // Signed gap (value - target) of the tile closest to the target; ties prefer the lower value ("faltan").
+    get offset() {
       return this.state.tiles.reduce((closest, tile) => {
-        const difference = this.target - tile.value;
-        const distance = difference < 0n ? -difference : difference;
-        return closest === null || distance < closest ? distance : closest;
+        const offset = tile.value - this.target;
+        if (closest === null) return offset;
+        const size = offset < 0n ? -offset : offset;
+        const best = closest < 0n ? -closest : closest;
+        return size < best || (size === best && offset < closest) ? offset : closest;
       }, null);
     }
     undo() {

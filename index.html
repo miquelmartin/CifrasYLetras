@@ -52,18 +52,21 @@
     .caveat { font-size: .875rem; margin-top: 6px; }
     .manual > .tabs, .manual > [role="tabpanel"] { display: none !important; }
     #calculator-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
-    .calculator-toolbar { display: flex; align-items: center; gap: 8px; min-height: 72px; }
-    .calculator-goal { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: center; }
-    .calculator-target { min-width: 0; height: 72px; overflow: hidden; overflow-wrap: anywhere; background: #fff; color: var(--target); border: 2px solid var(--line); padding: 1px 6px; border-radius: 8px; font-weight: 700; }
+    .calculator-toolbar { display: flex; align-items: stretch; gap: 8px; height: 72px; flex: 0 0 auto; }
+    #calculator-back { flex: 0 0 64px; height: 72px; padding: 0; display: grid; place-items: center; }
+    .calculator-goal { flex: 1; min-width: 0; display: flex; }
+    .calculator-target { flex: 1; min-width: 0; height: 72px; overflow: hidden; background: #fff; color: var(--target); border: 2px solid var(--line); padding: 1px 8px; border-radius: 8px; font-weight: 700; }
+    .target-line { display: flex; align-items: center; gap: 10px; min-width: 0; }
     #calculator-title { display: block; font-size: .7rem; line-height: 1.1; color: var(--blue); }
-    #calculator-target { display: block; font-size: 3rem; line-height: 1; overflow: hidden; }
+    #calculator-target { display: block; flex: 0 1 auto; min-width: 0; font-size: 2.875rem; line-height: 1.15; overflow: hidden; white-space: nowrap; }
+    #calculator-distance { flex: 0 0 auto; max-width: 45%; margin: 0; color: #6b3f12; font-size: 1rem; font-weight: 800; line-height: 1.1; overflow: hidden; overflow-wrap: anywhere; max-height: 2.2em; }
     #calculator-display { background: var(--soft); border: 2px solid var(--line); box-shadow: 2px 2px 0 var(--line); border-radius: 8px; padding: 4px; font: clamp(1.75rem, 7vw, 3rem)/1.15 ui-monospace, monospace; color: var(--ink); overflow-wrap: anywhere; height: 60px; min-height: 60px; max-height: 60px; overflow: hidden; }
     .calculator-controls { flex: 0 0 auto; overflow: hidden; padding: 8px; }
     .calculator-readout { margin-bottom: 6px; }
     #calculator-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
     #calculator-keys button { min-height: clamp(44px, 7dvh, 64px); min-width: 0; font-size: clamp(1.75rem, 8vw, 2.8rem); line-height: 1.3; padding: 4px; white-space: normal; overflow-wrap: anywhere; }
     .calculator-operators { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 4px; }
-    .calculator-operators button { min-height: 56px; border-radius: 0; padding: 0; font-size: 2rem; background: var(--operator); color: #fff; }
+    .calculator-operators button { min-height: 56px; padding: 0; font-size: 2rem; background: var(--operator); color: #fff; }
     .calculator-operators button.secondary { background: #fff; color: var(--blue); }
     .calculator-operators #calculator-undo { background: #fff; color: var(--blue); }
     .calculator-operators button:disabled { background: #cbd9f0; color: #4d607c; border-style: dashed; }
@@ -72,7 +75,6 @@
     #calculator-auto { flex: 0 0 auto; min-height: 44px; padding: 4px 14px; font-size: .875rem; font-weight: 650; background: #fff; color: var(--blue); }
     #calculator-undo { flex: 0 0 52px; line-height: 1; }
     #calculator-status { font-size: .875rem; margin-top: 4px; max-height: 2.8em; overflow: hidden; }
-    #calculator-distance { color: #6b3f12; background: #fbe6c4; border: 2px solid var(--line); border-radius: 12px; width: fit-content; font-size: .875rem; font-weight: 700; padding: 2px 6px; max-height: 4em; overflow: hidden; overflow-wrap: anywhere; }
     .error { color: #a52826; }
     .success { color: var(--ink); font-weight: 700; }
     .target-reached #calculator-display { background: var(--amber); }
@@ -111,10 +113,20 @@
     #letter-slots .entry-slot { padding: 0; border-radius: 7px; font-size: clamp(.85rem, 4.4vw, 1.25rem); }
     #letter-pad button:disabled:not(.delete-key):not(.enter-key) { background: #e7eef6; color: #4d607c; border-style: dashed; box-shadow: none; }
     .entry-slot.empty, .entry-slot:disabled { background: #f7fafd; border-color: #a7b6ca; box-shadow: none; }
-    .entry-slot.current { background: #fff; border: 2px dashed var(--blue); color: var(--blue); box-shadow: none; }
-    .entry-display { flex: 0 0 auto; min-height: 62px; border: 2px solid var(--line); border-radius: 12px; background: #fff; padding: 4px 10px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 8px; }
-    .entry-display span { color: var(--blue); font-weight: 800; }
-    .entry-display output { min-width: 0; text-align: right; font-size: 2.5rem; font-weight: 800; line-height: 1.1; overflow-wrap: anywhere; }
+    .entry-slot.current { background: #fff; border: 2px dashed var(--blue); color: var(--ink); box-shadow: none; }
+    #number-slots .entry-slot { font-size: 1.15rem; line-height: 1; overflow: hidden; white-space: nowrap; }
+    #number-slots .entry-slot.current { font-size: 1.4rem; }
+    #number-slots .entry-slot.len-3 { font-size: 1.05rem; }
+    #number-slots .entry-slot.len-4 { font-size: .85rem; }
+    #number-slots .entry-slot.len-long { font-size: .7rem; }
+    .entry-target { flex: 0 0 auto; height: 60px; min-width: 0; margin: 0; border: 2px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 2px 2px 0 var(--line); padding: 2px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--ink); -webkit-tap-highlight-color: transparent; }
+    .entry-target > span:first-child { color: var(--blue); font-weight: 900; font-size: 1.05rem; letter-spacing: .04em; text-transform: uppercase; }
+    .entry-target > span:last-child { min-width: 0; overflow: hidden; white-space: nowrap; text-align: right; font-size: 2.6rem; font-weight: 900; line-height: 1; color: #e2733a; }
+    .entry-target.long > span:last-child { font-size: 1.5rem; }
+    .entry-target.empty { border: 2px dashed #a7b6ca; background: #f7fafd; box-shadow: none; }
+    .entry-target.empty > span:last-child { color: #a7b6ca; }
+    .entry-target.current { border: 2px dashed var(--blue); background: #fff; box-shadow: none; }
+    .entry-target:disabled { opacity: 1; cursor: default; }
     .entry-pad { display: grid; flex: 1; min-height: 0; gap: 8px; padding: 0 3px 3px 0; }
     .number-pad { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); }
     .letter-pad { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(6, minmax(0, 1fr)); }
@@ -151,10 +163,7 @@
       <input id="target" type="hidden" value="">
       <fieldset id="numbers-fieldset">
         <div id="number-slots" class="entry-slots" role="group" aria-label="Tus seis n&uacute;meros"></div>
-        <div class="entry-display">
-          <span id="number-entry-label">N&uacute;mero 1 de 6</span>
-          <output id="number-draft" aria-live="polite">&mdash;</output>
-        </div>
+        <button id="number-target-slot" class="entry-target empty" type="button" disabled><span>Objetivo</span><span id="number-target-value">&middot;&middot;&middot;</span></button>
         <div id="number-pad" class="entry-pad number-pad" role="group" aria-label="Teclado num&eacute;rico"></div>
       </fieldset>
       <div id="number-actions" class="buttons" hidden>
@@ -188,10 +197,9 @@
     </section>
     <section id="calculator-panel" hidden aria-labelledby="calculator-title">
       <div class="calculator-toolbar">
-        <button id="calculator-back" type="button" class="secondary">Volver</button>
+        <button id="calculator-back" type="button" class="secondary" aria-label="Volver" title="Volver"><svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true" focusable="false"><path fill="currentColor" d="M2 12 12.5 2.5V8H22v8h-9.5v5.5z"/></svg></button>
         <div class="calculator-goal" role="group" aria-label="Objetivo y distancia">
-          <div class="calculator-target"><span id="calculator-title">Objetivo</span><strong id="calculator-target"></strong></div>
-          <p id="calculator-distance" role="status" aria-live="polite"></p>
+          <div class="calculator-target"><span id="calculator-title">Objetivo</span><span class="target-line"><strong id="calculator-target"></strong><span id="calculator-distance" role="status" aria-live="polite"></span></span></div>
         </div>
       </div>
       <div class="card calculator-controls">
@@ -221,12 +229,12 @@
   </main>
   <script src="letters-core.js?v=5"></script>
   <script src="letters-ui.js?v=25"></script>
-  <script src="numbers-game.js?v=16"></script>
+  <script src="numbers-game.js?v=17"></script>
   <script src="numbers-search.js?v=25"></script>
-  <script src="keypad-model.js?v=25"></script>
-  <script src="entry-keypads.js?v=25"></script>
+  <script src="keypad-model.js?v=26"></script>
+  <script src="entry-keypads.js?v=26"></script>
   <script src="celebration.js?v=22"></script>
-  <script src="calculator-ui.js?v=25"></script>
+  <script src="calculator-ui.js?v=26"></script>
   <script>
     "use strict";
 
@@ -237,5 +245,7 @@
   </script>
   <script src="puzzle-url.js?v=25"></script>
   <script src="puzzle-state.js?v=25"></script>
-</body>
+  <script src="analytics.js?v=2"></script>
+  <script data-goatcounter="https://miquelmartin.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+  </body>
 </html>

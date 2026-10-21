@@ -110,6 +110,12 @@ test("closest-button distance covers above, below, negatives, and target in any 
   }
 });
 
+test("signed offset says whether the closest button falls short or overshoots", () => {
+  for (const [target, numbers, expected] of [
+    [100n, [75n, 130n], -25n], [100n, [130n, 60n], 30n], [100n, [90n, 110n], -10n], [100n, [100n, 1n], 0n]
+  ]) assert.equal(new Game(numbers, target).offset, expected);
+});
+
 function reference(numbers) {
   const best = new Map();
   const tables = new Map();

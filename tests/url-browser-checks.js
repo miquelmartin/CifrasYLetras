@@ -72,7 +72,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844]]) {
       assert(doc.getElementById("calculator-panel").hidden, "Se abre calculadora con reto invalido");
 
       const base = new URL("../", import.meta.url);
-      const manifest = await (await fetch(new URL("site.webmanifest?v=2", base))).json();
+      const manifest = await (await fetch(new URL("site.webmanifest?v=3", base))).json();
       for (const icon of manifest.icons) {
         const image = new Image();
         image.src = new URL(icon.src, base);
@@ -81,7 +81,21 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844]]) {
       }
       const tabIcon = doc.querySelector(".tabs img");
       assert(tabIcon.complete && tabIcon.naturalWidth === 64, "Icono entre pestanas no carga");
-      results.push({ viewport: [width, height], restored: true, history: true, icons: true });
+
+      await load("?modo=letras&l=secreto");
+      win = frame.contentWindow; doc = frame.contentDocument;
+      assert(win.goatcounter.path() === win.location.pathname + "?modo=letras", "Analitica envia contenido del reto");
+      const sent = [];
+      // Freeze the spy so a late count.js load cannot replace it; count.js is not needed for this check.
+      Object.defineProperty(win.goatcounter, "count", { configurable: true, get: () => vars => sent.push(vars.path), set: () => {} });
+      doc.getElementById("numbers-tab").click();
+      doc.getElementById("numbers-tab").click();
+      for (const digit of "75") doc.querySelector(`[data-number-key="${digit}"]`).click();
+      doc.getElementById("letters-tab").click();
+      await new Promise(resolve => setTimeout(resolve, 50));
+      assert(sent.join() === [win.location.pathname + "?modo=cifras", win.location.pathname + "?modo=letras"].join(), `Cambios de modo mal contados: ${sent.join()}`);
+      assert(!sent.some(path => /[&](n|obj|l|yo)=|secreto|75/.test(path)), "Analitica envia cifras o letras");
+      results.push({ viewport: [width, height], restored: true, history: true, icons: true, analytics: true });
     } finally {
       frame.remove();
     }
