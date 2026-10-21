@@ -332,12 +332,19 @@ for (const button of operatorButtons) {
   button.addEventListener("click", () => calculatorAction(() => manualGame.chooseOperator(button.dataset.operator)));
 }
 document.getElementById("calculator-undo").addEventListener("click", () => calculatorAction(() => manualGame.undo()));
-document.getElementById("calculator-back").addEventListener("click", () => {
+function closeCalculator() {
   cancelAutomatic();
   targetCelebration.stop();
   calculatorPanel.hidden = true;
   document.querySelector("main").classList.remove("manual");
-  document.getElementById("solve-myself").focus();
   document.dispatchEvent(new CustomEvent("calculatorviewchange", { detail: { open: false } }));
+}
+window.closeCalculator = closeCalculator;
+// Volver always starts a fresh Cifras puzzle; puzzle-state also rewinds history onto the empty entry.
+document.getElementById("calculator-back").addEventListener("click", () => {
+  closeCalculator();
+  document.dispatchEvent(new CustomEvent("resetpuzzle", { detail: "cifras" }));
+  document.dispatchEvent(new CustomEvent("calculatorback"));
+  document.querySelector('#number-pad button')?.focus();
 });
 window.addEventListener("pagehide", () => { cancelAutomatic(); targetCelebration.stop(); });

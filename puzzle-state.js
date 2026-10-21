@@ -23,11 +23,17 @@
     const puzzle = currentPuzzle();
     const previous = history.state && typeof history.state === "object" ? history.state : {};
     const state = { ...previous, puzzleView: puzzle.manual ? "manual" : "entrada" };
+    if (!puzzle.manual) delete state.entryBelow;
     const url = new URL(location.href);
     url.search = PuzzleUrl.encode(puzzle, url.search);
     try {
-      if (push) history.pushState(state, "", url);
-      else if (url.href !== location.href || previous.puzzleView !== state.puzzleView) history.replaceState(state, "", url);
+      if (push) {
+        // Leave an empty Cifras entry underneath Resolver yo, so Back (browser, Android or Volver) starts afresh.
+        const empty = new URL(location.href);
+        empty.search = PuzzleUrl.encode({ mode: "cifras", numbers: [], target: "", letters: "", manual: false }, empty.search);
+        history.replaceState({ puzzleView: "entrada" }, "", empty);
+        history.pushState({ ...state, entryBelow: true }, "", url);
+      } else if (url.href !== location.href || previous.puzzleView !== state.puzzleView) history.replaceState(state, "", url);
     } catch (error) {
       console.error("No se pudo guardar el reto en la direcci\u00f3n:", error);
       const status = document.getElementById(puzzle.manual ? "calculator-status" : puzzle.mode === "letras" ? "letters-status" : "status");
@@ -40,7 +46,7 @@
     const puzzle = PuzzleUrl.decode(location.search);
     restoring = true;
     stopLettersWorker();
-    if (!calculator.hidden) document.getElementById("calculator-back").click();
+    if (!calculator.hidden) closeCalculator();
     target.value = puzzle.target;
     setNumberChips(puzzle.numbers);
     setLetterChips(puzzle.letters);
@@ -59,15 +65,31 @@
       status.classList.add("error");
     }
     restoring = false;
-    write();
+    const pushedEntry = history.state && typeof history.state === "object" && history.state.entryBelow;
+    write(initial === true && !calculator.hidden && !pushedEntry);
   }
 
+  let closedPushed = false;
+  let ignoreNextPop = false;
   document.addEventListener("puzzlechange", () => write());
   target.addEventListener("input", () => write());
   document.addEventListener("calculatorviewchange", ({ detail }) => {
     if (restoring) return;
+    if (!detail.open) closedPushed = Boolean(history.state && history.state.entryBelow);
     write(detail.open);
   });
-  window.addEventListener("popstate", () => restore());
+  // Volver has already reset the page; step back onto the empty entry so history does not keep a duplicate.
+  document.addEventListener("calculatorback", () => {
+    if (!closedPushed) return;
+    closedPushed = false;
+    ignoreNextPop = true;
+    history.back();
+  });
+  window.addEventListener("popstate", () => {
+    if (ignoreNextPop) {
+      ignoreNextPop = false;
+      write();
+    } else restore();
+  });
   restore(true);
 })();
