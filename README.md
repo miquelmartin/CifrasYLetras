@@ -13,7 +13,7 @@ no hay ninguno, vuelve al numero anterior. Lo tecleado aparece directamente en
 el hueco actual (borde azul discontinuo); no hay franja de "Numero N de 6". Debajo
 de los seis huecos, la caja **Objetivo** espera con `···` hasta su turno y muestra
 el objetivo grande en naranja. Los seis huecos permiten editar
-cifras ya introducidas sin perder las demas; tras **Editar cifras**, borrar sigue
+cifras ya introducidas sin perder las demas; borrar sigue
 retrocediendo por el objetivo y las seis cifras hasta vaciarlo todo. Al
 confirmar el objetivo se abre directamente Resolver yo. No hay tecla menos, campos editables,
 cursor de texto ni teclado del sistema. Los numeros muy largos se abrevian en
@@ -36,7 +36,8 @@ la mas cercana. En Letras, la nota del diccionario aparece tras pulsar Buscar. L
 ambar y azul menos saturados, con contornos y sombras solidas de 2 px.
 
 En Resolver yo, una flecha solida (Volver) tan alta como la caja Objetivo vuelve a
-la entrada; junto al objetivo se indica en pequeno "faltan N" o "sobran N" respecto
+una entrada de Cifras vacia y lista para un reto nuevo (`?modo=cifras`); el boton
+Atras del navegador o de Android lleva a esa misma entrada vacia sin salir del sitio; junto al objetivo se indica en pequeno "faltan N" o "sobran N" respecto
 al boton mas cercano. Las operaciones tienen las mismas esquinas redondeadas que las cifras.
 
 ## Estadisticas
@@ -109,8 +110,9 @@ omiten con un aviso; mas de doce letras se recortan a doce, tambien con aviso.
 Una URL con el reto completo abre Resolver yo. Los enlaces antiguos con enteros negativos se conservan;
 el nuevo teclado no crea signos negativos.
 
-No hay titulo visible: el icono suministrado por el usuario aparece, decorativo,
-entre las pestanas Cifras y Letras. Al instalarla en Android, el manifest usa
+No hay titulo visible: el icono suministrado por el usuario (78 px, sin borde
+blanco) aparece, decorativo, centrado sobre la barra de pestanas, mas alto que
+ella y solapando un poco Cifras y Letras sin tapar su texto ni bloquear toques. Al instalarla en Android, el manifest usa
 iconos sobre fondo blanco, incluidos los adaptables (maskable) con margen de
 zona segura, y fondo de arranque blanco. Todos los recursos usan rutas
 relativas a Pages y pesan juntos menos de 250 KB.

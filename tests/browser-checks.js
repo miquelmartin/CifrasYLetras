@@ -99,6 +99,12 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
     };
     const numberKey = key => doc.querySelector(`[data-number-key="${key}"]`).click();
     const typeNumber = value => { for (const digit of value) numberKey(digit); numberKey("Enter"); };
+    const volver = async () => {
+      const popped = new Promise(resolve => win.addEventListener("popstate", resolve, { once: true }));
+      byId("calculator-back").click();
+      await Promise.race([popped, new Promise(resolve => setTimeout(resolve, 1000))]);
+      await new Promise(resolve => setTimeout(resolve, 20));
+    };
     const letterKey = key => doc.querySelector(`[data-letter-key="${key}"]`).click();
     const key = value => doc.body.dispatchEvent(new win.KeyboardEvent("keydown", { key: value, bubbles: true, cancelable: true }));
     const tile = value => [...byId("calculator-keys").children].find(button => button.textContent === String(value));
@@ -136,8 +142,17 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       const iconRect = tabIcon.getBoundingClientRect();
       assert(!doc.querySelector("h1") && !doc.body.textContent.includes("Cifras y Letras"), "El titulo visible debe desaparecer");
       assert(tabIcon.getAttribute("aria-hidden") === "true" && tabIcon.alt === "" && win.getComputedStyle(tabIcon).pointerEvents === "none", "Icono debe ser decorativo");
-      assert(iconRect.left >= cifrasTab.right && iconRect.right <= letrasTab.left && Math.abs((iconRect.left + iconRect.right) / 2 - (cifrasTab.right + letrasTab.left) / 2) <= 1, "Icono no esta centrado entre pestanas");
-      assert(iconRect.top >= tabIcon.parentElement.getBoundingClientRect().top && iconRect.bottom <= tabIcon.parentElement.getBoundingClientRect().bottom, "Icono no cabe en la barra");
+      assert(Math.abs((iconRect.left + iconRect.right) / 2 - (cifrasTab.left + letrasTab.right) / 2) <= 1 && iconRect.left < cifrasTab.right && iconRect.right > letrasTab.left, "Icono debe centrarse y solaparse con ambas pestanas");
+      const bar = tabIcon.parentElement.getBoundingClientRect();
+      assert(Math.abs((iconRect.top + iconRect.bottom) / 2 - (bar.top + bar.bottom) / 2) <= 1 && iconRect.height > bar.height && iconRect.height >= 76 && iconRect.top >= 0, "Icono debe centrarse en vertical y ser mas alto que la barra");
+      for (const tab of [byId("numbers-tab"), byId("letters-tab")]) {
+        const range = doc.createRange(); range.selectNodeContents(tab);
+        const text = range.getBoundingClientRect();
+        assert(text.right <= iconRect.left + 8 || text.left >= iconRect.right - 8, `El icono tapa ${tab.textContent}`);
+        const point = tab === byId("numbers-tab") ? [iconRect.left + 10, (bar.top + bar.bottom) / 2] : [iconRect.right - 10, (bar.top + bar.bottom) / 2];
+        assert(doc.elementFromPoint(...point) === tab, "El icono bloquea las pestanas");
+      }
+      assert(!/(255, 255, 255)/.test(win.getComputedStyle(tabIcon).backgroundColor) && win.getComputedStyle(tabIcon).borderStyle === "none", "Icono sin circulo ni borde blanco");
       const focusKey = byId("number-pad").firstElementChild;
       focusKey.focus();
       assert(win.getComputedStyle(focusKey).outlineStyle === "none", "No debe aparecer anillo de foco");
@@ -312,7 +327,8 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
 
       await load("?n=2,2,2,2,2,2&obj=512");
       assert(!byId("calculator-panel").hidden, "URL completa debe abrir Resolver yo");
-      byId("calculator-back").click();
+      await volver();
+      byId("target").value = "512";
       byId("numbers").value = Array(9).fill("2").join(", ");
       byId("solve-myself").click();
       byId("calculator-auto").click();
@@ -328,19 +344,21 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
 
       await load("?n=100,75,50,25,3,6&obj=952");
       assert(!byId("calculator-panel").hidden, "Reto completo debe abrir Resolver yo");
-      byId("calculator-back").click();
-      assert(!byId("number-actions").hidden && !byId("solve-myself").hidden, "Volver debe permitir editar o resolver");
-      snapshot("Reto completo tras volver");
-      byId("edit-numbers").click();
+      await volver();
+      assert(byId("calculator-panel").hidden && byId("numbers").value === "" && byId("target").value === "" && !byId("number-pad").hidden && byId("number-slots").firstElementChild.classList.contains("current") && byId("number-target-slot").classList.contains("empty"), "Volver debe abrir Cifras vacia y lista");
+      assert(new URL(win.location.href).search === "?modo=cifras", "Volver debe limpiar la URL");
+      snapshot("Cifras vacia tras volver");
+      for (const value of ["100", "75", "50", "25", "3", "6"]) typeNumber(value);
+      for (const digit of "95") numberKey(digit);
       for (let index = 0; index < 40; index++) numberKey("Backspace");
-      assert(byId("numbers").value === "" && byId("target").value === "" && byId("number-slots").firstElementChild.classList.contains("current") && byId("number-target-slot").classList.contains("empty"), "Borrar tras Editar cifras debe vaciarlo todo");
+      assert(byId("numbers").value === "" && byId("target").value === "" && byId("number-slots").firstElementChild.classList.contains("current") && byId("number-target-slot").classList.contains("empty"), "Borrar debe vaciarlo todo");
       assert([...byId("number-slots").children].every(slot => slot.textContent === ""), "Quedan cifras en los huecos");
       snapshot("Todo borrado tras editar");
       for (const value of ["4", "5"]) typeNumber(value);
       byId("numbers-tab").click();
       assert(byId("numbers").value === "" && byId("number-slots").firstElementChild.classList.contains("current") && byId("number-target-value").textContent === "\u00b7\u00b7\u00b7" && !new URL(win.location.href).searchParams.has("n"), "Pulsar Cifras activa debe vaciar");
       await load("?n=100,75,50,25,3,6&obj=952");
-      byId("calculator-back").click();
+      await volver();
       byId("letters-tab").click();
       byId("numbers-tab").click();
       assert(byId("numbers").value === "" && byId("target").value === "" && !byId("number-pad").hidden && !new URL(win.location.href).searchParams.has("obj"), "Cambiar a Cifras debe vaciar");
@@ -349,7 +367,8 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
         [-123456, 987654, -55555, 4444444, 31415926, -27182818, 99999, -1, 123456789]
       ]) {
         await load("?n=1,2,3,4,5,6&obj=271828");
-        byId("calculator-back").click();
+        await volver();
+        byId("target").value = "271828";
         byId("numbers").value = values.join(", ");
         byId("solve-myself").click();
         assert(byId("calculator-keys").children.length === 9, "Calculadora generica limitada a seis");
