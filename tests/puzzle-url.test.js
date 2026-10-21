@@ -34,7 +34,7 @@ test("malformed or out-of-range URL values are rejected visibly and without HTML
   ]) {
     const puzzle = decode(search);
     assert.equal(puzzle.invalid, true, search);
-    assert.ok(puzzle.numbers.length <= 9);
+    assert.ok(puzzle.numbers.length <= 6);
     assert.ok(puzzle.numbers.every(value => /^[+-]?\d+$/.test(value)));
     assert.equal(puzzle.manual, false);
   }

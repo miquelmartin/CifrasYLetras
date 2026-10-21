@@ -24,7 +24,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844]]) {
       await load("?" + query);
       let win = frame.contentWindow;
       let doc = frame.contentDocument;
-      assert(doc.getElementById("number-chips").children.length === 6, "No se restauran seis cifras");
+      assert(doc.getElementById("number-slots").querySelectorAll(".done").length === 6, "No se restauran seis cifras");
       assert(doc.getElementById("numbers").value.endsWith(huge), "Se pierde precision en URL");
       assert(doc.getElementById("target").value === "-" + huge, "No se restaura objetivo exacto");
       await refresh();
@@ -48,14 +48,12 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844]]) {
       assert(doc.getElementById("letters-tab").getAttribute("aria-selected") === "true", "No se restaura pestana Letras");
       assert(doc.getElementById("letters").value === "\u00c1\u00f1\u00f1\u00fcaa", "URL pierde tildes, dieresis o enye");
       const historyLength = win.history.length;
-      const entry = doc.getElementById("letter-entry");
       for (const letter of ["n", "\u00f1", "a"]) {
-        entry.value = letter;
-        entry.dispatchEvent(new win.InputEvent("input", { data: letter, inputType: "insertText", bubbles: true }));
+        doc.body.dispatchEvent(new win.KeyboardEvent("keydown", { key: letter, bubbles: true, cancelable: true }));
       }
       assert(win.history.length === historyLength, "Teclear agrega entradas al historial");
       assert(new URL(win.location.href).searchParams.get("l") === "\u00c1\u00f1\u00f1\u00fcaan\u00f1a", "No se actualiza URL al escribir");
-      doc.getElementById("letter-chips").firstElementChild.click();
+      doc.querySelector("#letter-slots button").click();
       await refresh();
       win = frame.contentWindow; doc = frame.contentDocument;
       assert(doc.getElementById("letters").value === "\u00f1\u00f1\u00fcaan\u00f1a", "Quitar letra no persiste");
@@ -64,13 +62,13 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844]]) {
 
       await load("?modo=cifras&n=1,2,bad,3,4,5,6,7,8,9,10&obj=no&l=%3Cscript%3E&yo=1");
       doc = frame.contentDocument;
-      assert(doc.getElementById("number-chips").children.length === 9, "No se conservan cifras validas dentro del limite");
+      assert(doc.getElementById("numbers").value.split(", ").length === 6, "No se conservan cifras validas dentro del limite");
       assert(doc.getElementById("target").value === "" && doc.getElementById("letters").value === "", "Se aceptan parametros invalidos");
       assert(doc.getElementById("status").classList.contains("error") && doc.getElementById("status").textContent.includes("URL"), "Falta aviso visible de URL invalida");
       assert(doc.getElementById("calculator-panel").hidden, "Se abre calculadora con reto invalido");
 
       const base = new URL("../", import.meta.url);
-      const manifest = await (await fetch(new URL("site.webmanifest?v=1", base))).json();
+      const manifest = await (await fetch(new URL("site.webmanifest?v=2", base))).json();
       for (const icon of manifest.icons) {
         const image = new Image();
         image.src = new URL(icon.src, base);

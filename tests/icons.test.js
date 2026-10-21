@@ -34,7 +34,7 @@ test("manifest and HTML use versioned repository-relative icons for Pages subpat
     assert.ok(fs.existsSync(path.join(root, icon.src.split("?")[0])));
   }
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  for (const value of ["favicon.ico?v=1", "icons/favicon-32.png?v=1", "icons/apple-touch-icon.png?v=1", "site.webmanifest?v=1"]) {
+  for (const value of ["favicon.ico?v=1", "icons/favicon-32.png?v=1", "icons/apple-touch-icon.png?v=1", "site.webmanifest?v=2"]) {
     assert.ok(html.includes(`href="${value}"`));
   }
   assert.match(html, /<img src="icons\/icon-64\.png\?v=1"[^>]*alt=""/);

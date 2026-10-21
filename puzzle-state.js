@@ -42,16 +42,16 @@
     stopWorker();
     stopLettersWorker();
     if (!calculator.hidden) document.getElementById("calculator-back").click();
+    target.value = puzzle.target;
     setNumberChips(puzzle.numbers);
     setLetterChips(puzzle.letters);
-    target.value = puzzle.target;
     selectTab(document.getElementById(puzzle.mode === "letras" ? "letters-tab" : "numbers-tab"));
     document.getElementById("result").hidden = true;
     document.getElementById("letters-result").hidden = true;
     document.getElementById("numbers-panel").classList.remove("has-number-result");
     for (const id of ["status", "letters-status"]) {
       const status = document.getElementById(id);
-      status.textContent = "Entradas listas. Puedes continuar.";
+      status.textContent = "";
       status.classList.remove("error");
     }
     if (puzzle.manual) document.getElementById("solve-myself").click();
