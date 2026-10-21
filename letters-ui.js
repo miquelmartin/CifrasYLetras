@@ -39,6 +39,7 @@ function setLettersStatus(message, error = false) {
 
 function lettersIdle() {
   lettersInput.disabled = false;
+  document.getElementById("letters-fieldset").disabled = false;
   lettersSolve.disabled = false;
   lettersCancel.hidden = true;
 }
@@ -60,6 +61,7 @@ lettersForm.addEventListener("submit", event => {
     return;
   }
   lettersInput.disabled = true;
+  document.getElementById("letters-fieldset").disabled = true;
   lettersSolve.disabled = true;
   lettersCancel.hidden = false;
   setLettersStatus("Buscando en el diccionario ortogr\u00e1fico...");

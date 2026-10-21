@@ -4,6 +4,27 @@ Un buscador de soluciones estatico que funciona en el navegador. Abre
 `index.html` directamente para usar cifras, o sirve este directorio por HTTP
 para usar ambas pestanas, por ejemplo con `python -m http.server 8000`.
 
+El diseno compacto usa la altura visible del movil. Los resultados, las fichas
+y la ayuda tienen desplazamiento interno cuando es necesario; los pasos de
+cifras conservan sus cajas y distintivos. En pantallas con menos de 504 px de
+altura util (por ejemplo, con teclado abierto) se permite desplazar la pagina
+para mantener controles legibles, sin recortar contenido.
+
+En cifras, espacio o coma confirma cada entero como ficha. Puedes pegar listas,
+quitar fichas o usar retroceso con el campo vacio para corregir la ultima.
+La ultima cifra escrita se incluye aunque no hayas pulsado un separador.
+En letras, cada letra crea una ficha de inmediato; espacios y comas se ignoran.
+Se respetan la composicion de caracteres, las tildes y la distincion entre N y
+&Ntilde;.
+
+**Resolver yo** abre una calculadora dentro de la pagina con una tecla por
+cifra, incluidas las repetidas como instancias separadas. Elige una cifra,
+una operacion, otra cifra y pulsa `=`. Cada paso reutiliza el resultado anterior.
+**Invertir orden** intercambia los operandos pendientes para restas o divisiones
+en sentido inverso. **Deshacer** revierte cada accion, incluida la seleccion de
+una cifra; **Reiniciar** devuelve todas las cifras. **Volver** conserva el reto
+y los resultados automaticos. Los calculos siguen siendo enteros exactos.
+
 - **Cifras:** calculos enteros exactos, uso opcional de las cifras y solucion
   secuencial con el menor numero de operaciones. Se puede cancelar la busqueda.
 - **Letras:** candidatas mas largas del diccionario ortografico espanol usando
@@ -27,8 +48,19 @@ de aplicaciones, CDN externo, compilacion ni instalacion de paquetes.
 Ejecuta las pruebas de regresion con Node.js 18 o posterior:
 
 ```text
-node --test tests/solver.test.js
+node --test tests/solver.test.js tests/numbers-game.test.js
 ```
+
+Para ejecutar las comprobaciones reales de interfaz, sirve el sitio y ejecuta
+en la consola del navegador:
+
+```js
+await (await import("./tests/browser-checks.js")).run()
+```
+
+Comprueban interacciones y dimensiones reales con ventanas internas de
+360x640, 390x844 y 1280x720, incluidos ocho pasos, numerosos empates, ayuda,
+enteros largos, fichas y calculadora con deshacer.
 
 El lector del diccionario admite intencionadamente solo las directivas de la
 version fijada de RLA-ES. Una actualizacion con nuevas directivas produce un

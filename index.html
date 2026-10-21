@@ -5,116 +5,195 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cifras y Letras</title>
   <style>
-    :root { color-scheme: dark; font: 16px/1.6 system-ui, sans-serif; background: #10141e; color: #e8edf7; }
+    :root { color-scheme: dark; font: 16px/1.4 system-ui, sans-serif; background: #10141e; color: #e8edf7; }
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 48px 20px; background: radial-gradient(ellipse at top, #203b3a55, transparent 65%); min-height: 100vh; }
-    main { max-width: 680px; margin: auto; }
-    .eyebrow { color: #8ce2c0; text-transform: uppercase; letter-spacing: .16em; font-size: .75rem; font-weight: 700; }
-    h1 { font-size: clamp(2rem, 6vw, 3.4rem); letter-spacing: -.05em; margin: 8px 0; line-height: 1.2; }
-    p { color: #aebbd0; }
-    .card { background: #1a2232; border: 1px solid #303e56; border-radius: 20px; padding: 28px; margin-top: 28px; }
-    label { display: block; font-weight: 650; margin-bottom: 8px; }
-    input { width: 100%; background: #101826; color: #f2f6fc; border: 1px solid #53627a; border-radius: 10px; padding: 12px 14px; font: inherit; }
-    input:focus-visible, button:focus-visible { outline: 3px solid #8ce2c0; outline-offset: 3px; }
-    .hint { display: block; font-size: .85rem; color: #aebbd0; margin: 6px 0 20px; }
-    .buttons { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
-    button { border: 0; border-radius: 10px; padding: 12px 20px; font: inherit; font-weight: 700; cursor: pointer; background: #8ce2c0; color: #10291f; }
+    body { margin: 0; padding: 12px; background: radial-gradient(ellipse at top, #203b3a55, transparent 65%); }
+    main { max-width: 760px; height: calc(100vh - 24px); height: calc(100dvh - 24px); min-height: 480px; margin: auto; display: flex; flex-direction: column; gap: 10px; }
+    h1 { font-size: 1.5rem; letter-spacing: -.04em; margin: 0; line-height: 1.2; }
+    h2 { font-size: 1.05rem; margin: 0; }
+    p { color: #aebbd0; margin: 0; }
+    .card { background: #1a2232; border: 1px solid #303e56; border-radius: 14px; padding: 12px; }
+    label { display: block; font-weight: 650; margin-bottom: 4px; }
+    input { min-width: 0; width: 100%; background: #101826; color: #f2f6fc; border: 1px solid #53627a; border-radius: 8px; padding: 10px; font: inherit; }
+    :focus-visible { outline: 3px solid #8ce2c0; outline-offset: 2px; }
+    .hint { display: block; font-size: .875rem; color: #aebbd0; margin: 8px 0; }
+    .buttons { display: flex; gap: 8px; margin-top: 10px; }
+    button { min-height: 44px; border: 0; border-radius: 8px; padding: 8px 12px; font: inherit; font-weight: 700; cursor: pointer; background: #8ce2c0; color: #10291f; }
+    .buttons button { flex: 1; }
     button.secondary { background: #303e56; color: #e8edf7; }
     button:disabled { opacity: .5; cursor: not-allowed; }
-    details { margin-top: 20px; color: #aebbd0; font-size: .9rem; }
-    summary { cursor: pointer; }
-    .rules { padding-left: 22px; }
-    #status { min-height: 1.6em; margin-bottom: 0; overflow-wrap: anywhere; }
-    #status.error { color: #ffb0b0; }
-    #expression { overflow-wrap: anywhere; font: 1.15rem/1.8 ui-monospace, monospace; color: #8ce2c0; }
-    #steps { padding: 0; list-style: none; counter-reset: step; display: grid; gap: 12px; }
-    #steps li { counter-increment: step; display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid #394a63; border-radius: 12px; background: #101826; }
-    #steps li::before { content: counter(step); display: grid; place-items: center; flex: 0 0 28px; height: 28px; border-radius: 50%; background: #303e56; color: #aebbd0; font: 700 .8rem system-ui, sans-serif; }
-    #steps .operation { min-width: 0; overflow-wrap: anywhere; font: 1.1rem/1.6 ui-monospace, monospace; }
-    #result h2 { margin-top: 0; }
+    details { color: #aebbd0; font-size: .875rem; }
+    summary { cursor: pointer; padding: 8px 0; }
+    .rules { padding-left: 20px; margin: 8px 0; }
+    #status, #letters-status { margin-top: 4px; font-size: .875rem; max-height: 3.9em; overflow: auto; overflow-wrap: anywhere; }
+    #status.error, #letters-status.error { color: #ffb0b0; }
+    #expression { overflow-wrap: anywhere; font: 1rem/1.5 ui-monospace, monospace; color: #8ce2c0; }
+    #steps { padding: 3px; margin: 0; list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 6px; }
+    #steps li { counter-increment: step; display: flex; align-items: center; gap: 10px; padding: 8px; border: 1px solid #394a63; border-radius: 9px; background: #101826; }
+    #steps li::before { content: counter(step); display: grid; place-items: center; flex: 0 0 26px; height: 26px; border-radius: 50%; background: #303e56; color: #aebbd0; font: 700 .8rem system-ui, sans-serif; }
+    #steps .operation { min-width: 0; overflow-wrap: anywhere; font: 1rem/1.4 ui-monospace, monospace; }
     a { color: #8ce2c0; text-underline-offset: 3px; }
-    .tabs { display: flex; gap: 8px; margin: 28px 0; padding: 6px; background: #101826; border: 1px solid #303e56; border-radius: 14px; }
+    .tabs { display: flex; gap: 4px; padding: 4px; background: #101826; border: 1px solid #303e56; border-radius: 12px; }
     .tabs button { flex: 1; background: transparent; color: #aebbd0; }
     .tabs button[aria-selected="true"] { background: #8ce2c0; color: #10291f; }
-    .panel-intro { margin-bottom: 0; }
-    .panel-intro h2 { margin-bottom: 0; }
-    #letters-status { min-height: 1.6em; overflow-wrap: anywhere; margin-bottom: 0; }
-    #letters-status.error { color: #ffb0b0; }
-    #letters-result h2 { margin-top: 0; }
-    .word-list { padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-    .word-list li { padding: 16px; border: 1px solid #394a63; border-radius: 12px; background: #101826; overflow-wrap: anywhere; }
-    .word-list strong { display: block; font-size: 1.3rem; color: #8ce2c0; }
-    .word-list a { font-size: .85rem; }
-    .notice { font-size: .85rem; color: #aebbd0; }
+    [role="tabpanel"] { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+    form.card { flex: 0 0 auto; max-height: 62%; overflow: auto; }
+    .fields { display: grid; grid-template-columns: minmax(0, 1fr) 92px; gap: 10px; align-items: start; }
+    #result, #letters-result { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+    .result-scroll { min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+    #result .result-scroll { flex: 1; }
+    #summary, #letters-summary { font-size: .875rem; overflow-wrap: anywhere; }
+    .word-list { margin: 0; padding: 3px; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px; align-content: start; }
+    .word-list li { padding: 8px; border: 1px solid #394a63; border-radius: 9px; background: #101826; overflow-wrap: anywhere; }
+    .word-list strong { display: block; font-size: 1.1rem; color: #8ce2c0; }
+    .word-list a { font-size: .875rem; display: inline-block; padding: 6px 0; }
+    .notice { font-size: .875rem; color: #aebbd0; }
+    .caveat { font-size: .875rem; margin-top: 6px; }
+    .expression-details { flex-shrink: 0; max-height: 30%; overflow: auto; }
+    .manual > .tabs, .manual > [role="tabpanel"] { display: none !important; }
+    #calculator-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+    .calculator-toolbar { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+    .calculator-target { min-width: 0; max-height: 3em; overflow: auto; overflow-wrap: anywhere; }
+    #calculator-display { background: #101826; border-radius: 8px; padding: 6px; font: clamp(1.75rem, 7vw, 3rem)/1.15 ui-monospace, monospace; color: #8ce2c0; overflow-wrap: anywhere; max-height: 2.5em; overflow: auto; }
+    .calculator-controls { flex: 0 0 auto; max-height: 78%; overflow: auto; padding: 8px; }
+    #calculator-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
+    #calculator-keys button { min-height: clamp(44px, 7dvh, 64px); font-size: clamp(1.75rem, 8vw, 2.8rem); line-height: 1.1; padding: 4px; overflow-wrap: anywhere; max-height: 76px; overflow: auto; }
+    .calculator-operators { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
+    .calculator-operators button { font-size: 1.2rem; }
+    .calculator-operators button[aria-pressed="true"] { box-shadow: inset 0 0 0 3px #e8edf7; background: #303e56; color: #8ce2c0; }
+    .calculator-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .calculator-tools button { flex: 1; padding: 6px; font-size: .875rem; }
+    #calculator-status { font-size: .875rem; margin-top: 8px; max-height: 4em; overflow: auto; }
+    .error { color: #ffb0b0; }
+    .success { color: #8ce2c0; font-weight: 700; }
+    #calculator-steps { padding: 3px; margin: 0; list-style: none; counter-reset: manual-step; display: flex; flex-direction: column; gap: 6px; }
+    #calculator-steps li { counter-increment: manual-step; display: flex; gap: 8px; align-items: center; overflow-wrap: anywhere; padding: 8px; border: 1px solid #394a63; border-radius: 9px; background: #101826; }
+    #calculator-steps li::before { content: counter(manual-step); display: grid; place-items: center; flex: 0 0 26px; height: 26px; border-radius: 50%; background: #303e56; font-size: .8rem; }
+    #calculator-history { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+    .number-box { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; max-height: 116px; overflow: auto; padding: 5px; border: 1px solid #53627a; border-radius: 8px; background: #101826; }
+    #number-chips, #letter-chips { display: contents; }
+    .number-chip { min-height: 32px; min-width: 32px; padding: 4px 7px; max-width: 100%; overflow-wrap: anywhere; background: #303e56; color: #e8edf7; font-size: .9rem; }
+    #number-entry, #letter-entry { flex: 1; min-width: 64px; width: 64px; border: 0; padding: 6px; min-height: 32px; }
+    #number-entry::placeholder, #letter-entry::placeholder { font-size: .875rem; }
+    #numbers-fieldset, #letters-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+    @media (min-width: 700px) { body { padding: 20px; } main { height: calc(100dvh - 40px); } .card { padding: 16px; } }
     [hidden] { display: none !important; }
-    @media (max-width: 480px) { body { padding: 28px 14px; } .card { padding: 20px; } }
   </style>
 </head>
 <body>
   <main>
-    <div class="eyebrow">Un reto para tu mente</div>
     <h1>Cifras y Letras</h1>
-    <p>Unas cifras. Unas letras. Descubre hasta d&oacute;nde puedes llegar.</p>
     <div class="tabs" role="tablist" aria-label="Elige un reto">
       <button id="numbers-tab" type="button" role="tab" aria-selected="true" aria-controls="numbers-panel">Cifras</button>
       <button id="letters-tab" type="button" role="tab" aria-selected="false" aria-controls="letters-panel" tabindex="-1">Letras</button>
     </div>
     <section id="numbers-panel" role="tabpanel" aria-labelledby="numbers-tab">
-    <div class="panel-intro"><h2>Tus cifras. Un objetivo.</h2></div>
-    <p>Encuentra una soluci&oacute;n exacta con sumas, restas, multiplicaciones y divisiones enteras.</p>
     <form id="solver" class="card" novalidate>
-      <label for="numbers">Tus cifras</label>
-      <input id="numbers" type="text" value="25, 50, 3, 6, 7, 8" required autocomplete="off" spellcheck="false" aria-describedby="numbers-hint">
-      <small id="numbers-hint" class="hint">Introduce entre 6 y 9 enteros, separados por comas o espacios. Puedes repetir cifras y usar negativos.</small>
+      <div class="fields">
+      <fieldset id="numbers-fieldset">
+      <label for="number-entry">Tus cifras</label>
+      <input id="numbers" type="hidden" value="25, 50, 3, 6, 7, 8">
+      <div class="number-box">
+        <span id="number-chips"></span>
+        <input id="number-entry" type="text" placeholder="A&ntilde;adir" autocomplete="off" spellcheck="false" aria-describedby="numbers-hint">
+      </div>
+      </fieldset>
+      <div>
       <label for="target">Objetivo</label>
       <input id="target" type="text" value="952" required autocomplete="off" spellcheck="false">
+      </div>
+      </div>
+      <div class="buttons">
+        <button id="solve" type="submit">Buscar soluci&oacute;n</button>
+        <button id="solve-myself" type="button" class="secondary">Resolver yo</button>
+        <button id="cancel" type="button" class="secondary" hidden>Cancelar</button>
+      </div>
       <details>
-        <summary>Las reglas</summary>
+        <summary>Reglas y ayuda</summary>
+        <small id="numbers-hint" class="hint">Introduce entre 6 y 9 enteros. Espacio o coma crea una ficha. Pulsa una ficha para quitarla; retroceso con el campo vac&iacute;o recupera la &uacute;ltima para corregirla. Puedes pegar listas, repetir cifras y usar negativos.</small>
         <ul class="rules">
           <li>Puedes usar algunas o todas las cifras, cada una como m&aacute;ximo una vez.</li>
           <li>Se permiten resultados negativos y cero, pero no fracciones.</li>
           <li>Empieza con dos cifras y combina el resultado anterior con una cifra sin usar en cada paso.</li>
           <li>Los c&aacute;lculos son exactos, incluso con enteros muy grandes.</li>
         </ul>
+        <p>Privado y sin conexi&oacute;n. Busca la soluci&oacute;n con menos operaciones. Puedes cancelar cuando quieras.</p>
       </details>
-      <div class="buttons">
-        <button id="solve" type="submit">Buscar soluci&oacute;n</button>
-        <button id="cancel" type="button" class="secondary" hidden>Cancelar b&uacute;squeda</button>
-      </div>
       <p id="status" role="status" aria-live="polite">Todo listo para empezar.</p>
     </form>
     <section id="result" class="card" hidden aria-labelledby="result-title">
       <h2 id="result-title">Soluci&oacute;n</h2>
-      <div id="expression"></div>
-      <ol id="steps" role="list"></ol>
       <p id="summary"></p>
+      <ol id="steps" class="result-scroll" role="list" tabindex="0" aria-label="Pasos de la soluci&oacute;n"></ol>
+      <details class="expression-details">
+        <summary>Expresi&oacute;n completa</summary>
+        <div id="expression"></div>
+      </details>
     </section>
-    <p class="hint">Privado, sin conexi&oacute;n y sin descargar datos. Busca la soluci&oacute;n con menos operaciones. Los retos dif&iacute;ciles pueden tardar; puedes cancelar cuando quieras.</p>
     </section>
     <section id="letters-panel" role="tabpanel" aria-labelledby="letters-tab" hidden>
-      <div class="panel-intro"><h2>Tus letras. La palabra m&aacute;s larga.</h2></div>
-      <p>Busca las palabras candidatas m&aacute;s largas en espa&ntilde;ol usando algunas o todas tus letras.</p>
       <form id="letters-solver" class="card" novalidate>
-        <label for="letters">Tus letras</label>
-        <input id="letters" type="text" value="C A N T A B A M O S" required autocomplete="off" spellcheck="false" aria-describedby="letters-hint letters-source">
-        <small id="letters-hint" class="hint">Escr&iacute;belas juntas o separadas por espacios o comas. Cada letra se usa como m&aacute;ximo tantas veces como aparezca. Las tildes y la di&eacute;resis de &uuml; no afectan a la b&uacute;squeda; &ntilde; y n son distintas.</small>
-        <p id="letters-source" class="notice">Usa el diccionario ortogr&aacute;fico abierto RLA-ES, con conjugaciones y plurales. Las candidatas <strong>no est&aacute;n verificadas por la RAE</strong>. Los enlaces al DLE permiten consultar sus lemas de origen; la RAE no acepta necesariamente todas las candidatas ni todos los lemas.</p>
+        <fieldset id="letters-fieldset">
+          <label for="letter-entry">Tus letras</label>
+          <input id="letters" type="hidden" value="C A N T A B A M O S">
+          <div class="number-box">
+            <span id="letter-chips"></span>
+            <input id="letter-entry" type="text" placeholder="A&ntilde;adir" autocomplete="off" spellcheck="false" aria-describedby="letters-hint letters-source">
+          </div>
+        </fieldset>
+        <p class="caveat">Candidatas RLA-ES, no verificadas por la RAE.</p>
         <div class="buttons">
-          <button id="letters-solve" type="submit">Buscar palabras m&aacute;s largas</button>
-          <button id="letters-cancel" type="button" class="secondary" hidden>Cancelar b&uacute;squeda</button>
+          <button id="letters-solve" type="submit">Buscar palabras</button>
+          <button id="letters-cancel" type="button" class="secondary" hidden>Cancelar</button>
         </div>
+        <details>
+          <summary>Reglas, fuente y licencia</summary>
+          <small id="letters-hint" class="hint">Cada letra crea una ficha al escribirla; se ignoran espacios y comas. Pulsa una ficha para quitarla o usa retroceso. Busca las palabras m&aacute;s largas con algunas o todas tus letras, sin repetirlas m&aacute;s veces de las que aparecen. Las tildes y la di&eacute;resis de &uuml; no afectan a la b&uacute;squeda; &ntilde; y n son distintas.</small>
+          <p id="letters-source" class="notice">Usa el diccionario ortogr&aacute;fico abierto RLA-ES, con conjugaciones y plurales. Las candidatas <strong>no est&aacute;n verificadas por la RAE</strong>. Los enlaces al DLE permiten consultar sus lemas de origen; la RAE no acepta necesariamente todas las candidatas ni todos los lemas.</p>
+          <p class="hint">B&uacute;squeda privada en tu navegador. Descarga unos 0,9 MB de datos de este sitio la primera vez. Sin nombres propios ni siglas. <a href="data/README.md">Fuente y alcance</a> &middot; <a href="https://github.com/sbosio/rla-es">RLA-ES</a>, de Santiago Bosio y colaboradores &middot; <a href="data/MPL-1.1.txt">Licencia MPL 1.1</a>.</p>
+        </details>
         <p id="letters-status" role="status" aria-live="polite">El diccionario se carga al iniciar la b&uacute;squeda.</p>
       </form>
       <section id="letters-result" class="card" aria-labelledby="letters-result-title" hidden>
         <h2 id="letters-result-title">Las candidatas m&aacute;s largas</h2>
         <p id="letters-summary"></p>
-        <ul id="letters-words" class="word-list" lang="es"></ul>
+        <ul id="letters-words" class="word-list result-scroll" lang="es" tabindex="0" aria-label="Palabras candidatas"></ul>
       </section>
-      <p class="hint">B&uacute;squeda privada en tu navegador. Descarga unos 0,9 MB de datos de este sitio la primera vez. Sin nombres propios ni siglas. <a href="data/README.md">Fuente y alcance</a> &middot; <a href="https://github.com/sbosio/rla-es">RLA-ES</a>, de Santiago Bosio y colaboradores &middot; <a href="data/MPL-1.1.txt">Licencia MPL 1.1</a>.</p>
+    </section>
+    <section id="calculator-panel" hidden aria-labelledby="calculator-title">
+      <div class="calculator-toolbar">
+        <button id="calculator-back" type="button" class="secondary">Volver</button>
+        <div class="calculator-target"><span id="calculator-title">Objetivo: </span><strong id="calculator-target"></strong></div>
+      </div>
+      <div class="card calculator-controls">
+        <div id="calculator-display" aria-label="Operaci&oacute;n actual" tabindex="0"></div>
+        <div id="calculator-keys" role="group" aria-label="Cifras disponibles"></div>
+        <div class="calculator-operators" role="group" aria-label="Operaciones">
+          <button type="button" data-operator="+" aria-label="Sumar">+</button>
+          <button type="button" data-operator="-" aria-label="Restar">&minus;</button>
+          <button type="button" data-operator="*" aria-label="Multiplicar">&times;</button>
+          <button type="button" data-operator="/" aria-label="Dividir">&divide;</button>
+          <button id="calculator-equals" type="button" aria-label="Calcular">=</button>
+        </div>
+        <div class="calculator-tools">
+          <button id="calculator-undo" type="button" class="secondary">Deshacer</button>
+          <button id="calculator-reset" type="button" class="secondary">Reiniciar</button>
+          <button id="calculator-reverse" type="button" class="secondary" title="Intercambiar los operandos de la operaci&oacute;n pendiente">Invertir orden</button>
+        </div>
+        <p id="calculator-status" role="status" aria-live="polite"></p>
+      </div>
+      <section class="card" id="calculator-history" aria-labelledby="calculator-history-title">
+        <h2 id="calculator-history-title">Tus pasos</h2>
+        <ol id="calculator-steps" class="result-scroll" tabindex="0" aria-label="Pasos realizados"></ol>
+      </section>
     </section>
   </main>
   <script src="letters-core.js"></script>
   <script src="letters-ui.js"></script>
+  <script src="numbers-game.js"></script>
+  <script src="number-chips.js"></script>
+  <script src="letter-chips.js"></script>
+  <script src="calculator-ui.js"></script>
   <script>
     "use strict";
 
@@ -241,31 +320,26 @@
       solveButton.disabled = false;
       cancelButton.hidden = true;
       numbersInput.disabled = false;
+      document.getElementById("numbers-fieldset").disabled = false;
       targetInput.disabled = false;
     }
 
     form.addEventListener("submit", event => {
       event.preventDefault();
       result.hidden = true;
-      const raw = numbersInput.value.trim();
-      const target = targetInput.value.trim();
-      if (!/^[+-]?\d+(?:(?:\s*,\s*|\s+)[+-]?\d+)*$/.test(raw)) {
-        setStatus("Introduce enteros separados por comas o espacios, por ejemplo: -5, 2, 3, 6, 7, 10.", true);
+      let puzzle;
+      try {
+        puzzle = NumbersGame.parsePuzzle(numbersInput.value, targetInput.value);
+      } catch (error) {
+        setStatus(error.message, true);
         return;
       }
-      const numbers = raw.split(/[\s,]+/);
-      if (numbers.length < 6 || numbers.length > 9) {
-        setStatus("Introduce entre 6 y 9 cifras.", true);
-        return;
-      }
-      if (!/^[+-]?\d+$/.test(target)) {
-        setStatus("El objetivo debe ser un entero; puede ser negativo.", true);
-        return;
-      }
+      const { numbers, target } = puzzle;
       stopWorker();
       solveButton.disabled = true;
       cancelButton.hidden = false;
       numbersInput.disabled = true;
+      document.getElementById("numbers-fieldset").disabled = true;
       targetInput.disabled = true;
       currentDepth = 0;
       started = performance.now();
