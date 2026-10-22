@@ -98,3 +98,40 @@ test("deleting a middle number leaves an insertion gap that can be refilled", ()
   entry.enter();
   assert.equal(entry.ready, true);
 });
+
+test("random draw respects the 24-tile pool and the 100-999 target range", () => {
+  const counts = new Map();
+  for (let run = 0; run < 5000; run++) {
+    const { numbers, target } = NumberEntry.drawRandom();
+    assert.equal(numbers.length, 6);
+    assert.ok(Number.isInteger(target) && target >= 100 && target <= 999);
+    const seen = new Map();
+    for (const value of numbers) {
+      assert.ok((value >= 1 && value <= 10) || [25, 50, 75, 100].includes(value), `bad tile ${value}`);
+      seen.set(value, (seen.get(value) || 0) + 1);
+      counts.set(value, true);
+    }
+    for (const [value, count] of seen) assert.ok(count <= (value <= 10 ? 2 : 1), `tile ${value} drawn ${count} times`);
+  }
+  assert.equal(counts.size, 14);
+  // Extreme RNG values stay inside the pool and range.
+  for (const fixed of [0, 0.999999999]) {
+    const { numbers, target } = NumberEntry.drawRandom(() => fixed);
+    assert.equal(new Set(numbers).size >= 3, true);
+    assert.ok(target === (fixed ? 999 : 100));
+  }
+  const always0 = NumberEntry.drawRandom(() => 0).numbers;
+  assert.deepEqual(always0, [1, 1, 2, 2, 3, 3]);
+  const always1 = NumberEntry.drawRandom(() => 0.999999999).numbers;
+  assert.deepEqual(always1, [100, 75, 50, 25, 10, 10]);
+});
+
+test("isEmpty tracks whether anything has been typed", () => {
+  const entry = new NumberEntry();
+  assert.equal(entry.isEmpty, true);
+  entry.digit("4");
+  assert.equal(entry.isEmpty, false);
+  entry.backspace();
+  assert.equal(entry.isEmpty, true);
+  assert.equal(new NumberEntry(["1"]).isEmpty, false);
+});

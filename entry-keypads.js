@@ -46,6 +46,13 @@
     numberForm.classList.toggle("number-ready", numberEntry.ready);
     document.getElementById("number-pad").hidden = numberEntry.ready;
     document.getElementById("number-actions").hidden = !numberEntry.ready;
+    const enterKey = document.querySelector('[data-number-key="Enter"]');
+    if (enterKey) {
+      const random = numberEntry.isEmpty;
+      enterKey.classList.toggle("random-key", random);
+      enterKey.textContent = random ? "\ud83c\udfb2\nAl azar" : "Enter";
+      enterKey.setAttribute("aria-label", random ? "Cifras y objetivo al azar" : "Confirmar n\u00famero");
+    }
     changed();
   }
 
@@ -87,8 +94,17 @@
     changed();
   }
 
-  function numberKey(key) {
+  function numberKey(key, fromPad = false) {
     if (document.getElementById("numbers-fieldset").disabled) return;
+    if (fromPad && key === "Enter" && numberEntry.isEmpty) {
+      const { numbers, target: objective } = NumberEntry.drawRandom();
+      numberEntry = new NumberEntry(numbers.map(String), String(objective));
+      document.getElementById("status").textContent = "";
+      document.getElementById("status").classList.remove("error");
+      renderNumbers();
+      document.getElementById("solve-myself").click();
+      return;
+    }
     try {
       if (key === "Enter") numberEntry.enter();
       else if (key === "Backspace") numberEntry.backspace();
@@ -120,7 +136,7 @@
     button.textContent = key === "Backspace" ? "\u232b" : key;
     button.className = key === "Enter" ? "enter-key" : key === "Backspace" ? "delete-key" : "";
     button.setAttribute("aria-label", key === "Backspace" ? "Borrar d\u00edgito" : key === "Enter" ? "Confirmar n\u00famero" : key);
-    button.addEventListener("click", () => numberKey(key));
+    button.addEventListener("click", () => numberKey(key, true));
     document.getElementById("number-pad").append(button);
   }
   for (const letter of [..."ABCDEFGHIJKLMN\u00d1OPQRSTUVWXYZ", "Backspace"]) {

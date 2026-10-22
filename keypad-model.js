@@ -12,6 +12,18 @@ class NumberEntry {
     // True when the cursor is an empty gap left by deleting a committed middle number.
     this.inserting = false;
   }
+  get isEmpty() {
+    return this.numbers.length === 0 && !this.target && !this.draft;
+  }
+  // Classic tile pool: 1-10 twice each plus one each of 25, 50, 75 and 100.
+  static drawRandom(random = Math.random) {
+    const pool = [];
+    for (let value = 1; value <= 10; value++) pool.push(value, value);
+    pool.push(25, 50, 75, 100);
+    const numbers = [];
+    for (let index = 0; index < 6; index++) numbers.push(pool.splice(Math.floor(random() * pool.length), 1)[0]);
+    return { numbers, target: 100 + Math.floor(random() * 900) };
+  }
   get editingCommitted() {
     return this.cursor < 6 && !this.inserting && this.cursor < this.numbers.length;
   }
