@@ -50,7 +50,7 @@
     if (enterKey) {
       const random = numberEntry.isEmpty;
       enterKey.classList.toggle("random-key", random);
-      enterKey.textContent = random ? "\ud83c\udfb2\nAl azar" : "Enter";
+      if (random) enterKey.innerHTML = '<span class="dice" aria-hidden="true">\ud83c\udfb2</span>Al azar'; else enterKey.textContent = "Enter";
       enterKey.setAttribute("aria-label", random ? "Cifras y objetivo al azar" : "Confirmar n\u00famero");
     }
     changed();
@@ -94,7 +94,7 @@
     // Buscar needs exactly ten letters, as in the TV show.
     solveKey.disabled = !random && letters.length !== MAX_LETTERS;
     solveKey.classList.toggle("random-key", random);
-    solveKey.textContent = random ? "\ud83c\udfb2 Al azar" : "Buscar";
+    if (random) solveKey.innerHTML = '<span class="dice" aria-hidden="true">\ud83c\udfb2</span> Al azar'; else solveKey.textContent = "Buscar";
     solveKey.setAttribute("aria-label", random ? "Letras al azar" : "Buscar palabras");
     rawLetters.value = letters.join("");
     letterSlots.setAttribute("aria-label", `${letters.length} letras: ${rawLetters.value}`);

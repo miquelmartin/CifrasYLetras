@@ -137,10 +137,13 @@
     .letter-pad { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(6, minmax(0, 1fr)); }
     .entry-pad button { min-height: 0; min-width: 0; padding: 2px; border-radius: 12px; background: #fff; color: var(--ink); font-size: clamp(1.75rem, 5dvh, 3rem); font-weight: 800; touch-action: manipulation; user-select: none; }
     .entry-pad button.enter-key { background: var(--orange); font-size: clamp(1rem, 3.6dvh, 1.6rem); }
-    .number-pad button.enter-key.random-key { background: var(--amber); font-size: clamp(.9rem, 2.8dvh, 1.25rem); line-height: 1.15; white-space: pre-line; padding: 2px; }
+    .number-pad button.enter-key.random-key { background: var(--amber); font-size: clamp(.9rem, 2.8dvh, 1.25rem); line-height: 1.15; padding: 2px; }
     .entry-pad button.delete-key { color: var(--blue); }
     #letters-solve { grid-column: span 2; }
     #letters-solve.random-key { background: var(--amber); white-space: nowrap; font-size: clamp(.9rem, 2.8dvh, 1.25rem); }
+    .random-key .dice { display: block; font-size: 2.1em; line-height: 1; }
+    #letters-solve.random-key { display: inline-flex; align-items: center; justify-content: center; gap: 3px; padding: 2px; font-size: clamp(.8rem, 2.5dvh, 1.1rem); }
+    #letters-solve.random-key .dice { display: inline; font-size: 2em; }
     /* Invisible hit areas reaching half-way into each gap (inset = half gap + 2px border), so taps between keys hit the nearest key. */
     .entry-pad button, #calculator-keys button, .calculator-operators button { position: relative; -webkit-tap-highlight-color: transparent; }
     .entry-pad button::before, #calculator-keys button::before, .calculator-operators button::before { content: ""; position: absolute; background: transparent; }
@@ -233,7 +236,7 @@
   <script src="numbers-game.js?v=17"></script>
   <script src="numbers-search.js?v=25"></script>
   <script src="keypad-model.js?v=28"></script>
-  <script src="entry-keypads.js?v=30"></script>
+  <script src="entry-keypads.js?v=31"></script>
   <script src="celebration.js?v=22"></script>
   <script src="calculator-ui.js?v=29"></script>
   <script>
