@@ -21,8 +21,9 @@
     label { display: block; font-weight: 650; margin-bottom: 4px; }
     input { min-width: 0; width: 100%; background: #fff; color: var(--ink); border: 2px solid var(--line); border-radius: 8px; padding: 8px; font: inherit; }
     input::placeholder { color: #586d80; opacity: 1; }
-    :focus, :focus-visible { outline: none; }
-    button:focus-visible, a:focus-visible { filter: brightness(.86); }
+    /* No focus or tap indicator anywhere: it collides with the on-screen borders. */
+    *, *::before, *::after, :focus, :focus-visible, :focus-within, :active { outline: 0 none !important; -webkit-tap-highlight-color: transparent !important; }
+    ::-moz-focus-inner { border: 0; }
     .hint { display: block; font-size: .875rem; color: var(--muted); margin: 8px 0; }
     .buttons { display: flex; gap: 8px; margin-top: 10px; }
     button { min-height: 44px; border: 2px solid var(--line); border-radius: 8px; padding: 6px 10px; font: inherit; font-weight: 700; cursor: pointer; background: var(--orange); color: var(--ink); box-shadow: 2px 2px 0 var(--line); }
@@ -53,7 +54,7 @@
     .notice { font-size: .875rem; color: var(--muted); }
     .caveat { font-size: .875rem; margin-top: 6px; }
     .manual > .tabs, .manual > [role="tabpanel"] { display: none !important; }
-    #calculator-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
+    #calculator-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
     .calculator-toolbar { display: flex; align-items: stretch; gap: 8px; height: 72px; flex: 0 0 auto; }
     #calculator-back { flex: 0 0 64px; height: 72px; padding: 0; display: grid; place-items: center; }
     .calculator-goal { flex: 1; min-width: 0; display: flex; }
@@ -62,36 +63,38 @@
     #calculator-title { display: block; font-size: .7rem; line-height: 1.1; color: var(--blue); }
     #calculator-target { display: block; flex: 0 1 auto; min-width: 0; font-size: 2.875rem; line-height: 1.15; overflow: hidden; white-space: nowrap; }
     #calculator-distance { flex: 0 0 auto; max-width: 45%; margin: 0; color: #6b3f12; font-size: 1rem; font-weight: 800; line-height: 1.1; overflow: hidden; overflow-wrap: anywhere; max-height: 2.2em; }
-    #calculator-display { background: var(--soft); border: 2px solid var(--line); box-shadow: 2px 2px 0 var(--line); border-radius: 8px; padding: 4px; font: clamp(1.75rem, 7vw, 3rem)/1.15 ui-monospace, monospace; color: var(--ink); overflow-wrap: anywhere; height: 60px; min-height: 60px; max-height: 60px; overflow: hidden; }
-    .calculator-controls { flex: 0 0 auto; overflow: hidden; padding: 8px; }
-    .calculator-readout { margin-bottom: 6px; }
-    #calculator-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
-    #calculator-keys button { min-height: clamp(44px, 7dvh, 64px); min-width: 0; font-size: clamp(1.75rem, 8vw, 2.8rem); line-height: 1.3; padding: 4px; white-space: normal; overflow-wrap: anywhere; }
-    .calculator-operators { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 4px; }
-    .calculator-operators button { min-height: 56px; padding: 0; font-size: 2rem; background: var(--operator); color: #fff; }
+    #calculator-auto { flex: 0 0 72px; height: 72px; padding: 2px 4px; font-size: .78rem; font-weight: 800; line-height: 1.15; background: #fff; color: var(--blue); overflow-wrap: anywhere; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    #calculator-auto::before { content: "\26A1"; font-size: 1.25rem; line-height: 1.1; }
+    #calculator-history { flex: 1 1 0; min-height: 0; padding: 6px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 4px; }
+    #calculator-steps { margin: auto 0 0; padding: 0; list-style: none; counter-reset: manual-step; display: flex; flex-direction: column; gap: 4px; }
+    #calculator-steps li { counter-increment: manual-step; flex: 0 0 30px; height: 30px; display: flex; gap: 8px; align-items: center; padding: 0 8px; border: 1.5px solid #c8d3e3; border-radius: 9px; background: var(--soft); font-size: 1.05rem; line-height: 1.2; white-space: nowrap; overflow: hidden; }
+    #calculator-steps li::before { content: counter(manual-step); display: grid; place-items: center; flex: 0 0 22px; height: 22px; border-radius: 50%; background: var(--blue); color: #fff; font-size: .8rem; }
+    #calculator-steps .operation { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    #calculator-current { flex: 0 0 56px; height: 56px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border: 2.5px solid var(--blue); border-radius: 11px; background: #fff; box-shadow: 0 0 0 3px #8fb0e655; font-size: 1.9rem; font-weight: 800; line-height: 1; color: var(--ink); white-space: nowrap; min-width: 0; }
+    #calculator-current .step-number { display: grid; place-items: center; flex: 0 0 30px; height: 30px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 1rem; }
+    #calculator-current .step-slot { flex: 0 1 auto; min-width: 64px; max-width: 40%; height: 42px; padding: 0 8px; display: grid; place-items: center; border: 2.5px dashed var(--result); border-radius: 9px; color: #4d6fa8; overflow: hidden; text-overflow: ellipsis; }
+    #calculator-current .step-slot.filled { border-style: solid; border-color: var(--line); background: var(--orange); color: var(--ink); }
+    #calculator-current .step-slot.filled.derived { background: var(--result); }
+    #calculator-current .step-operator { flex: 0 0 auto; color: var(--operator); }
+    #calculator-current .step-operator.empty { color: #8d9fbb; }
+    .calculator-controls { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; padding: 0 2px 2px 0; }
+    #calculator-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: var(--tile-height, 64px); align-content: start; gap: 8px; height: var(--keys-height, auto); }
+    #calculator-keys button { min-height: 0; min-width: 0; border-radius: 12px; font-size: 2.4rem; line-height: 1.2; padding: 4px; white-space: normal; overflow-wrap: anywhere; }
+    .calculator-operators { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: var(--operator-height, 56px); gap: 8px; }
+    .calculator-operators button { min-height: 0; min-width: 0; padding: 0; border-radius: 12px; font-size: var(--operator-font, 2rem); line-height: 1; background: var(--operator); color: #fff; }
     .calculator-operators button.secondary { background: #fff; color: var(--blue); }
     .calculator-operators #calculator-undo { background: #fff; color: var(--blue); }
     .calculator-operators button:disabled { background: #cbd9f0; color: #4d607c; border-style: dashed; }
     .calculator-operators button[aria-pressed="true"] { filter: brightness(.86); }
-    .calculator-footer { flex: 0 0 auto; display: flex; justify-content: flex-end; margin-top: 6px; }
-    #calculator-auto { flex: 0 0 auto; min-height: 44px; padding: 4px 14px; font-size: .875rem; font-weight: 650; background: #fff; color: var(--blue); }
-    #calculator-undo { flex: 0 0 52px; line-height: 1; }
-    #calculator-status { font-size: .875rem; margin-top: 4px; max-height: 2.8em; overflow: hidden; }
+    #calculator-undo { line-height: 1; }
+    #calculator-status { flex: 0 0 auto; font-size: .8rem; line-height: 1.25; max-height: 2.5em; overflow: hidden; overflow-wrap: anywhere; }
+    #calculator-status:empty { display: none; }
     .error { color: #a52826; }
     .success { color: var(--ink); font-weight: 700; }
-    .target-reached #calculator-display { background: var(--amber); }
     .celebration { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
-    #calculator-steps { padding: 3px; margin: 0; list-style: none; counter-reset: manual-step; display: flex; flex-direction: column; gap: 6px; }
-    #calculator-steps li { counter-increment: manual-step; display: flex; gap: 8px; align-items: center; overflow-wrap: anywhere; padding: 8px; border: 2px solid var(--line); border-radius: 9px; background: var(--soft); }
-    #calculator-steps li::before { content: counter(manual-step); display: grid; place-items: center; flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--amber); color: var(--ink); font-size: .8rem; }
-    #calculator-history { flex: 1; min-height: 96px; padding: 4px 8px; overflow: hidden; display: flex; flex-direction: column; gap: 4px; }
-    #calculator-history h2 { flex: 0 0 auto; font-size: .875rem; color: var(--blue); }
-    #calculator-steps li { font-size: 1.1rem; line-height: 1.3; padding: 6px; }
-    #calculator-steps li::before { flex-basis: 30px; height: 30px; background: var(--blue); color: #fff; font-size: 1.2rem; }
     .step-derived { color: var(--blue); font-weight: 800; }
     .operation { color: var(--ink); }
     .step-value { background: var(--amber); color: var(--ink); border-radius: 4px; padding: 0 3px; font-weight: 800; }
-    #calculator-keys { padding: 0 3px 3px 0; margin-top: 4px; }
     #calculator-keys button { position: relative; background: var(--orange); color: var(--ink); border: 2px solid var(--line); }
     #calculator-keys button:disabled { background: #f6d5c1; color: var(--ink); box-shadow: none; }
     #calculator-keys button[aria-pressed="true"] { filter: brightness(.86); }
@@ -101,8 +104,6 @@
     .supplied-numbers { display: flex; gap: 4px; flex-wrap: wrap; max-height: 60px; overflow: hidden; flex-shrink: 0; list-style: none; margin: 0; padding: 2px; }
     .supplied-numbers li { border: 2px solid var(--line); border-radius: 6px; padding: 2px 6px; background: var(--orange); color: var(--ink); font-size: .875rem; overflow-wrap: anywhere; max-width: 100%; }
     .supplied-numbers li.used { background: #f7dfd0; color: #77513c; text-decoration: line-through; }
-    #calculator-originals { gap: 2px; }
-    #calculator-originals li { font-size: .7rem; line-height: 1.1; border-width: 2px; padding: 0 3px; }
     .key-legend { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
     #numbers-fieldset, #letters-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
     #solver.keypad-form, #letters-solver.keypad-form { flex: 1; min-height: 0; max-height: none; overflow: visible; padding: 8px; display: flex; flex-direction: column; gap: 8px; }
@@ -141,8 +142,8 @@
     .entry-pad button, #calculator-keys button, .calculator-operators button { position: relative; -webkit-tap-highlight-color: transparent; }
     .entry-pad button::before, #calculator-keys button::before, .calculator-operators button::before { content: ""; position: absolute; background: transparent; }
     .entry-pad button::before { inset: -6px; }
-    #calculator-keys button::before { inset: -5px; }
-    .calculator-operators button::before { inset: -6px -5px -5px; }
+    #calculator-keys button::before { inset: -6px; }
+    .calculator-operators button::before { inset: -6px; }
     .keypad-form > .buttons { margin: 0; }
     #letters-solver > .buttons:not(:has(button:not([hidden]))) { display: none; }
     #solver.number-ready, #letters-solver.letter-results, #letters-solver.letters-busy { flex: 0 0 auto; }
@@ -204,12 +205,14 @@
         <div class="calculator-goal" role="group" aria-label="Objetivo y distancia">
           <div class="calculator-target"><span id="calculator-title">Objetivo</span><span class="target-line"><strong id="calculator-target"></strong><span id="calculator-distance" role="status" aria-live="polite"></span></span></div>
         </div>
+        <button id="calculator-auto" type="button">Auto-resolver</button>
       </div>
-      <div class="card calculator-controls">
-        <div class="calculator-readout">
-        <div id="calculator-display" aria-label="Operaci&oacute;n actual"></div>
-        </div>
-        <ul id="calculator-originals" class="supplied-numbers" aria-label="Cifras originales y su uso"></ul>
+      <section class="card" id="calculator-history" aria-label="Pasos">
+        <p id="calculator-status" role="status" aria-live="polite"></p>
+        <ol id="calculator-steps" aria-label="Pasos realizados"></ol>
+        <div id="calculator-current" aria-label="Operaci&oacute;n actual"></div>
+      </section>
+      <div class="calculator-controls">
         <div id="calculator-keys" role="group" aria-label="Botones disponibles: cifras y resultados" aria-describedby="key-legend"></div>
         <p id="key-legend" class="key-legend">Botones azules con =: resultados anteriores.</p>
         <div class="calculator-operators" role="group" aria-label="Operaciones">
@@ -219,14 +222,6 @@
           <button type="button" data-operator="/" aria-label="Dividir">&divide;</button>
           <button id="calculator-undo" type="button" class="secondary" aria-label="Deshacer" title="Deshacer">&larr;</button>
         </div>
-        <p id="calculator-status" role="status" aria-live="polite"></p>
-      </div>
-      <section class="card" id="calculator-history" aria-labelledby="calculator-history-title">
-        <h2 id="calculator-history-title">Pasos</h2>
-        <ol id="calculator-steps" class="result-scroll" tabindex="0" aria-label="Pasos realizados"></ol>
-      </section>
-      <div class="calculator-footer">
-        <button id="calculator-auto" type="button">Auto-resolver</button>
       </div>
     </section>
   </main>
@@ -237,7 +232,7 @@
   <script src="keypad-model.js?v=27"></script>
   <script src="entry-keypads.js?v=27"></script>
   <script src="celebration.js?v=22"></script>
-  <script src="calculator-ui.js?v=27"></script>
+  <script src="calculator-ui.js?v=28"></script>
   <script>
     "use strict";
 

@@ -59,9 +59,12 @@ resultados anteriores. No se admiten fracciones ni division entre cero.
 
 **Resolver yo** permite elegir un boton, una operacion y otro boton, sin `=`.
 Los dos operandos desaparecen y aparece el resultado en azul y con un marcador
-`=`. La tira original conserva las cifras, con las consumidas tachadas y
-marcadas. Los operandos intermedios de los pasos son azules, sin referencias
-textuales de paso. Los pasos empiezan desplegados y usan numeros grandes.
+`=`. Entre el objetivo y los botones, la caja de Pasos se alinea abajo: la
+operacion en curso es la ultima fila, mas grande y con huecos punteados, y cada
+paso nuevo empuja a los anteriores hacia arriba. Caben seis pasos a 360x640;
+si no, la caja se desplaza sola y se mantiene al final. Los operandos
+intermedios son azules. Las teclas llenan el ancho y crecen en altura solo
+hasta ser cuadradas; el espacio sobrante es para los pasos.
 
 Las cuatro operaciones y Deshacer comparten una fila completa de cinco teclas.
 Las operaciones solo se habilitan tras elegir el primer numero. Deshacer
@@ -74,7 +77,7 @@ y los pasos; el valor exacto sigue en el titulo, nombre accesible y calculo.
 
 El objetivo grande y su distancia exacta aparecen juntos. La distancia es la
 menor diferencia absoluta entre el objetivo y los botones disponibles.
-**Auto-resolver**, un boton pequeno y separado al pie de Resolver yo, busca
+**Auto-resolver**, un boton pequeno a la derecha del objetivo, busca
 primero desde los botones actuales; si no hay continuacion exacta, busca desde
 las cifras originales y avisa antes de reiniciar. Si ninguna combinacion da el
 objetivo, reproduce la mas cercana (menor diferencia y, a igualdad, menos
@@ -141,7 +144,7 @@ scroll, calculos entre resultados, animacion y deshacer, reproduccion automatica
 reinicio y cancelacion, palabras reales, iconos DLE, persistencia exacta,
 recarga e historial. Tambien cubren el motor generico con nueve botones,
 valores negativos largos y una solucion de ocho pasos, ademas del contraste
-y la ausencia de anillos de foco. El motor se compara con una referencia exhaustiva
+y la ausencia de anillos de foco (contorno, sombra o resaltado tactil) en cualquier elemento enfocable. El motor se compara con una referencia exhaustiva
 independiente para conjuntos pequenos.
 
 El lector de RLA-ES admite intencionadamente solo las directivas de la version
