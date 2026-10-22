@@ -1,6 +1,6 @@
 "use strict";
 
-importScripts("letters-core.js?v=6");
+importScripts("letters-core.js?v=7");
 let dictionary;
 
 self.onmessage = async ({ data }) => {
@@ -20,8 +20,8 @@ self.onmessage = async ({ data }) => {
         clearTimeout(timeout);
       }
     }
-    const result = LettersSolver.search(dictionary, data.letters, (examined, total) => {
-      self.postMessage({ type: "progress", id: data.id, examined, total });
+    const result = LettersSolver.search(dictionary, data.letters, (examined, total, longest) => {
+      self.postMessage({ type: "progress", id: data.id, examined, total, longest });
     }, { all: Boolean(data.all) });
     self.postMessage({ type: "done", id: data.id, result });
   } catch (error) {

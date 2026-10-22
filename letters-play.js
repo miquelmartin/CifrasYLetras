@@ -36,13 +36,17 @@ function failLetters(message) {
 function handleLettersMessage(data) {
   if (!lp || data.id !== lp.request) return;
   if (data.type === "loading") lp.progress = "Cargando el diccionario ortogr\u00e1fico RLA-ES...";
-  else if (data.type === "progress") lp.progress = `Buscando... ${Math.round(data.examined / data.total * 100)} % de las entradas revisadas.`;
+  else if (data.type === "progress") {
+    lp.progress = `Buscando... ${Math.round(data.examined / data.total * 100)} % de las entradas revisadas.`;
+    lp.known = Math.max(lp.known, data.longest || 0);
+  }
   else if (data.type === "error") {
     failLetters(`Error en la b\u00fasqueda: ${data.message} Vuelve atr\u00e1s e int\u00e9ntalo de nuevo.`);
     return;
   } else if (data.type === "done") {
     const { length, matches, valid } = data.result;
     lp.result = { length, matches, valid: new Map(valid.map(([key, word, lemma]) => [key, { word, lemma }])) };
+    lp.known = length;
     for (const row of lp.rows) classifyRow(row);
     if (lp.auto) lp.scroll = "top";
   } else return;
@@ -53,7 +57,7 @@ function startLettersSearch() {
   const id = lp.request = ++lettersRequest;
   try {
     if (!lettersWorker) {
-      lettersWorker = new Worker("letters-worker.js?v=2");
+      lettersWorker = new Worker("letters-worker.js?v=3");
       lettersWorker.onmessage = ({ data }) => handleLettersMessage(data);
       lettersWorker.onerror = event => {
         event.preventDefault();
@@ -180,9 +184,12 @@ function renderLettersPlay() {
   const reached = Boolean(best) && isMaximum(best);
   const shown = lp.auto && lp.result;
   const bestLength = best ? [...best.key].length : 0;
-  document.getElementById("lp-best").textContent = best ? String(bestLength) : "\u2013";
-  document.getElementById("lp-best-note").textContent = !best ? (shown ? `m\u00e1x. ${lp.result.length}` : "sin palabras a\u00fan") :
-    `${letterWord(bestLength)} \u00b7 ${reached ? "\u00a1m\u00e1xima!" : shown ? `m\u00e1x. ${lp.result.length}` : upper(best.word)}`;
+  const setText = (id, text) => { const element = document.getElementById(id); if (element.textContent !== text) element.textContent = text; };
+  setText("lp-best", best ? String(bestLength) : "\u2013");
+  setText("lp-best-word", best ? `${letterWord(bestLength)} \u00b7 ${upper(best.word)}` : "sin palabras a\u00fan");
+  // The background search reveals the longest length known so far, like the Cifras objective.
+  setText("lp-best-max", reached ? "\u00a1m\u00e1xima!" : lp.result ? `m\u00e1x. ${lp.result.length}` :
+    lp.error ? "" : `m\u00e1x. ${lp.known || ""}\u2026`);
 
   let message = "";
   if (lp.error) message = lp.error;
@@ -218,7 +225,7 @@ function fitLettersPlay() {
   lettersPlayPanel.style.setProperty("--lp-action-font", `${Math.round(Math.min(40, Math.max(22, actionHeight * .5)))}px`);
   const scale = Math.min(LP_MAX_SCALE, Math.max(1, (lpBox.clientHeight - LP_RESERVE) / LP_UNITS));
   lpBox.style.setProperty("--step-scale", scale.toFixed(3));
-  for (const element of [lpCurrent, ...lpWords.querySelectorAll("li:not(.lp-section):not(.lp-caveat)")]) {
+  for (const element of [document.getElementById("lp-best-word"), lpCurrent, ...lpWords.querySelectorAll("li:not(.lp-section):not(.lp-caveat)")]) {
     element.style.fontSize = "";
     if (element.scrollWidth > element.clientWidth + .5) {
       const size = parseFloat(getComputedStyle(element).fontSize) * element.clientWidth / element.scrollWidth * .95;
@@ -267,7 +274,7 @@ function openLettersPlay() {
   }
   if ([...key].length !== 10) return false;
   lettersCelebration.stop();
-  lp = { key, letters: [...key], used: Array(10).fill(false), current: [], rows: [], result: null, error: "", progress: "", auto: false, flash: null, scroll: "bottom" };
+  lp = { key, letters: [...key], used: Array(10).fill(false), current: [], rows: [], result: null, error: "", progress: "", auto: false, flash: null, scroll: "bottom", known: 0 };
   lpTiles.replaceChildren(...lp.letters.map((letter, index) => {
     const tile = document.createElement("button");
     tile.type = "button";

@@ -97,6 +97,14 @@ test("all mode validates every formable word with the same rules and normalizati
   assert.equal(longest.valid, undefined);
 });
 
+test("progress reports the longest length found so far, never decreasing", () => {
+  const reports = [];
+  const result = solver.search(dictionary, "camionesta", (examined, total, longest) => reports.push(longest), { all: true });
+  assert.ok(reports.length > 5);
+  assert.ok(reports.every((length, index) => Number.isInteger(length) && length <= result.length && (!index || length >= reports[index - 1])));
+  assert.ok(reports.at(-1) > 0);
+});
+
 test("worker reports download errors and supports a subsequent retry", async () => {
   const messages = [];
   let fail = true;
