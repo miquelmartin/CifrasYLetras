@@ -19,7 +19,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       if (!frame.isConnected) document.body.append(frame);
     });
     const byId = id => doc.getElementById(id);
-    const scrollers = new Set(["calculator-steps", "letters-words"]);
+    const scrollers = new Set(["calculator-history", "letters-words"]);
     // Invisible tap extensions (button::before) are excluded from clipping measurements.
     const withoutHitAreas = measure => {
       const style = doc.createElement("style");
@@ -36,9 +36,9 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       for (const element of doc.querySelectorAll("body *")) {
         if (!element.getClientRects().length || element.closest(".celebration")) continue;
         const style = win.getComputedStyle(element);
-        const inner = element.parentElement.closest("#calculator-steps, #letters-words");
+        const inner = element.parentElement.closest("#calculator-history, #letters-words");
         if (/auto|scroll/.test(style.overflowX + style.overflowY)) assert(scrollers.has(element.id), `${name}: ${element.id || element.className} se desplaza por dentro`);
-        else if (element.matches("form, section, fieldset, .card, .supplied-numbers, #calculator-display, .calculator-target, .entry-pad, .entry-slots, .calculator-operators, #calculator-keys")) {
+        else if (element.matches("form, section, fieldset, .card, .supplied-numbers, .calculator-target, .entry-pad, .entry-slots, .calculator-operators, #calculator-keys")) {
           assert(element.scrollHeight <= element.clientHeight + 1 && element.scrollWidth <= element.clientWidth + 1, `${name}: ${element.id || element.className} recortado`);
         }
         if (!inner && element.matches("button, a, .entry-slot, #calculator-target, #calculator-distance, h2")) {
@@ -71,12 +71,13 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
         for (let x = Math.ceil(left); x < right; x += 2) {
           const distances = rects.map(r => distance(r, x, y));
           const nearest = Math.min(...distances);
-          if (nearest > 4.5) continue;
+          // Hit areas extend half of the 8px gap; 0.5px is left for subpixel snapping.
+          if (nearest > 3.5) continue;
           sampled++;
           if (nearest > 0) gaps++;
           const hit = doc.elementFromPoint(x, y)?.closest("button");
           const index = buttons.indexOf(hit);
-          assert(index >= 0, `${name}: zona muerta en (${Math.round(x)}, ${Math.round(y)})`);
+          assert(index >= 0, `${name}: zona muerta en (${Math.round(x)}, ${Math.round(y)}) [${width}x${height}]`);
           // Pixel snapping may move a gap boundary by up to 1.5px, changing the distance difference by up to 3px.
           assert(distances[index] <= nearest + 3, `${name}: (${Math.round(x)}, ${Math.round(y)}) activa ${hit.textContent} en vez de la tecla mas cercana`);
         }
@@ -111,28 +112,63 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
     const op = value => doc.querySelector(`[data-operator="${value}"]`).click();
     const idle = () => wait(() => byId("calculator-panel").dataset.animating !== "true");
     const combine = async (left, operator, right) => { tile(left).click(); op(operator); tile(right).click(); await idle(); };
+    const lastValue = () => byId("calculator-steps").lastElementChild?.querySelector(".step-value")?.textContent || "";
+    // Status line, five history rows and the large current row (see calculator-ui.js).
+    const MIN_HISTORY = 16 + 34 + 5 * 34 + 56;
     const manualFits = () => {
-      const controlPanel = byId("calculator-keys").closest(".calculator-controls");
-      const controls = controlPanel.getBoundingClientRect();
-      withoutHitAreas(() => assert(controlPanel.scrollHeight <= controlPanel.clientHeight + 1, "Controles con desplazamiento interno"));
-      for (const element of doc.querySelectorAll("#calculator-keys button, .calculator-operators button")) {
-        visible(element);
-        assert(element.getBoundingClientRect().bottom <= controls.bottom, "Control oculto dentro de la calculadora");
-      }
+      const history = byId("calculator-history");
+      const controls = doc.querySelector(".calculator-controls").getBoundingClientRect();
+      withoutHitAreas(() => {
+        for (const element of doc.querySelectorAll("#calculator-keys button, .calculator-operators button")) {
+          visible(element);
+          const rect = element.getBoundingClientRect();
+          assert(rect.width >= rect.height - .5, `${element.textContent}: tecla mas alta que ancha`);
+          if (history.clientHeight > MIN_HISTORY + 12 && element.closest("#calculator-keys")) assert(rect.width - rect.height < 1.5, "Las cifras deben crecer hasta ser cuadradas antes de ceder alto a los pasos");
+        }
+      });
       const auto = byId("calculator-auto");
       visible(auto);
       const autoRect = auto.getBoundingClientRect();
-      const operatorRect = doc.querySelector("[data-operator]").getBoundingClientRect();
-      assert(autoRect.top >= byId("calculator-history").getBoundingClientRect().bottom + 6 && autoRect.top - controls.bottom >= 40, "Auto-resolver debe estar separado de los controles");
-      assert(autoRect.width <= controls.width * .6 && parseFloat(win.getComputedStyle(auto).fontSize) < parseFloat(win.getComputedStyle(doc.querySelector("[data-operator]")).fontSize) / 1.5 && autoRect.height <= operatorRect.height, "Auto-resolver debe ser pequeno y secundario");
+      const goalRect = doc.querySelector(".calculator-target").getBoundingClientRect();
+      assert(Math.abs(autoRect.height - goalRect.height) < 1 && Math.abs(autoRect.top - goalRect.top) < 1 && autoRect.left >= goalRect.right, "Auto-resolver debe ir a la derecha del objetivo con su misma altura");
+      assert(autoRect.width <= 80 && parseFloat(win.getComputedStyle(auto).fontSize) < parseFloat(win.getComputedStyle(doc.querySelector("[data-operator]")).fontSize) / 1.5, "Auto-resolver debe ser pequeno y secundario");
       const target = byId("calculator-target").getBoundingClientRect();
       const distance = byId("calculator-distance").getBoundingClientRect();
       assert(distance.top < target.bottom && distance.bottom > target.top, "Distancia no esta junto al objetivo");
-      assert(!byId("calculator-history").querySelector("details, summary") && byId("calculator-steps").getBoundingClientRect().height >= 44, "Pasos deben estar siempre desplegados");
-      const firstStep = byId("calculator-steps").firstElementChild;
-      if (firstStep) assert(firstStep.getBoundingClientRect().bottom <= Math.min(height, byId("calculator-history").getBoundingClientRect().bottom - 2), "No cabe un paso completo");
-      const originals = byId("calculator-originals");
-      assert(originals.scrollHeight <= originals.clientHeight + 1, "Cifras originales ocultas");
+      const historyRect = history.getBoundingClientRect();
+      assert(historyRect.top >= goalRect.bottom && historyRect.bottom <= controls.top && historyRect.height >= MIN_HISTORY - 1, "Los pasos deben ir entre el objetivo y las cifras con sitio para seis pasos");
+      assert(!doc.querySelector("#calculator-display, #calculator-originals, .calculator-footer, #calculator-history h2") && !/Elige/.test(byId("calculator-panel").textContent), "Sobran pantalla, lista de cifras o indicaciones");
+      const rows = [...byId("calculator-steps").children, ...(byId("calculator-current").hidden ? [] : [byId("calculator-current")])].map(row => row.getBoundingClientRect());
+      if (rows.length) {
+        assert(rows.every((row, index) => index === 0 || row.top >= rows[index - 1].bottom - .5), "Los pasos deben apilarse hacia abajo");
+        assert(rows.at(-1).bottom <= historyRect.bottom && rows.at(-1).bottom >= historyRect.bottom - 12, "El paso mas reciente debe ser la fila inferior");
+      }
+    };
+    const focusAudit = name => {
+      for (const sheet of doc.styleSheets) {
+        for (const rule of sheet.cssRules) {
+          if (!rule.selectorText || !/:focus|:active/.test(rule.selectorText)) continue;
+          const style = rule.style;
+          assert(!style.boxShadow && !style.filter && !style.backgroundColor && !style.borderColor && [ "", "none"].includes(style.outlineStyle) && ["", "0px"].includes(style.outlineWidth),
+            `${name}: la regla ${rule.selectorText} muestra el foco`);
+        }
+      }
+      const focusable = [...doc.querySelectorAll("button, a[href], input, select, textarea, [tabindex]")].filter(element => element.getClientRects().length && !element.disabled);
+      for (const element of focusable) {
+        doc.activeElement?.blur?.();
+        const before = win.getComputedStyle(element);
+        const resting = [before.boxShadow, before.filter, before.backgroundColor, before.borderColor].join("|");
+        for (const focusVisible of [false, true]) {
+          element.focus({ focusVisible, preventScroll: true });
+          const style = win.getComputedStyle(element);
+          const label = `${name}: ${element.id || element.getAttribute("aria-label") || element.textContent}`;
+          assert(style.outlineStyle === "none" || style.outlineWidth === "0px", `${label} muestra contorno de foco`);
+          assert([style.boxShadow, style.filter, style.backgroundColor, style.borderColor].join("|") === resting, `${label} cambia al recibir foco`);
+          assert(style.webkitTapHighlightColor === "rgba(0, 0, 0, 0)", `${label} tiene resaltado al tocar`);
+        }
+        element.blur();
+      }
+      assert(focusable.length >= 3, `${name}: sin elementos enfocables`);
     };
     try {
       await load();
@@ -160,6 +196,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       contrast(focusKey);
       snapshot("Teclado numerico vacio");
       gapHits("#number-pad button", "Teclado numerico");
+      focusAudit("Entrada de cifras");
       assert([...byId("number-pad").children].map(button => button.dataset.numberKey).join() === "7,8,9,4,5,6,1,2,3,Backspace,0,Enter", "Orden numerico incorrecto");
       const enterKey = doc.querySelector('[data-number-key="Enter"]');
       const isRandom = () => enterKey.classList.contains("random-key") && /Al azar/.test(enterKey.textContent) && win.getComputedStyle(enterKey).backgroundColor === "rgb(246, 201, 107)";
@@ -200,12 +237,12 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       manualFits();
       snapshot("Resolver yo vacio");
       gapHits("#calculator-keys button, .calculator-operators button", "Resolver yo");
-      assert(byId("calculator-display").textContent === "" && byId("calculator-display").getBoundingClientRect().height >= 60, "Pantalla vacia muestra signo o colapsa");
+      assert(!byId("calculator-current").hidden && byId("calculator-current").querySelectorAll(".step-slot:not(.filled)").length === 2 && byId("calculator-steps").children.length === 0, "El paso actual vacio debe mostrar huecos");
+      focusAudit("Resolver yo");
       assert(parseFloat(win.getComputedStyle(byId("calculator-target")).fontSize) >= 32, "Objetivo demasiado pequeno");
       contrast(byId("calculator-target"), 3);
       contrast(byId("calculator-distance"));
       contrast(byId("calculator-auto"));
-      assert(!byId("calculator-display").hasAttribute("tabindex"), "Pantalla no debe recibir foco");
       assert(byId("calculator-distance").textContent === "faltan 902", `Distancia debe decir faltan: ${byId("calculator-distance").textContent}`);
       assert(parseFloat(win.getComputedStyle(byId("calculator-distance")).fontSize) < parseFloat(win.getComputedStyle(byId("calculator-target")).fontSize) / 2, "Distancia debe ser mas pequena que el objetivo");
       const back = byId("calculator-back");
@@ -218,7 +255,9 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       assert(row.length === 5 && row.every(rect => Math.abs(rect.width - row[0].width) < 1 && Math.abs(rect.top - row[0].top) < 1), "Operaciones y deshacer deben compartir fila y tamano");
       tile(25).click();
       contrast(doc.querySelector("[data-operator]"), 3);
-      op("/"); tile(8).click();
+      op("/");
+      assert(byId("calculator-current").textContent === "1" + "25\u00f7?" && byId("calculator-current").querySelector(".step-slot.filled"), "El paso actual debe ilustrar la operacion");
+      assert(parseFloat(win.getComputedStyle(byId("calculator-current")).fontSize) > parseFloat(win.getComputedStyle(byId("calculator-steps")).fontSize || "16") * 1.4, "El paso actual debe ser mayor"); tile(8).click();
       assert(byId("calculator-status").textContent.includes("sin fracciones") && byId("calculator-keys").children.length === 6, "Division invalida consume operandos");
       assert([...doc.querySelectorAll("[data-operator]")].every(button => button.disabled) && !byId("calculator-undo").disabled, "Espera de numero no deshabilita solo operaciones");
       byId("calculator-undo").click();
@@ -234,7 +273,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       tile(3).click(); op("+");
       assert(byId("calculator-steps").children.length === count, "Pulsaciones rapidas alteran fusion");
       await idle();
-      assert(byId("calculator-display").textContent === "952" && byId("calculator-distance").textContent === "Objetivo alcanzado", "Falla fusion de dos resultados");
+      assert(lastValue() === "952" && byId("calculator-distance").textContent === "Objetivo alcanzado", "Falla fusion de dos resultados");
       assert(!byId("calculator-steps").textContent.includes("paso"), "Pasos muestran referencias textuales");
       const derived = byId("calculator-steps").querySelector(".step-derived");
       const original = byId("calculator-steps").querySelector(".step-original");
@@ -249,7 +288,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       assert(tile(17) && tile(56) && !doc.querySelector(".celebration"), "Deshacer no restaura resultados o limpia fuegos");
       byId("calculator-auto").click();
       await wait(() => byId("calculator-auto").textContent === "Auto-resolver");
-      assert(byId("calculator-display").textContent === "952", "Automatico no continua desde resultados");
+      assert(lastValue() === "952", "Automatico no continua desde resultados");
       byId("calculator-undo").click(); await idle();
       byId("calculator-auto").click();
       byId("calculator-auto").click();
@@ -262,7 +301,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       byId("calculator-auto").click();
       await wait(() => byId("calculator-status").textContent.includes("empezamos"));
       await wait(() => byId("calculator-auto").textContent === "Auto-resolver");
-      assert(byId("calculator-display").textContent === "4" && byId("calculator-steps").children.length === 1, "Falla reinicio automatico");
+      assert(lastValue() === "4" && byId("calculator-steps").children.length === 1, "Falla reinicio automatico");
       snapshot("Automatico reinicia sin continuacion");
       await load("?n=0,0,0,0,0,0&obj=1&yo=1");
       byId("calculator-auto").click();
@@ -271,9 +310,23 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       await load("?n=1,1,1,1,1,1&obj=1000");
       byId("calculator-auto").click();
       await wait(() => byId("calculator-auto").textContent === "Auto-resolver" && byId("calculator-panel").dataset.animating !== "true");
-      assert(byId("calculator-display").textContent === "9" && byId("calculator-status").textContent.includes("la m\u00e1s cercana: 9 (a 991)"), "No reproduce la solucion mas cercana");
+      assert(lastValue() === "9" && byId("calculator-status").textContent.includes("la m\u00e1s cercana: 9 (a 991)"), "No reproduce la solucion mas cercana");
       manualFits();
       snapshot("Solucion mas cercana");
+      await load("?n=1,2,3,4,5,6&obj=999&yo=1");
+      await combine(1, "+", 2); await combine(4, "+", 5); await combine(9, "*", 6); await combine(54, "*", 3);
+      tile(162).click(); op("*");
+      const historyFull = byId("calculator-history");
+      assert(byId("calculator-steps").children.length === 4 && !byId("calculator-current").hidden && historyFull.scrollHeight <= historyFull.clientHeight + 1, "Cuatro pasos y el actual deben caber sin desplazar");
+      manualFits();
+      snapshot("Cinco pasos con el actual");
+      const beforeLast = byId("calculator-steps").lastElementChild.getBoundingClientRect();
+      tile(3).click(); await idle();
+      const newest = byId("calculator-steps").lastElementChild.getBoundingClientRect();
+      assert(byId("calculator-steps").children.length === 5 && byId("calculator-current").hidden && lastValue() === "486" && newest.top >= beforeLast.bottom - .5, "El nuevo paso debe aparecer abajo y empujar los anteriores");
+      assert(historyFull.scrollHeight <= historyFull.clientHeight + 1, "Cinco pasos terminados deben caber sin desplazar");
+      manualFits();
+      snapshot("Cinco pasos terminados");
       await load("?n=0,0,0,0,0,0&obj=1&yo=1");
       win.eval("Object.defineProperty(reducedMotion,'matches',{value:true,configurable:true}); reducedMotion.dispatchEvent(new Event('change'));");
       const zeros = [...byId("calculator-keys").children];
@@ -306,6 +359,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
         assert(link.querySelector("svg") && link.getAttribute("aria-label").includes("DLE") && link.getBoundingClientRect().width >= 44, "Icono DLE inaccesible");
       }
       snapshot("Candidatas compactas");
+      focusAudit("Candidatas de letras");
       byId("letters-edit").click();
       for (const letter of "ABCDEFGHIJKLMN\u00d1OPQRST") letterKey(letter);
       key("z");
@@ -342,12 +396,13 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       byId("calculator-auto").click();
       await wait(() => byId("calculator-auto").textContent === "Auto-resolver" && byId("calculator-panel").dataset.animating !== "true");
       const longSteps = byId("calculator-steps");
-      assert(longSteps.children.length === 8 && byId("calculator-display").textContent === "512", "El solver generico debe admitir nueve numeros y ocho pasos");
+      assert(longSteps.children.length === 8 && lastValue() === "512", "El solver generico debe admitir nueve numeros y ocho pasos");
       manualFits();
-      longSteps.scrollTop = longSteps.scrollHeight;
+      const historyBox = byId("calculator-history");
+      assert(historyBox.scrollTop > 0 && Math.abs(historyBox.scrollTop + historyBox.clientHeight - historyBox.scrollHeight) <= 1, "Los pasos deben quedar desplazados al final");
       assert(doc.documentElement.scrollTop === 0, "Desplazar los pasos mueve la pagina");
       const lastStep = longSteps.lastElementChild.getBoundingClientRect();
-      assert(lastStep.bottom <= longSteps.getBoundingClientRect().bottom + 1, "El ultimo paso no es alcanzable dentro de su caja");
+      assert(lastStep.bottom <= historyBox.getBoundingClientRect().bottom + 1, "El ultimo paso no es alcanzable dentro de su caja");
       snapshot("Nueve numeros y ocho pasos automaticos");
 
       await load("?n=100,75,50,25,3,6&obj=952");

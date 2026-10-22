@@ -91,23 +91,50 @@ reducedMotion.addEventListener("change", () => {
   if (manualGame && !calculatorPanel.hidden) renderCalculator(calculatorStatus.textContent);
 });
 
+// Steps box must always hold a status line, five history rows and the large current row.
+const HISTORY_ROW = 30, CURRENT_ROW = 56, STEP_GAP = 4, STATUS_RESERVE = 34, HISTORY_CHROME = 16;
+const MIN_HISTORY_HEIGHT = HISTORY_CHROME + STATUS_RESERVE + 5 * (HISTORY_ROW + STEP_GAP) + CURRENT_ROW;
+
+function layoutCalculator() {
+  if (calculatorPanel.hidden || !manualGame) return;
+  const gap = 8;
+  const toolbar = calculatorPanel.querySelector(".calculator-toolbar").offsetHeight;
+  const controlsWidth = calculatorPanel.clientWidth - 2;
+  const rows = Math.max(1, Math.ceil(manualGame.numbers.length / 3));
+  const budget = calculatorPanel.clientHeight - toolbar - 2 * gap - MIN_HISTORY_HEIGHT - 2 - rows * gap;
+  const tileWidth = (controlsWidth - 2 * gap) / 3;
+  const operatorWidth = (controlsWidth - 4 * gap) / 5;
+  // Keys fill the spare height but never grow taller than they are wide.
+  const operatorHeight = Math.floor(Math.max(44, Math.min(operatorWidth, budget / (rows + 1))));
+  const tileHeight = Math.floor(Math.max(44, Math.min(tileWidth, (budget - operatorHeight) / rows)));
+  calculatorPanel.style.setProperty("--tile-height", `${tileHeight}px`);
+  calculatorPanel.style.setProperty("--keys-height", `${rows * tileHeight + (rows - 1) * gap}px`);
+  calculatorPanel.style.setProperty("--operator-height", `${operatorHeight}px`);
+  calculatorPanel.style.setProperty("--operator-font", `${Math.round(Math.min(44, Math.max(24, operatorHeight * .55)))}px`);
+}
+
 function fitCalculatorNumerals() {
   if (calculatorPanel.hidden || !numeralContext) return;
-  const display = document.getElementById("calculator-display");
+  layoutCalculator();
   const target = document.getElementById("calculator-target");
-  const keyMaximum = calculatorKeys.children.length > 6 && innerHeight <= 700 ? 32 : Math.min(48, Math.max(40, innerHeight * .06));
-  for (const element of [display, target, ...calculatorKeys.children]) {
+  const tileHeight = parseFloat(calculatorPanel.style.getPropertyValue("--tile-height")) || 64;
+  const keyMaximum = Math.min(56, Math.max(24, tileHeight * .5));
+  const slots = [...document.querySelectorAll("#calculator-current .step-slot")];
+  for (const element of [target, ...calculatorKeys.children, ...slots]) {
     const styles = getComputedStyle(element);
-    const maximum = element === target ? 46 : element === display ? 40 : keyMaximum;
+    const maximum = element === target ? 46 : slots.includes(element) ? 30 : keyMaximum;
     numeralContext.font = `${styles.fontWeight} ${maximum}px ${styles.fontFamily}`;
     const available = element === target ?
       target.parentElement.clientWidth - document.getElementById("calculator-distance").offsetWidth - 10 :
+      slots.includes(element) ? (element.parentElement.clientWidth - 120) / 2 :
       element.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight);
     const width = numeralContext.measureText(element.textContent).width;
-    const size = Math.max(16, Math.min(maximum, maximum * available * .94 / Math.max(1, width)));
+    const size = Math.max(14, Math.min(maximum, maximum * available * .94 / Math.max(1, width)));
     element.style.fontSize = `${size}px`;
     if (element === target) element.style.color = size >= 24 ? "var(--target)" : "var(--ink)";
   }
+  const history = document.getElementById("calculator-history");
+  history.scrollTop = history.scrollHeight;
 }
 new ResizeObserver(fitCalculatorNumerals).observe(calculatorPanel);
 
@@ -115,11 +142,6 @@ function renderCalculator(message, error = false) {
   const state = manualGame.state;
   const symbol = { "+": "+", "-": "\u2212", "*": "\u00d7", "/": "\u00f7" }[state.operator] || "";
   const selected = state.tiles.find(tile => tile.id === state.selected);
-  const display = document.getElementById("calculator-display");
-  display.textContent = selected ?
-    `${formatNumberValue(selected.value)} ${symbol}` : state.current === null ? "" : formatNumberValue(state.current);
-  display.title = selected ? `${selected.value} ${symbol}` : state.current === null ? "" : String(state.current);
-  display.setAttribute("aria-label", display.title || "Operaci\u00f3n actual");
   const buttons = new Map([...calculatorKeys.children].map(button => [button.dataset.tile, button]));
   const visibleButtons = state.tiles.map(tile => {
     let button = buttons.get(tile.id);
@@ -140,17 +162,6 @@ function renderCalculator(message, error = false) {
     return button;
   });
   calculatorKeys.replaceChildren(...visibleButtons);
-  const originals = document.getElementById("calculator-originals");
-  originals.replaceChildren();
-  const used = new Set(manualGame.used);
-  manualGame.numbers.forEach((number, index) => {
-    const item = document.createElement("li");
-    item.textContent = `${formatNumberValue(number)}${used.has(index) ? " \u2713" : ""}`;
-    item.title = String(number);
-    item.classList.toggle("used", used.has(index));
-    item.setAttribute("aria-label", `Cifra ${index + 1}: ${number}, ${used.has(index) ? "utilizada" : "sin usar"}`);
-    originals.append(item);
-  });
   for (const button of operatorButtons) {
     button.disabled = autoBusy || animationBusy || state.selected === null || state.operator !== null;
     button.setAttribute("aria-pressed", String(state.operator === button.dataset.operator));
@@ -165,15 +176,30 @@ function renderCalculator(message, error = false) {
     item.append(createNumberStep(step));
     steps.append(item);
   }
-  document.getElementById("calculator-history-title").textContent = `Pasos (${state.steps.length})`;
   const reached = manualGame.distance === 0n;
+  const current = document.getElementById("calculator-current");
+  current.hidden = state.tiles.length < 2 || (reached && state.selected === null);
+  const number = document.createElement("span");
+  number.className = "step-number";
+  number.textContent = String(state.steps.length + 1);
+  const slot = tile => {
+    const span = document.createElement("span");
+    span.className = tile ? `step-slot filled${tile.step === null ? "" : " derived"}` : "step-slot";
+    span.textContent = tile ? formatNumberValue(tile.value) : "?";
+    span.title = tile ? String(tile.value) : "";
+    return span;
+  };
+  const operator = document.createElement("span");
+  operator.className = `step-operator${symbol ? "" : " empty"}`;
+  operator.textContent = symbol || "\u25cb";
+  current.replaceChildren(number, slot(selected), operator, slot(null));
+  current.setAttribute("aria-label", `Paso ${state.steps.length + 1}: ${selected ? selected.value : "?"} ${symbol || "?"} ?`);
   const gap = reached ? "" : `${manualGame.offset < 0n ? "faltan" : "sobran"} ${formatNumberValue(manualGame.distance)}`;
   document.getElementById("calculator-distance").textContent = reached ? "Objetivo alcanzado" : gap;
   document.getElementById("calculator-distance").setAttribute("aria-label", reached ?
     "Objetivo alcanzado" : `${manualGame.offset < 0n ? "Faltan" : "Sobran"} ${manualGame.distance} respecto al bot\u00f3n m\u00e1s cercano`);
   document.getElementById("calculator-distance").title = reached ? "Objetivo alcanzado" : `${gap.split(" ")[0]} ${manualGame.distance}`;
-  calculatorStatus.textContent = message || (reached ? "\u00a1Objetivo alcanzado!" :
-    state.operator ? "Elige otro n\u00famero." : state.selected ? "Elige una operaci\u00f3n." : "Elige un n\u00famero.");
+  calculatorStatus.textContent = message || (reached ? "\u00a1Objetivo alcanzado!" : "");
   calculatorStatus.classList.toggle("error", error);
   calculatorStatus.classList.toggle("success", reached && !error);
   targetCelebration.update(reached);
