@@ -19,8 +19,8 @@ const PuzzleUrl = (() => {
       letters = "";
       invalid = true;
     }
-    if ([...letters].length > 12) {
-      letters = [...letters].slice(0, 12).join("");
+    if ([...letters].length > 10) {
+      letters = [...letters].slice(0, 10).join("");
       invalid = true;
     }
     const manualValue = params.get("yo");

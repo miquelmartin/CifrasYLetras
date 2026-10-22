@@ -10,7 +10,7 @@
   const letterSlots = document.getElementById("letter-slots");
   let numberEntry = new NumberEntry();
   let letters = [];
-  const MAX_LETTERS = 12;
+  const MAX_LETTERS = 10;
   const changed = () => document.dispatchEvent(new CustomEvent("puzzlechange"));
   const shortValue = value => value.length > 6 ? `${value.slice(0, 2)}\u2026${value.slice(-2)}` : value;
 
@@ -83,7 +83,7 @@
     for (const button of document.querySelectorAll("[data-letter-key]")) {
       if (button.dataset.letterKey !== "Backspace") button.disabled = full;
     }
-    while (letterSlots.children.length < 6) {
+    while (letterSlots.children.length < MAX_LETTERS) {
       const empty = document.createElement("span");
       empty.className = "entry-slot empty";
       empty.setAttribute("aria-hidden", "true");
@@ -91,6 +91,8 @@
     }
     const solveKey = document.getElementById("letters-solve");
     const random = letters.length === 0;
+    // Buscar needs exactly ten letters, as in the TV show.
+    solveKey.disabled = !random && letters.length !== MAX_LETTERS;
     solveKey.classList.toggle("random-key", random);
     solveKey.textContent = random ? "\ud83c\udfb2 Al azar" : "Buscar";
     solveKey.setAttribute("aria-label", random ? "Letras al azar" : "Buscar palabras");
@@ -162,7 +164,6 @@
     document.getElementById("letters-status").classList.remove("error");
     clearLetterResults();
     renderLetters();
-    letterForm.requestSubmit();
   });
   document.getElementById("number-target-slot").addEventListener("click", () => {
     if (numberEntry.numbers.length < 6) return;
@@ -193,7 +194,7 @@
         letterKey(event.key);
       } else if (event.key === "Enter") {
         event.preventDefault();
-        letterForm.requestSubmit();
+        if (letters.length === MAX_LETTERS) letterForm.requestSubmit();
       } else if (/^[\s,]$/.test(event.key)) event.preventDefault();
     }
   });
