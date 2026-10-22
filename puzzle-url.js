@@ -26,7 +26,8 @@ const PuzzleUrl = (() => {
     const manualValue = params.get("yo");
     if (manualValue !== null && !["0", "1"].includes(manualValue)) invalid = true;
     let manual = manualValue === "1";
-    if (manual && (mode !== "cifras" || numbers.length < 6 || !target)) {
+    const complete = mode === "letras" ? [...letters].length === 10 : mode === "cifras" && numbers.length === 6 && target !== "";
+    if (manual && !complete) {
       manual = false;
       invalid = true;
     }

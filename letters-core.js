@@ -100,22 +100,30 @@ const LettersSolver = (() => {
     return word.slice(0, word.length - rule.strip.length) + rule.add;
   }
 
-  function search(dictionary, supplied, progress = () => {}) {
+  function search(dictionary, supplied, progress = () => {}, { all = false } = {}) {
     const letters = parseLetters(supplied);
     const available = new Uint32Array(alphabet.length);
     for (const letter of letters) available[alphabet.indexOf(letter)]++;
     let longest = 0;
     const matches = new Map();
+    // With all = true, also keep every formable word (by normalized spelling) to validate the player's words.
+    const valid = new Map();
     let examined = 0;
 
     function consider(word, lemma) {
-      if (word.length < longest || word.length > letters.length || !wordPattern.test(word)) return;
+      if ((!all && word.length < longest) || word.length > letters.length || !wordPattern.test(word)) return;
       const normalized = normalize(word);
       const used = new Uint32Array(alphabet.length);
       for (const letter of normalized) {
         const index = alphabet.indexOf(letter);
         if (++used[index] > available[index]) return;
       }
+      if (all) {
+        // Prefer the unaccented spelling (mano over man\u00f3) when both forms exist.
+        const known = valid.get(normalized);
+        if (!known || (known[0] !== normalized && word === normalized)) valid.set(normalized, [word, lemma]);
+      }
+      if (word.length < longest) return;
       if (word.length > longest) { longest = word.length; matches.clear(); }
       if (!matches.has(word)) matches.set(word, lemma);
     }
@@ -158,7 +166,8 @@ const LettersSolver = (() => {
       length: longest,
       supplied: letters.length,
       matches: [...matches].map(([word, lemma]) => ({ word, lemma }))
-        .sort((a, b) => a.word.localeCompare(b.word, "es"))
+        .sort((a, b) => a.word.localeCompare(b.word, "es")),
+      ...(all ? { valid: [...valid].map(([key, [word, lemma]]) => [key, word, lemma]) } : {})
     };
   }
 

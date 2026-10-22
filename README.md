@@ -24,26 +24,38 @@ los huecos, conservando su valor completo en el titulo, nombre accesible y URL.
 
 **Letras** muestra todo el abecedario en orden, con N y &Ntilde; separadas,
 en cinco columnas. Cada pulsacion anade una letra; borrar quita la ultima y
-Buscar ocupa dos columnas. Se usan exactamente diez letras, como en el programa, en diez
-fichas fijas en una sola fila; al llegar a diez se desactivan las letras y Buscar
-solo funciona (sin atenuar) con las diez. Los resultados muestran las palabras y
-debajo cuantas letras tienen. Sin letras, Buscar se convierte en
+Enter ocupa dos columnas. Se usan exactamente diez letras, como en el programa, en diez
+fichas fijas en una sola fila; la decima letra abre directamente el solver de
+letras (Enter, atenuado hasta tener diez, hace lo mismo). Sin letras, Enter se convierte en
 **Al azar** (ambar): sortea diez letras como en el programa, con 3 a 6 vocales
 (numero uniforme) sacadas sin reposicion de la bolsa del Scrabble espanol sin
 CH, LL ni RR (vocales A12 E12 I6 O9 U5; consonantes B2 C4 D5 F1 G2 H2 J1 L4 M2
 N5 &Ntilde;1 P2 Q1 R5 S6 T4 V1 X1 Y1 Z1, como mucho dos de cada una), actualiza la
-URL y vuelve a mostrar Buscar, sin buscar, para pensar antes de ver las
-soluciones. Con una letra vuelve Buscar. Tambien funcionan digitos, letras, Enter y retroceso del
+URL y abre el solver de letras. Con una letra vuelve Enter. Tambien funcionan digitos, letras, Enter y retroceso del
 teclado fisico como comodidad, pero no son necesarios. Espacios y comas no
 repiten letras; se conservan las repeticiones deliberadas, tildes y &Ntilde;.
 
-La pagina nunca se desplaza. Solo la lista de Pasos y la de palabras halladas
+El **solver de letras** imita Resolver yo: arriba Volver, "Tu mejor palabra"
+(longitud grande y la palabra) y un pequeno Auto-resolver; en medio la lista de
+palabras, alineada abajo, con la palabra en curso grande en la ultima fila; abajo
+las diez fichas en 5x2 (nunca mas altas que anchas), borrar y un Enter mas ancho.
+Tocar una ficha anade su letra y la deja casi invisible y desactivada; borrar la
+devuelve; Enter envia la palabra y devuelve todas las fichas. Cada palabra se
+comprueba con el mismo diccionario: valida con &#10004; y su longitud, o tachada en
+rojo con &#10008;. Repetir una palabra la destaca sin duplicarla. Al abrir el solver
+se buscan en segundo plano las mas largas, sin revelar la longitud maxima; si
+una palabra tuya la alcanza se marca en oro con &#9733;, salen fuegos artificiales y
+"Tu mejor" indica "&iexcl;maxima!". Auto-resolver muestra "Las mas largas" (las tuyas
+marcadas "&#9733; tuya") y despues "Tus palabras". Volver, Atras del navegador o de
+Android y la pestana Letras llevan a la entrada vacia.
+
+La pagina nunca se desplaza. Solo la lista de Pasos y la de palabras del solver
 pueden desplazarse dentro de su propia caja; teclados, operaciones, objetivo y
 botones quedan siempre visibles (comprobado a 360x640, 375x667 y 390x844).
 Pulsar la pestana Cifras o Letras, aunque ya este activa, vacia ese modo y su URL.
 Cada tecla de los teclados, botones de Resolver yo y operaciones extiende de forma
 invisible su zona tactil hasta la mitad del hueco vecino: tocar entre teclas activa
-la mas cercana. En Letras, la nota del diccionario aparece tras pulsar Buscar. La paleta Pop suave combina celeste claro, naranja,
+la mas cercana. En Letras, la nota del diccionario aparece con Auto-resolver. La paleta Pop suave combina celeste claro, naranja,
 ambar y azul menos saturados, con contornos y sombras solidas de 2 px.
 
 En Resolver yo, una flecha solida (Volver) tan alta como la caja Objetivo vuelve a
@@ -112,7 +124,7 @@ el usuario, ofrece un icono de libro con nombre accesible y zona tactil de
 Consulta la [procedencia, licencia y alcance](data/README.md).
 
 Las busquedas usan procesos independientes y cancelables. El diccionario
-(unos 0,9 MB) se carga desde este sitio en la primera busqueda y se reutiliza.
+(unos 0,9 MB) se carga desde este sitio al abrir el solver y se reutiliza.
 Los errores se muestran y permiten reintentar. No se necesita servidor de
 aplicaciones, CDN externo, compilacion ni instalacion de paquetes.
 
@@ -122,9 +134,9 @@ El reto se guarda con `modo`, `n`, `obj`, `l` y `yo=1`. Recargar restaura
 pestana, seis cifras exactas, letras con tildes, objetivo y Resolver yo, pero no
 sus operaciones. Teclear sustituye la URL sin llenar el historial. Atras y
 Adelante cambian de vista. Los parametros invalidos o mas de seis cifras se
-omiten con un aviso; mas de diez letras se recortan a diez, tambien con aviso; con menos de diez se
-cargan en la entrada sin buscar.
-Una URL con el reto completo abre Resolver yo. Los enlaces antiguos con enteros negativos se conservan;
+omiten con un aviso; mas de diez letras se recortan a diez, tambien con aviso, y se
+quedan en la entrada; con menos de diez se cargan en la entrada.
+Una URL con el reto completo (seis cifras y objetivo, o diez letras) abre Resolver yo o el solver de letras. Los enlaces antiguos con enteros negativos se conservan;
 el nuevo teclado no crea signos negativos.
 
 No hay titulo visible: el icono suministrado por el usuario (78 px, sin borde

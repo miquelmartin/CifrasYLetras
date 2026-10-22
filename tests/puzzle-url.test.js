@@ -47,6 +47,17 @@ test("removing inputs removes obsolete query keys, while accents and enye remain
   assert.equal(result, "?modo=cifras");
 });
 
+test("yo=1 opens the Letras solver only with exactly ten letters", () => {
+  const puzzle = decode("?modo=letras&l=camionesta&yo=1");
+  assert.equal(puzzle.manual, true);
+  assert.equal(puzzle.invalid, false);
+  assert.equal(encode(puzzle), "?modo=letras&l=camionesta&yo=1");
+  for (const search of ["?modo=letras&l=camion&yo=1", "?modo=letras&yo=1"]) {
+    assert.equal(decode(search).manual, false, search);
+    assert.equal(decode(search).invalid, true, search);
+  }
+});
+
 test("URL letters are capped at ten", () => {
   const puzzle = decode("?modo=letras&l=" + "abcdefghijklmn");
   assert.equal(puzzle.letters, "abcdefghij");

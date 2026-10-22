@@ -39,33 +39,24 @@
     #letters-tab { padding-left: 38px; }
     .tabs button[aria-selected="true"] { background: var(--amber); color: var(--ink); }
     .tabs img { position: absolute; left: 50%; top: 50%; z-index: 1; width: 78px; height: 78px; transform: translate(-50%, -50%); filter: drop-shadow(0 1px 2px rgba(43, 58, 90, .35)); pointer-events: none; user-select: none; }
-    #letters-solver:not(.letters-busy):not(.letter-results) #letters-source { display: none; }
     [role="tabpanel"] { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
     form.card { flex: 0 0 auto; }
-    #letters-result { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
     .result-scroll { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
-    #summary, #letters-summary { font-size: .875rem; overflow-wrap: anywhere; }
-    #letters-summary { margin: 8px 0 0; font-size: 1rem; font-weight: 800; color: var(--blue); }
-    .word-list { margin: 0; padding: 3px; list-style: none; display: grid; grid-template-columns: 1fr; gap: 6px; align-content: start; }
-    .word-list li { display: flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border: 2px solid var(--line); border-radius: 9px; background: #fff; white-space: nowrap; }
-    .word-list strong { flex: 1; min-width: 0; font-size: 1rem; color: var(--ink); }
-    .word-list a { display: grid; place-items: center; flex: 0 0 44px; min-height: 44px; border-radius: 6px; }
-    .word-list a:hover { background: #eef5fb; }
-    .word-list svg { width: 18px; height: 18px; }
+    #summary { font-size: .875rem; overflow-wrap: anywhere; }
     .notice { font-size: .875rem; color: var(--muted); }
     .caveat { font-size: .875rem; margin-top: 6px; }
     .manual > .tabs, .manual > [role="tabpanel"] { display: none !important; }
     #calculator-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
     .calculator-toolbar { display: flex; align-items: stretch; gap: 8px; height: 72px; flex: 0 0 auto; }
-    #calculator-back { flex: 0 0 64px; height: 72px; padding: 0; display: grid; place-items: center; }
+    #calculator-back, #lp-back { flex: 0 0 64px; height: 72px; padding: 0; display: grid; place-items: center; }
     .calculator-goal { flex: 1; min-width: 0; display: flex; }
     .calculator-target { flex: 1; min-width: 0; height: 72px; overflow: hidden; background: #fff; color: var(--target); border: 2px solid var(--line); padding: 1px 8px; border-radius: 8px; font-weight: 700; }
     .target-line { display: flex; align-items: center; gap: 10px; min-width: 0; }
-    #calculator-title { display: block; font-size: .7rem; line-height: 1.1; color: var(--blue); }
+    #calculator-title, #lp-best-title { display: block; font-size: .7rem; line-height: 1.1; color: var(--blue); }
     #calculator-target { display: block; flex: 0 1 auto; min-width: 0; font-size: 2.875rem; line-height: 1.15; overflow: hidden; white-space: nowrap; }
     #calculator-distance { flex: 0 0 auto; max-width: 45%; margin: 0; color: #6b3f12; font-size: 1rem; font-weight: 800; line-height: 1.1; overflow: hidden; overflow-wrap: anywhere; max-height: 2.2em; }
-    #calculator-auto { flex: 0 0 72px; height: 72px; padding: 2px 4px; font-size: .78rem; font-weight: 800; line-height: 1.15; background: #fff; color: var(--blue); overflow-wrap: anywhere; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    #calculator-auto::before { content: "\26A1"; font-size: 1.25rem; line-height: 1.1; }
+    #calculator-auto, #lp-auto { flex: 0 0 72px; height: 72px; padding: 2px 4px; font-size: .78rem; font-weight: 800; line-height: 1.15; background: #fff; color: var(--blue); overflow-wrap: anywhere; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    #calculator-auto::before, #lp-auto::before { content: "\26A1"; font-size: 1.25rem; line-height: 1.1; }
     #calculator-history { flex: 1 1 0; min-height: 0; padding: 6px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 4px; }
     #calculator-steps { margin: auto 0 0; padding: 0; list-style: none; counter-reset: manual-step; display: flex; flex-direction: column; gap: 4px; }
     #calculator-steps li { --s: var(--step-scale, 1); counter-increment: manual-step; flex: 0 0 calc(30px * var(--s)); height: calc(30px * var(--s)); display: flex; gap: calc(8px * var(--s)); align-items: center; padding: 0 calc(8px * var(--s)); border: 1.5px solid #c8d3e3; border-radius: calc(9px * var(--s)); background: var(--soft); font-size: calc(1.05rem * var(--s)); line-height: 1.2; white-space: nowrap; overflow: hidden; }
@@ -92,6 +83,46 @@
     #calculator-status:empty { display: none; }
     .error { color: #a52826; }
     .success { color: var(--ink); font-weight: 700; }
+    #letters-play { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+    #lp-best { display: block; flex: 0 0 auto; font-size: 2.875rem; line-height: 1.15; overflow: hidden; white-space: nowrap; }
+    #lp-best-note { flex: 0 1 auto; min-width: 0; margin: 0; color: #6b3f12; font-size: 1rem; font-weight: 800; line-height: 1.1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    #lp-auto:disabled { opacity: .45; }
+    #lp-box { flex: 1 1 0; min-height: 0; padding: 6px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 4px; }
+    #lp-status { flex: 0 0 auto; font-size: .8rem; line-height: 1.25; overflow-wrap: anywhere; }
+    #lp-status:empty { display: none; }
+    #lp-words { margin: auto 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    #lp-words li { --s: var(--step-scale, 1); flex: 0 0 calc(30px * var(--s)); height: calc(30px * var(--s)); display: flex; align-items: center; gap: calc(8px * var(--s)); padding: 0 calc(10px * var(--s)); border: 1.5px solid #c8d3e3; border-radius: calc(9px * var(--s)); background: var(--soft); font-size: calc(1.05rem * var(--s)); font-weight: 800; letter-spacing: .06em; line-height: 1.2; white-space: nowrap; overflow: hidden; color: var(--ink); }
+    #lp-words .lp-word { min-width: 0; overflow: hidden; }
+    #lp-words .lp-len { flex: 0 0 auto; font-size: .55em; font-weight: 700; letter-spacing: 0; color: #5b6b86; }
+    #lp-words .lp-mark { flex: 0 0 auto; margin-left: auto; letter-spacing: 0; }
+    #lp-words li.ok .lp-mark { color: #2e9d5b; }
+    #lp-words li.bad { color: #8794aa; }
+    #lp-words li.bad .lp-word { text-decoration: line-through; text-decoration-thickness: 3px; text-decoration-color: #d9534f; }
+    #lp-words li.bad .lp-mark { color: #d9534f; }
+    #lp-words li.pending .lp-mark { color: #8794aa; }
+    #lp-words li.best { background: #fff3cf; border: 2.5px solid var(--amber); }
+    #lp-words li.best .lp-mark { color: var(--target); }
+    #lp-words li.lp-section { flex: 0 0 auto; height: auto; border: 0; background: none; padding: 6px 2px 0; font-size: .78rem; letter-spacing: 0; text-transform: uppercase; color: var(--blue); }
+    #lp-words li.lp-caveat { display: block; flex: 0 0 auto; height: auto; border: 0; background: none; padding: 0 2px; font-size: .75rem; font-weight: 400; letter-spacing: 0; white-space: normal; color: var(--muted); }
+    #lp-words li a.lp-dle { flex: 0 0 auto; display: grid; place-items: center; width: calc(30px * var(--s)); height: 100%; color: var(--blue); }
+    #lp-words li a.lp-dle svg { width: .8em; height: .8em; }
+    #lp-words li.flash { animation: lp-flash .45s 2; }
+    @keyframes lp-flash { 50% { background: #dbe7fb; border-color: var(--blue); } }
+    #lp-current { --s: var(--step-scale, 1); flex: 0 0 calc(56px * var(--s)); height: calc(56px * var(--s)); display: flex; align-items: center; padding: 0 calc(12px * var(--s)); border: 2.5px solid var(--blue); border-radius: 11px; background: #fff; box-shadow: 0 0 0 3px #8fb0e655; font-size: calc(1.9rem * var(--s)); font-weight: 800; letter-spacing: .08em; line-height: 1; color: var(--ink); white-space: nowrap; overflow: hidden; min-width: 0; }
+    .lp-caret { flex: 0 0 3px; width: 3px; height: 1em; margin-left: 2px; background: var(--blue); animation: lp-blink 1s steps(1) infinite; }
+    @keyframes lp-blink { 50% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .lp-caret, #lp-words li.flash { animation: none; } }
+    .lp-controls { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; padding: 0 2px 2px 0; }
+    #lp-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: var(--lp-tile-height, 56px); gap: 8px; }
+    #lp-tiles button { min-height: 0; min-width: 0; padding: 0; border-radius: 12px; font-size: var(--lp-tile-font, 2rem); font-weight: 800; line-height: 1; background: var(--orange); color: var(--ink); }
+    #lp-tiles button:disabled { background: var(--orange); color: var(--ink); }
+    #lp-tiles button.used { opacity: .12; box-shadow: none; }
+    #lp-actions { display: grid; grid-template-columns: 1fr 2fr; grid-auto-rows: var(--lp-action-height, 56px); gap: 8px; }
+    #lp-actions button { min-height: 0; min-width: 0; padding: 0; border-radius: 12px; font-size: var(--lp-action-font, 2rem); line-height: 1; }
+    #lp-submit { background: var(--operator); color: #fff; }
+    #lp-actions button:disabled { background: #cbd9f0; color: #4d607c; border-style: dashed; }
+    #lp-tiles button, #lp-actions button { position: relative; touch-action: manipulation; user-select: none; }
+    #lp-tiles button::before, #lp-actions button::before { content: ""; position: absolute; inset: -6px; background: transparent; }
     .celebration { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
     .step-derived { color: var(--blue); font-weight: 800; }
     .operation { color: var(--ink); }
@@ -151,10 +182,8 @@
     #calculator-keys button::before { inset: -6px; }
     .calculator-operators button::before { inset: -6px; }
     .keypad-form > .buttons { margin: 0; }
-    #letters-solver > .buttons:not(:has(button:not([hidden]))) { display: none; }
-    #solver.number-ready, #letters-solver.letter-results, #letters-solver.letters-busy { flex: 0 0 auto; }
-    #solver.number-ready #numbers-fieldset, #letters-solver.letters-busy #letters-fieldset { flex: 0 0 auto; }
-    #letters-solver.letter-results #letters-fieldset, #letters-solver.letters-busy #letter-pad { display: none; }
+    #solver.number-ready { flex: 0 0 auto; }
+    #solver.number-ready #numbers-fieldset { flex: 0 0 auto; }
     #status:empty, #letters-status:empty { display: none; }
     @media (min-width: 700px) { body { padding: 20px; } main { height: calc(100dvh - 40px); } .card { padding: 16px; } }
     [hidden] { display: none !important; }
@@ -189,21 +218,32 @@
         <fieldset id="letters-fieldset">
           <div id="letter-slots" class="entry-slots" role="group" aria-label="Tus letras"></div>
           <div id="letter-pad" class="entry-pad letter-pad" role="group" aria-label="Abecedario en orden alfab&eacute;tico">
-            <button id="letters-solve" type="submit" class="enter-key">Buscar</button>
+            <button id="letters-solve" type="submit" class="enter-key">Enter</button>
           </div>
         </fieldset>
-        <div class="buttons">
-          <button id="letters-edit" type="button" hidden>Cambiar letras</button>
-          <button id="letters-cancel" type="button" class="secondary" hidden>Cancelar</button>
-        </div>
-        <p id="letters-source" class="caveat">Candidatas del diccionario abierto <a href="https://github.com/sbosio/rla-es">RLA-ES</a> (Santiago Bosio y colaboradores), <strong>no verificadas por la RAE</strong> &middot; <a href="data/MPL-1.1.txt">MPL 1.1</a> &middot; <a href="data/README.md">Fuente y alcance</a></p>
         <p id="letters-status" role="status" aria-live="polite"></p>
       </form>
-      <section id="letters-result" class="card" aria-labelledby="letters-result-title" hidden>
-        <h2 id="letters-result-title">Las candidatas m&aacute;s largas</h2>
-        <ul id="letters-words" class="word-list result-scroll" lang="es" tabindex="0" aria-label="Palabras candidatas"></ul>
-        <p id="letters-summary"></p>
+    </section>
+    <section id="letters-play" hidden aria-label="Resolver letras">
+      <div class="calculator-toolbar">
+        <button id="lp-back" type="button" class="secondary" aria-label="Volver" title="Volver"><svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true" focusable="false"><path fill="currentColor" d="M2 12 12.5 2.5V8H22v8h-9.5v5.5z"/></svg></button>
+        <div class="calculator-goal" role="group" aria-label="Tu mejor palabra">
+          <div class="calculator-target"><span id="lp-best-title">Tu mejor palabra</span><span class="target-line"><strong id="lp-best">&ndash;</strong><span id="lp-best-note" role="status" aria-live="polite"></span></span></div>
+        </div>
+        <button id="lp-auto" type="button">Auto-resolver</button>
+      </div>
+      <section class="card" id="lp-box" aria-label="Tus palabras" lang="es">
+        <p id="lp-status" role="status" aria-live="polite"></p>
+        <ol id="lp-words" aria-label="Palabras enviadas"></ol>
+        <div id="lp-current" aria-label="Palabra en curso"></div>
       </section>
+      <div class="lp-controls">
+        <div id="lp-tiles" role="group" aria-label="Tus diez letras"></div>
+        <div id="lp-actions" role="group" aria-label="Acciones">
+          <button id="lp-delete" type="button" class="secondary" aria-label="Quitar la &uacute;ltima letra" title="Quitar la &uacute;ltima letra">&#9003;</button>
+          <button id="lp-submit" type="button" aria-label="Comprobar palabra" title="Comprobar palabra">&#8629;</button>
+        </div>
+      </div>
     </section>
     <section id="calculator-panel" hidden aria-labelledby="calculator-title">
       <div class="calculator-toolbar">
@@ -231,14 +271,15 @@
       </div>
     </section>
   </main>
-  <script src="letters-core.js?v=5"></script>
-  <script src="letters-ui.js?v=26"></script>
+  <script src="letters-core.js?v=6"></script>
+  <script src="letters-ui.js?v=27"></script>
   <script src="numbers-game.js?v=17"></script>
   <script src="numbers-search.js?v=25"></script>
   <script src="keypad-model.js?v=28"></script>
-  <script src="entry-keypads.js?v=31"></script>
+  <script src="entry-keypads.js?v=32"></script>
   <script src="celebration.js?v=22"></script>
   <script src="calculator-ui.js?v=29"></script>
+  <script src="letters-play.js?v=1"></script>
   <script>
     "use strict";
 
@@ -247,8 +288,8 @@
     });
     document.getElementById("solver").addEventListener("submit", event => event.preventDefault());
   </script>
-  <script src="puzzle-url.js?v=26"></script>
-  <script src="puzzle-state.js?v=27"></script>
+  <script src="puzzle-url.js?v=27"></script>
+  <script src="puzzle-state.js?v=28"></script>
   <script src="analytics.js?v=2"></script>
   <script data-goatcounter="https://miquelmartin.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
   </body>

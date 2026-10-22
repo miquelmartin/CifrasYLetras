@@ -82,6 +82,21 @@ test("real RLA-ES forms include conjugations, irregular verbs, plurals and diaer
   assert.deepEqual(solver.search(dictionary, "qzx").matches, []);
 });
 
+test("all mode validates every formable word with the same rules and normalization", () => {
+  const result = solver.search(dictionary, "camionesta", undefined, { all: true });
+  const valid = new Map(result.valid.map(([key, word, lemma]) => [key, { word, lemma }]));
+  assert.equal(valid.get("camiones").word, "camiones");
+  assert.equal(valid.get("camion").word, "cami\u00f3n");
+  assert.ok(valid.has("mano"));
+  assert.ok(!valid.has("narimo") && !valid.has("camionesx"));
+  assert.ok(result.valid.every(([key]) => key === solver.normalize(key) && key.length <= 10));
+  const longest = solver.search(dictionary, "camionesta");
+  assert.equal(result.length, longest.length);
+  assert.deepEqual(result.matches, longest.matches);
+  assert.ok(result.matches.every(match => valid.has(solver.normalize(match.word))));
+  assert.equal(longest.valid, undefined);
+});
+
 test("worker reports download errors and supports a subsequent retry", async () => {
   const messages = [];
   let fail = true;
@@ -111,8 +126,10 @@ test("worker reports download errors and supports a subsequent retry", async () 
   assert.equal(messages.at(-1).type, "done");
   assert.equal(messages.at(-1).result.matches[0].word, "niños");
   const loadedRequests = requests;
-  await context.self.onmessage({ data: { letters: "pinguino" } });
+  await context.self.onmessage({ data: { letters: "pinguino", id: 7, all: true } });
   assert.equal(messages.at(-1).result.matches[0].word, "pingüino");
+  assert.equal(messages.at(-1).id, 7);
+  assert.ok(messages.at(-1).result.valid.some(([key]) => key === "pinguino"));
   assert.equal(requests, loadedRequests, "Later searches reuse the loaded dictionary");
 });
 

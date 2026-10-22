@@ -19,7 +19,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       if (!frame.isConnected) document.body.append(frame);
     });
     const byId = id => doc.getElementById(id);
-    const scrollers = new Set(["calculator-history", "letters-words"]);
+    const scrollers = new Set(["calculator-history", "lp-box"]);
     // Invisible tap extensions (button::before) are excluded from clipping measurements.
     const withoutHitAreas = measure => {
       const style = doc.createElement("style");
@@ -36,7 +36,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       for (const element of doc.querySelectorAll("body *")) {
         if (!element.getClientRects().length || element.closest(".celebration")) continue;
         const style = win.getComputedStyle(element);
-        const inner = element.parentElement.closest("#calculator-history, #letters-words");
+        const inner = element.parentElement.closest("#calculator-history, #lp-box");
         if (/auto|scroll/.test(style.overflowX + style.overflowY)) assert(scrollers.has(element.id), `${name}: ${element.id || element.className} se desplaza por dentro`);
         else if (element.matches("form, section, fieldset, .card, .supplied-numbers, .calculator-target, .entry-pad, .entry-slots, .calculator-operators, #calculator-keys")) {
           assert(element.scrollHeight <= element.clientHeight + 1 && element.scrollWidth <= element.clientWidth + 1, `${name}: ${element.id || element.className} recortado`);
@@ -129,7 +129,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       const auto = byId("calculator-auto");
       visible(auto);
       const autoRect = auto.getBoundingClientRect();
-      const goalRect = doc.querySelector(".calculator-target").getBoundingClientRect();
+      const goalRect = doc.querySelector("#calculator-panel .calculator-target").getBoundingClientRect();
       assert(Math.abs(autoRect.height - goalRect.height) < 1 && Math.abs(autoRect.top - goalRect.top) < 1 && autoRect.left >= goalRect.right, "Auto-resolver debe ir a la derecha del objetivo con su misma altura");
       assert(autoRect.width <= 80 && parseFloat(win.getComputedStyle(auto).fontSize) < parseFloat(win.getComputedStyle(doc.querySelector("[data-operator]")).fontSize) / 1.5, "Auto-resolver debe ser pequeno y secundario");
       const target = byId("calculator-target").getBoundingClientRect();
@@ -247,7 +247,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       assert(byId("calculator-distance").textContent === "faltan 902", `Distancia debe decir faltan: ${byId("calculator-distance").textContent}`);
       assert(parseFloat(win.getComputedStyle(byId("calculator-distance")).fontSize) < parseFloat(win.getComputedStyle(byId("calculator-target")).fontSize) / 2, "Distancia debe ser mas pequena que el objetivo");
       const back = byId("calculator-back");
-      const backRect = back.getBoundingClientRect(), goalRect = doc.querySelector(".calculator-target").getBoundingClientRect();
+      const backRect = back.getBoundingClientRect(), goalRect = doc.querySelector("#calculator-panel .calculator-target").getBoundingClientRect();
       assert(back.textContent.trim() === "" && back.querySelector("svg path") && back.getAttribute("aria-label") === "Volver", "Volver debe ser una flecha solida");
       assert(Math.abs(backRect.height - goalRect.height) < 1 && Math.abs(backRect.top - goalRect.top) < 1, "Volver debe medir lo mismo que la caja Objetivo");
       const keyRadius = win.getComputedStyle(byId("calculator-keys").firstElementChild).borderTopLeftRadius;
@@ -358,18 +358,18 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
 
       await load("?modo=letras");
       padFits("letter-pad");
-      assert(!byId("letters-source").getClientRects().length, "La nota del diccionario debe aparecer solo tras Buscar");
+      assert(!byId("letters-source"), "La nota del diccionario debe aparecer solo en Auto-resolver");
       snapshot("Abecedario completo");
       gapHits("#letter-pad button", "Teclado de letras");
       assert([...doc.querySelectorAll("[data-letter-key]")].map(button => button.dataset.letterKey).join() === [..."ABCDEFGHIJKLMN\u00d1OPQRSTUVWXYZ", "Backspace"].join(), "Abecedario desordenado o sin enye");
       const solveKey = byId("letters-solve");
       const lettersRandom = () => solveKey.classList.contains("random-key") && /Al azar/.test(solveKey.textContent) && win.getComputedStyle(solveKey).backgroundColor === "rgb(246, 201, 107)";
       { const dice = solveKey.querySelector(".dice"), range = doc.createRange(), kr = solveKey.getBoundingClientRect(); range.selectNodeContents(solveKey); const dr = range.getBoundingClientRect(); assert(parseFloat(win.getComputedStyle(dice).fontSize) >= 1.9 * parseFloat(win.getComputedStyle(solveKey).fontSize) && dr.top >= kr.top - 1 && dr.bottom <= kr.bottom + 1 && dr.left >= kr.left - 1 && dr.right <= kr.right + 1, "Letras Al azar: el dado debe ser grande y caber en la tecla"); }
-      assert(lettersRandom(), "Letras vacias: Buscar debe ser Al azar en ambar");
+      assert(lettersRandom(), "Letras vacias: Enter debe ser Al azar en ambar");
       contrast(solveKey);
       visible(solveKey);
       letterKey("A");
-      assert(!solveKey.classList.contains("random-key") && solveKey.textContent === "Buscar" && solveKey.disabled, "Con una letra vuelve Buscar, atenuado hasta tener diez");
+      assert(!solveKey.classList.contains("random-key") && solveKey.textContent === "Enter" && solveKey.disabled, "Con una letra vuelve Enter, atenuado hasta tener diez");
       letterKey("Backspace");
       assert(lettersRandom(), "Al vaciar las letras vuelve Al azar");
       letterKey("A"); letterKey("A");
@@ -390,41 +390,94 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       assert(byId("letter-slots").children[0].classList.contains("current") && win.getComputedStyle(byId("letter-slots").children[0]).borderStyle === "dashed", "El hueco actual debe ser discontinuo");
       for (const letter of "CAMIONES") letterKey(letter);
       assert(byId("letters").value === "CAMIONES", "Letras no se anaden inmediatamente");
-      assert(solveKey.disabled && solveKey.textContent === "Buscar" && win.getComputedStyle(solveKey).backgroundColor !== "rgb(244, 167, 124)", "Buscar debe estar atenuado con menos de diez letras");
+      assert(solveKey.disabled && solveKey.textContent === "Enter" && win.getComputedStyle(solveKey).backgroundColor !== "rgb(244, 167, 124)", "Enter debe estar atenuado con menos de diez letras");
       key("Enter");
       await new Promise(resolve => setTimeout(resolve, 100));
-      assert(byId("letters-result").hidden && !byId("letters-solver").classList.contains("letters-busy"), "Enter fisico no debe buscar con menos de diez letras");
+      assert(byId("letters-play").hidden, "Enter fisico no debe abrir el solver con menos de diez letras");
       letterSlotsFit("Ocho letras");
       padFits("letter-pad");
       snapshot("Ocho letras y todas las teclas");
-      letterKey("T"); letterKey("A");
-      assert(!solveKey.disabled && byId("letters").value === "CAMIONESTA" && win.getComputedStyle(solveKey).backgroundColor === "rgb(244, 167, 124)", "Buscar debe activarse con diez letras");
-      contrast(solveKey);
-      for (const letter of "WXYZ") letterKey(letter);
-      key("z");
-      assert(byId("letters").value === "CAMIONESTA" && doc.querySelector('[data-letter-key="A"]').disabled && !doc.querySelector('[data-letter-key="Backspace"]').disabled, "Maximo de diez letras");
-      assert(byId("letter-slots").querySelectorAll(".letter-slot").length === 10 && !byId("letter-slots").querySelector(".current"), "Diez letras llenan los diez huecos");
-      letterSlotsFit("Diez letras");
-      padFits("letter-pad");
-      gapHits("#letter-pad button", "Teclado de letras lleno");
-      snapshot("Diez letras en una fila");
-      byId("letters-solve").click();
-      await wait(() => !byId("letters-solve").disabled);
-      assert(byId("letters-source").getClientRects().length && byId("letters-source").textContent.includes("no verificadas por la RAE"), "Falta la nota del diccionario tras Buscar");
-      assert(!byId("letters-result").hidden && byId("letters-words").children.length >= 1, "Faltan candidatas reales");
-      const wordLength = [...byId("letters-words").querySelector("strong").textContent.normalize("NFC")].length;
-      assert(byId("letters-summary").textContent === `${wordLength} letras` && !/utilizadas|longitud/.test(byId("letters-result").textContent), "Bajo las palabras debe verse solo su longitud");
-      const wordItems = [...byId("letters-words").querySelectorAll("li")];
-      assert(wordItems.every((li) => Math.abs(li.getBoundingClientRect().left - wordItems[0].getBoundingClientRect().left) < 1 && li.querySelector("strong").scrollWidth <= li.querySelector("strong").clientWidth + 1 && li.getBoundingClientRect().height < 60), "Candidatas en una columna, cada palabra en una sola linea");
-      assert(byId("letters-summary").getBoundingClientRect().top >= byId("letters-words").getBoundingClientRect().bottom - .5, "La longitud debe ir bajo las palabras");
-      for (const link of byId("letters-words").querySelectorAll("a")) {
-        assert(link.querySelector("svg") && link.getAttribute("aria-label").includes("DLE") && link.getBoundingClientRect().width >= 44, "Icono DLE inaccesible");
-      }
-      snapshot("Candidatas compactas");
-      focusAudit("Candidatas de letras");
-      byId("letters-edit").click();
-      letterKey("Backspace");
-      assert(!doc.querySelector('[data-letter-key="A"]').disabled && solveKey.disabled && byId("letter-slots").children.length === 10, "Borrar debe reactivar las letras y atenuar Buscar");
+      assert(!doc.querySelector("#letters-result, #letters-edit, #letters-cancel") && !/Buscar/.test(byId("letters-panel").textContent), "La entrada ya no tiene paso Buscar");
+      letterKey("T");
+      assert(byId("letters-play").hidden, "Nueve letras no abren el solver");
+      letterKey("A");
+      // Tenth letter: straight to the solver page.
+      const play = byId("letters-play"), tiles = () => [...byId("lp-tiles").children];
+      assert(!play.hidden && new URL(win.location.href).searchParams.get("yo") === "1" && new URL(win.location.href).searchParams.get("l") === "CAMIONESTA", "La decima letra debe abrir el solver y la URL");
+      assert(tiles().map(tile => tile.textContent).join("") === "CAMIONESTA", "Fichas del solver incorrectas");
+      assert(byId("lp-best-note").textContent === "sin palabras a\u00fan" && !/10|m\u00e1x/.test(byId("lp-best").textContent + byId("lp-best-note").textContent), "No se debe revelar el maximo antes de tiempo");
+      const lpFits = name => {
+        withoutHitAreas(() => {
+          for (const button of byId("letters-play").querySelectorAll("#lp-tiles button, #lp-actions button, #lp-back, #lp-auto")) {
+            visible(button);
+            const rect = button.getBoundingClientRect();
+            if (button.closest("#lp-tiles, #lp-actions")) assert(rect.width >= rect.height - .5, `${name}: ${button.textContent} mas alta que ancha`);
+          }
+        });
+        const rects = tiles().map(tile => tile.getBoundingClientRect());
+        assert(rects.slice(0, 5).every(rect => Math.abs(rect.top - rects[0].top) < 1) && rects.slice(5).every(rect => Math.abs(rect.top - rects[5].top) < 1) && rects[5].top > rects[0].bottom, `${name}: fichas en 5x2`);
+        const goal = play.querySelector(".calculator-target").getBoundingClientRect(), auto = byId("lp-auto").getBoundingClientRect(), back = byId("lp-back").getBoundingClientRect();
+        assert(Math.abs(auto.height - goal.height) < 1 && Math.abs(back.height - goal.height) < 1 && auto.left >= goal.right && back.right <= goal.left, `${name}: fila superior Volver, Tu mejor y Auto-resolver`);
+        const box = byId("lp-box").getBoundingClientRect(), current = byId("lp-current").getBoundingClientRect();
+        const lpBox = byId("lp-box"), atBottom = lpBox.scrollTop + lpBox.clientHeight >= lpBox.scrollHeight - 1;
+        assert(box.top >= goal.bottom && box.bottom <= rects[0].top && (!atBottom || (current.bottom <= box.bottom && current.bottom >= box.bottom - 12)), `${name}: la palabra en curso debe ser la fila inferior de la caja`);
+        const actions = [...byId("lp-actions").children].map(button => button.getBoundingClientRect());
+        assert(actions[1].width > actions[0].width * 1.5, `${name}: Enter mas ancho que borrar`);
+      };
+      lpFits("Solver de letras");
+      snapshot("Solver de letras vacio");
+      gapHits("#lp-tiles button, #lp-actions button", "Fichas de letras");
+      focusAudit("Solver de letras");
+      tiles()[0].click(); tiles()[1].click();
+      assert(tiles()[0].disabled && Math.abs(parseFloat(win.getComputedStyle(tiles()[0]).opacity) - .12) < .02 && !tiles()[2].disabled, "La ficha usada debe quedar casi invisible y desactivada");
+      assert(byId("lp-current").textContent.includes("CA"), "La palabra en curso no muestra las letras");
+      byId("lp-delete").click();
+      assert(!tiles()[1].disabled && tiles()[0].disabled && byId("lp-current").textContent.startsWith("C") && !byId("lp-current").textContent.includes("CA"), "Borrar debe devolver la ultima ficha");
+      byId("lp-delete").click();
+      byId("lp-submit").click();
+      assert(!byId("lp-words").children.length, "Enter vacio no debe anadir filas");
+      const submit = word => { for (const letter of word) key(letter); key("Enter"); };
+      const lpRow = word => [...byId("lp-words").querySelectorAll("li.mine")].find(item => item.querySelector(".lp-word").textContent === word);
+      submit("mano"); submit("naimo");
+      assert(tiles().every(tile => !tile.disabled), "Enviar devuelve todas las fichas");
+      await wait(() => !byId("lp-words").querySelector("li.pending"));
+      const mano = lpRow("MANO"), narimo = lpRow("NAIMO");
+      assert(mano && mano.classList.contains("ok") && mano.querySelector(".lp-mark").textContent === "\u2714" && mano.querySelector(".lp-len").textContent === "4", "Palabra valida sin \u2714 y longitud");
+      assert(narimo && narimo.classList.contains("bad") && narimo.querySelector(".lp-mark").textContent === "\u2718" && /line-through/.test(win.getComputedStyle(narimo.querySelector(".lp-word")).textDecorationLine + win.getComputedStyle(narimo).textDecorationLine), "Palabra invalida sin tachar o sin \u2718");
+      assert(byId("lp-best").textContent === "4" && byId("lp-best-note").textContent === "letras \u00b7 MANO", "Tu mejor palabra incorrecta");
+      submit("mano");
+      assert(byId("lp-words").querySelectorAll("li.mine").length === 2 && lpRow("MANO").classList.contains("flash"), "Repetir una palabra debe destacarla sin duplicar");
+      assert(!doc.querySelector(".celebration"), "Sin fuegos antes del maximo");
+      for (const word of ["mas", "mia", "ten"]) submit(word);
+      submit("camiones");
+      await wait(() => !byId("lp-words").querySelector("li.pending"));
+      const rowsTop = [...byId("lp-words").querySelectorAll("li.mine")].map(item => item.getBoundingClientRect());
+      assert(rowsTop.every((rect, index) => !index || rect.top >= rowsTop[index - 1].bottom - .5) && lpRow("CAMIONES").getBoundingClientRect().bottom <= byId("lp-current").getBoundingClientRect().top + .5, "La palabra nueva debe empujar las anteriores hacia arriba");
+      lpFits("Seis palabras");
+      assert(byId("lp-box").scrollHeight <= byId("lp-box").clientHeight + 1, "Seis palabras deben caber sin desplazar");
+      snapshot("Seis palabras enviadas");
+      submit("camionetas");
+      await wait(() => !byId("lp-words").querySelector("li.pending"));
+      const maximum = lpRow("CAMIONETAS");
+      assert(maximum.classList.contains("best") && maximum.querySelector(".lp-mark").textContent === "\u2605" && byId("lp-best-note").textContent.includes("\u00a1m\u00e1xima!"), "La palabra maxima debe ir en oro con \u2605");
+      const lettersFireworks = doc.querySelector(".celebration");
+      assert(lettersFireworks && win.getComputedStyle(lettersFireworks).pointerEvents === "none", "La palabra maxima debe lanzar fuegos");
+      byId("lp-auto").click();
+      assert(byId("lp-auto").disabled && byId("lp-words").firstElementChild.textContent === "Las m\u00e1s largas \u00b7 10 letras", "Auto-resolver debe mostrar las mas largas");
+      assert(byId("letters-source").textContent.includes("no verificadas por la RAE") && [...byId("lp-words").querySelectorAll(".lp-section")].map(item => item.textContent).includes("Tus palabras"), "Falta la nota del diccionario o Tus palabras");
+      const solutions = [...byId("lp-words").querySelectorAll("li.solution")];
+      const mine = solutions.find(item => item.querySelector(".lp-word").textContent === "CAMIONETAS");
+      assert(solutions.length >= 2 && mine.classList.contains("best") && mine.textContent.includes("\u2605 tuya") && solutions.filter(item => item.classList.contains("best")).length === 1, "Auto-resolver debe resaltar las palabras encontradas");
+      for (const link of byId("lp-words").querySelectorAll("a.lp-dle")) assert(link.querySelector("svg") && link.getAttribute("aria-label").includes("DLE"), "Icono DLE inaccesible");
+      lpFits("Auto-resolver de letras");
+      snapshot("Auto-resolver de letras");
+      focusAudit("Auto-resolver de letras");
+      const popped = new Promise(resolve => win.addEventListener("popstate", resolve, { once: true }));
+      byId("lp-back").click();
+      await Promise.race([popped, new Promise(resolve => setTimeout(resolve, 1000))]);
+      await new Promise(resolve => setTimeout(resolve, 20));
+      assert(play.hidden && byId("letters").value === "" && lettersRandom() && !new URL(win.location.href).searchParams.has("l") && !doc.querySelector(".celebration"), "Volver debe dejar la entrada de letras vacia");
+      letterKey("S");
       byId("letters-tab").click();
       assert(byId("letters").value === "" && byId("letter-slots").querySelector(".current") && !new URL(win.location.href).searchParams.has("l"), "Pulsar Letras debe vaciar");
       assert(lettersRandom(), "Tras vaciar con la pestana vuelve Al azar");
@@ -432,22 +485,23 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       const drawnLetters = byId("letters").value;
       const vowelCount = [...drawnLetters].filter(letter => "AEIOU".includes(letter)).length;
       assert(drawnLetters.length === 10 && vowelCount >= 3 && vowelCount <= 6 && /^[A-Z\u00d1]+$/.test(drawnLetters) && !/[KW]/.test(drawnLetters), `Sorteo de letras invalido: ${drawnLetters}`);
-      assert(new URL(win.location.href).searchParams.get("l") === drawnLetters, "Al azar debe actualizar la URL de letras");
-      assert(solveKey.textContent === "Buscar" && !solveKey.classList.contains("random-key"), "Tras sortear debe volver Buscar");
-      await new Promise(resolve => setTimeout(resolve, 300));
-      assert(byId("letters-result").hidden && !byId("letters-solver").classList.contains("letters-busy") && !byId("letters-solver").classList.contains("letter-results") && byId("letters-status").textContent === "" && !byId("letters-source").getClientRects().length, "Al azar no debe buscar hasta pulsar Buscar");
-      assert(!solveKey.disabled && byId("letter-slots").children.length === 10, "Tras sortear deben verse diez letras y Buscar listo");
-      padFits("letter-pad");
-      snapshot("Letras al azar sin buscar");
-      solveKey.click();
-      await wait(() => !solveKey.disabled);
-      assert(!byId("letters-result").hidden || byId("letters-status").textContent.includes("No se han encontrado"), "Buscar tras Al azar debe buscar");
+      assert(!play.hidden && tiles().map(tile => tile.textContent).join("") === drawnLetters, "Al azar debe abrir el solver con las letras sorteadas");
+      assert(new URL(win.location.href).searchParams.get("l") === drawnLetters && new URL(win.location.href).searchParams.get("yo") === "1", "Al azar debe actualizar la URL de letras");
+      lpFits("Letras al azar");
+      assert(!byId("letters-tab").getClientRects().length, "Las pestanas se ocultan en el solver");
+      const backed = new Promise(resolve => win.addEventListener("popstate", resolve, { once: true }));
+      win.history.back();
+      await Promise.race([backed, new Promise(resolve => setTimeout(resolve, 1000))]);
+      await new Promise(resolve => setTimeout(resolve, 20));
+      assert(play.hidden && byId("letters").value === "" && lettersRandom() && !new URL(win.location.href).searchParams.has("l"), "Atras del navegador sale del solver a la entrada vacia");
+      await load("?modo=letras&l=camionesta");
+      assert(!byId("letters-play").hidden && tiles().length === 10, "URL con diez letras debe abrir el solver");
       await load("?modo=letras&l=" + "abcdefghijklmnop");
-      assert(byId("letters").value === "abcdefghij" && byId("letters-status").classList.contains("error") && byId("letters-status").textContent.includes("10 letras"), "URL debe recortar a diez letras con aviso");
+      assert(byId("letters-play").hidden && byId("letters").value === "abcdefghij" && byId("letters-status").classList.contains("error") && byId("letters-status").textContent.includes("10 letras"), "URL debe recortar a diez letras con aviso");
       letterSlotsFit("URL recortada");
       await load("?modo=letras&l=sol");
       await new Promise(resolve => setTimeout(resolve, 200));
-      assert(byId("letters").value === "sol" && byId("letters-result").hidden && !byId("letters-solver").classList.contains("letters-busy") && byId("letters-solve").disabled, "URL con menos de diez letras se carga sin buscar");
+      assert(byId("letters").value === "sol" && byId("letters-play").hidden && byId("letters-solve").disabled, "URL con menos de diez letras se carga en la entrada");
       snapshot("URL de letras recortada");
 
       const huge = "9".repeat(180);
