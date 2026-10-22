@@ -319,6 +319,15 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       const historyFull = byId("calculator-history");
       assert(byId("calculator-steps").children.length === 4 && !byId("calculator-current").hidden && historyFull.scrollHeight <= historyFull.clientHeight + 1, "Cuatro pasos y el actual deben caber sin desplazar");
       manualFits();
+      const rowHeight = byId("calculator-steps").lastElementChild.getBoundingClientRect().height;
+      const currentHeight = byId("calculator-current").getBoundingClientRect().height;
+      assert(5 * (rowHeight + 4) + currentHeight + 34 <= historyFull.clientHeight - 12 + 1, "Cinco pasos y el actual deben caber al tamano escalado");
+      if (width === 390 && height === 844) {
+        const historyFont = parseFloat(win.getComputedStyle(byId("calculator-steps").lastElementChild).fontSize);
+        const slotFont = parseFloat(win.getComputedStyle(doc.querySelector("#calculator-current .step-slot")).fontSize);
+        assert(historyFont >= 26 && rowHeight >= 42, `Pasos demasiado pequenos a 390x844: ${historyFont}px / ${rowHeight}px`);
+        assert(slotFont >= 44 && currentHeight >= 78, `Paso actual demasiado pequeno a 390x844: ${slotFont}px / ${currentHeight}px`);
+      }
       snapshot("Cinco pasos con el actual");
       const beforeLast = byId("calculator-steps").lastElementChild.getBoundingClientRect();
       tile(3).click(); await idle();
@@ -327,6 +336,17 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       assert(historyFull.scrollHeight <= historyFull.clientHeight + 1, "Cinco pasos terminados deben caber sin desplazar");
       manualFits();
       snapshot("Cinco pasos terminados");
+      await load("?n=1000,100,999,998,997,996&obj=999&yo=1");
+      await combine(1000, "*", 100); await combine(100000, "*", 999); await combine(99900000, "*", 998);
+      tile(99700200000).click(); op("*");
+      for (const operation of doc.querySelectorAll("#calculator-steps .operation")) {
+        assert(operation.scrollWidth <= operation.clientWidth + 1, `Paso largo recortado: ${operation.textContent}`);
+      }
+      for (const slot of doc.querySelectorAll("#calculator-current .step-slot")) assert(slot.scrollWidth <= slot.clientWidth + 1, "Hueco del paso actual recortado");
+      const currentRow = byId("calculator-current");
+      assert(currentRow.scrollWidth <= currentRow.clientWidth + 1, "El paso actual desborda en ancho");
+      manualFits();
+      snapshot("Pasos largos");
       await load("?n=0,0,0,0,0,0&obj=1&yo=1");
       win.eval("Object.defineProperty(reducedMotion,'matches',{value:true,configurable:true}); reducedMotion.dispatchEvent(new Event('change'));");
       const zeros = [...byId("calculator-keys").children];

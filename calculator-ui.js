@@ -94,6 +94,7 @@ reducedMotion.addEventListener("change", () => {
 // Steps box must always hold a status line, five history rows and the large current row.
 const HISTORY_ROW = 30, CURRENT_ROW = 56, STEP_GAP = 4, STATUS_RESERVE = 34, HISTORY_CHROME = 16;
 const MIN_HISTORY_HEIGHT = HISTORY_CHROME + STATUS_RESERVE + 5 * (HISTORY_ROW + STEP_GAP) + CURRENT_ROW;
+const STEP_RESERVE = 12 + STATUS_RESERVE + 5 * STEP_GAP, STEP_UNITS = 5 * HISTORY_ROW + CURRENT_ROW, MAX_STEP_SCALE = 1.55;
 
 function layoutCalculator() {
   if (calculatorPanel.hidden || !manualGame) return;
@@ -119,21 +120,38 @@ function fitCalculatorNumerals() {
   const target = document.getElementById("calculator-target");
   const tileHeight = parseFloat(calculatorPanel.style.getPropertyValue("--tile-height")) || 64;
   const keyMaximum = Math.min(56, Math.max(24, tileHeight * .5));
+  const history = document.getElementById("calculator-history");
+  // Step rows grow with the box while six steps still fit, from today's 360x640 sizes up to 1.55x.
+  const scale = Math.min(MAX_STEP_SCALE, Math.max(1, (history.clientHeight - STEP_RESERVE) / STEP_UNITS));
+  history.style.setProperty("--step-scale", scale.toFixed(3));
   const slots = [...document.querySelectorAll("#calculator-current .step-slot")];
-  for (const element of [target, ...calculatorKeys.children, ...slots]) {
+  for (const slot of slots) slot.style.fontSize = `${30 * scale}px`;
+  for (const slot of slots) {
+    const padding = 12 * scale;
+    if (slot.scrollWidth > slot.clientWidth + .5) {
+      slot.style.fontSize = `${Math.max(12, 30 * scale * (slot.clientWidth - padding) / (slot.scrollWidth - padding) * .95)}px`;
+    }
+  }
+  for (const element of [target, ...calculatorKeys.children]) {
     const styles = getComputedStyle(element);
-    const maximum = element === target ? 46 : slots.includes(element) ? 30 : keyMaximum;
+    const maximum = element === target ? 46 : keyMaximum;
     numeralContext.font = `${styles.fontWeight} ${maximum}px ${styles.fontFamily}`;
     const available = element === target ?
       target.parentElement.clientWidth - document.getElementById("calculator-distance").offsetWidth - 10 :
-      slots.includes(element) ? (element.parentElement.clientWidth - 120) / 2 :
       element.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight);
     const width = numeralContext.measureText(element.textContent).width;
     const size = Math.max(14, Math.min(maximum, maximum * available * .94 / Math.max(1, width)));
     element.style.fontSize = `${size}px`;
     if (element === target) element.style.color = size >= 24 ? "var(--target)" : "var(--ink)";
   }
-  const history = document.getElementById("calculator-history");
+  for (const item of document.getElementById("calculator-steps").children) {
+    item.style.fontSize = "";
+    const operation = item.lastElementChild;
+    if (operation && operation.scrollWidth > operation.clientWidth) {
+      const size = parseFloat(getComputedStyle(item).fontSize) * operation.clientWidth / operation.scrollWidth * .97;
+      item.style.fontSize = `${Math.max(10, size)}px`;
+    }
+  }
   history.scrollTop = history.scrollHeight;
 }
 new ResizeObserver(fitCalculatorNumerals).observe(calculatorPanel);
