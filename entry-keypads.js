@@ -89,6 +89,11 @@
       empty.setAttribute("aria-hidden", "true");
       letterSlots.append(empty);
     }
+    const solveKey = document.getElementById("letters-solve");
+    const random = letters.length === 0;
+    solveKey.classList.toggle("random-key", random);
+    solveKey.textContent = random ? "\ud83c\udfb2 Al azar" : "Buscar";
+    solveKey.setAttribute("aria-label", random ? "Letras al azar" : "Buscar palabras");
     rawLetters.value = letters.join("");
     letterSlots.setAttribute("aria-label", `${letters.length} letras: ${rawLetters.value}`);
     changed();
@@ -149,6 +154,16 @@
     button.addEventListener("click", () => letterKey(letter));
     document.getElementById("letter-pad").insertBefore(button, document.getElementById("letters-solve"));
   }
+  document.getElementById("letters-solve").addEventListener("click", event => {
+    if (letters.length || document.getElementById("letters-fieldset").disabled) return;
+    event.preventDefault();
+    letters = drawRandomLetters();
+    document.getElementById("letters-status").textContent = "";
+    document.getElementById("letters-status").classList.remove("error");
+    clearLetterResults();
+    renderLetters();
+    letterForm.requestSubmit();
+  });
   document.getElementById("number-target-slot").addEventListener("click", () => {
     if (numberEntry.numbers.length < 6) return;
     numberEntry.edit(6);

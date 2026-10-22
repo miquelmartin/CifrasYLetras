@@ -138,6 +138,7 @@
     .number-pad button.enter-key.random-key { background: var(--amber); font-size: clamp(.9rem, 2.8dvh, 1.25rem); line-height: 1.15; white-space: pre-line; padding: 2px; }
     .entry-pad button.delete-key { color: var(--blue); }
     #letters-solve { grid-column: span 2; }
+    #letters-solve.random-key { background: var(--amber); white-space: nowrap; font-size: clamp(.9rem, 2.8dvh, 1.25rem); }
     /* Invisible hit areas reaching half-way into each gap (inset = half gap + 2px border), so taps between keys hit the nearest key. */
     .entry-pad button, #calculator-keys button, .calculator-operators button { position: relative; -webkit-tap-highlight-color: transparent; }
     .entry-pad button::before, #calculator-keys button::before, .calculator-operators button::before { content: ""; position: absolute; background: transparent; }
@@ -229,8 +230,8 @@
   <script src="letters-ui.js?v=25"></script>
   <script src="numbers-game.js?v=17"></script>
   <script src="numbers-search.js?v=25"></script>
-  <script src="keypad-model.js?v=27"></script>
-  <script src="entry-keypads.js?v=27"></script>
+  <script src="keypad-model.js?v=28"></script>
+  <script src="entry-keypads.js?v=28"></script>
   <script src="celebration.js?v=22"></script>
   <script src="calculator-ui.js?v=29"></script>
   <script>

@@ -25,7 +25,12 @@ los huecos, conservando su valor completo en el titulo, nombre accesible y URL.
 **Letras** muestra todo el abecedario en orden, con N y &Ntilde; separadas,
 en cinco columnas. Cada pulsacion anade una letra; borrar quita la ultima y
 Buscar ocupa dos columnas. Se admiten como maximo doce letras, siempre en una
-sola fila de fichas que se estrechan; al llegar a doce se desactivan las letras. Tambien funcionan digitos, letras, Enter y retroceso del
+sola fila de fichas que se estrechan; al llegar a doce se desactivan las letras. Sin letras, Buscar se convierte en
+**Al azar** (ambar): sortea diez letras como en el programa, con 3 a 6 vocales
+(numero uniforme) sacadas sin reposicion de la bolsa del Scrabble espanol sin
+CH, LL ni RR (vocales A12 E12 I6 O9 U5; consonantes B2 C4 D5 F1 G2 H2 J1 L4 M2
+N5 &Ntilde;1 P2 Q1 R5 S6 T4 V1 X1 Y1 Z1, como mucho dos de cada una), actualiza la
+URL y busca al momento. Con una letra vuelve Buscar. Tambien funcionan digitos, letras, Enter y retroceso del
 teclado fisico como comodidad, pero no son necesarios. Espacios y comas no
 repiten letras; se conservan las repeticiones deliberadas, tildes y &Ntilde;.
 
