@@ -135,3 +135,38 @@ test("isEmpty tracks whether anything has been typed", () => {
   assert.equal(entry.isEmpty, true);
   assert.equal(new NumberEntry(["1"]).isEmpty, false);
 });
+
+test("random letters: 10 letters, 3-6 vowels, Scrabble bag limits and at most 2 of any consonant", () => {
+  const { drawRandomLetters, LETTER_BAG_VOWELS, LETTER_BAG_CONSONANTS, MAX_SAME_CONSONANT } = NumberEntry;
+  const vowelCounts = new Set();
+  const seen = new Set();
+  for (let run = 0; run < 5000; run++) {
+    const letters = drawRandomLetters();
+    assert.equal(letters.length, 10);
+    const vowels = letters.filter(letter => letter in LETTER_BAG_VOWELS).length;
+    assert.ok(vowels >= 3 && vowels <= 6, `vowels ${vowels}`);
+    vowelCounts.add(vowels);
+    const counts = {};
+    for (const letter of letters) {
+      counts[letter] = (counts[letter] || 0) + 1;
+      seen.add(letter);
+      assert.ok(letter in LETTER_BAG_VOWELS || letter in LETTER_BAG_CONSONANTS, `unexpected ${letter}`);
+    }
+    for (const [letter, count] of Object.entries(counts)) {
+      if (letter in LETTER_BAG_VOWELS) assert.ok(count <= LETTER_BAG_VOWELS[letter]);
+      else assert.ok(count <= Math.min(MAX_SAME_CONSONANT, LETTER_BAG_CONSONANTS[letter]), `${letter} x${count}`);
+    }
+  }
+  assert.deepEqual([...vowelCounts].sort(), [3, 4, 5, 6]);
+  for (const letter of ["K", "W"]) assert.ok(!seen.has(letter));
+  assert.ok(seen.has("\u00d1"));
+  // Extreme generators stay within bounds: always first item, always last item.
+  for (const fixed of [0, 0.999999999]) {
+    const letters = drawRandomLetters(() => fixed);
+    const vowels = letters.filter(letter => letter in LETTER_BAG_VOWELS).length;
+    assert.equal(vowels, fixed === 0 ? 3 : 6);
+  }
+  // Always taking the first tile hits the two-per-consonant cap: B, C and D twice, then F.
+  const always0 = drawRandomLetters(() => 0);
+  assert.deepEqual(always0.filter(letter => !(letter in LETTER_BAG_VOWELS)).sort(), ["B", "B", "C", "C", "D", "D", "F"].sort());
+});

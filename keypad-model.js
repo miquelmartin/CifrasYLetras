@@ -91,4 +91,31 @@ class NumberEntry {
   }
 }
 
-if (typeof module !== "undefined") module.exports = NumberEntry;
+// TV-show style draw: 10 letters with 3-6 vowels, from the Spanish Scrabble bag without CH, LL and RR.
+const LETTER_BAG_VOWELS = { A: 12, E: 12, I: 6, O: 9, U: 5 };
+const LETTER_BAG_CONSONANTS = { B: 2, C: 4, D: 5, F: 1, G: 2, H: 2, J: 1, L: 4, M: 2, N: 5, "\u00d1": 1, P: 2, Q: 1, R: 5, S: 6, T: 4, V: 1, X: 1, Y: 1, Z: 1 };
+const MAX_SAME_CONSONANT = 2;
+
+function drawRandomLetters(random = Math.random) {
+  const bag = counts => Object.entries(counts).flatMap(([letter, count]) => Array(count).fill(letter));
+  const vowelCount = 3 + Math.floor(random() * 4);
+  const vowels = bag(LETTER_BAG_VOWELS);
+  let consonants = bag(LETTER_BAG_CONSONANTS);
+  const drawn = [];
+  for (let index = 0; index < vowelCount; index++) drawn.push(vowels.splice(Math.floor(random() * vowels.length), 1)[0]);
+  for (let index = vowelCount; index < 10; index++) {
+    const letter = consonants.splice(Math.floor(random() * consonants.length), 1)[0];
+    drawn.push(letter);
+    if (drawn.filter(value => value === letter).length >= MAX_SAME_CONSONANT) consonants = consonants.filter(value => value !== letter);
+  }
+  for (let index = drawn.length - 1; index > 0; index--) {
+    const other = Math.floor(random() * (index + 1));
+    [drawn[index], drawn[other]] = [drawn[other], drawn[index]];
+  }
+  return drawn;
+}
+
+if (typeof module !== "undefined") {
+  module.exports = NumberEntry;
+  Object.assign(module.exports, { drawRandomLetters, LETTER_BAG_VOWELS, LETTER_BAG_CONSONANTS, MAX_SAME_CONSONANT });
+}
