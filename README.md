@@ -15,7 +15,10 @@ de los seis huecos, la caja **Objetivo** espera con `···` hasta su turno y mu
 el objetivo grande en naranja. Los seis huecos permiten editar
 cifras ya introducidas sin perder las demas; borrar sigue
 retrocediendo por el objetivo y las seis cifras hasta vaciarlo todo. Al
-confirmar el objetivo se abre directamente Resolver yo. No hay tecla menos, campos editables,
+confirmar el objetivo se abre directamente Resolver yo. Mientras la entrada esta vacia, la
+tecla Enter se convierte en **Al azar** (ambar): saca seis cifras de las 24 fichas
+clasicas (1 a 10 dos veces y 25, 50, 75 y 100 una vez) y un objetivo de 100 a 999,
+y abre Resolver yo. Al teclear un digito vuelve a ser Enter. No hay tecla menos, campos editables,
 cursor de texto ni teclado del sistema. Los numeros muy largos se abrevian en
 los huecos, conservando su valor completo en el titulo, nombre accesible y URL.
 
