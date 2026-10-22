@@ -24,13 +24,16 @@ los huecos, conservando su valor completo en el titulo, nombre accesible y URL.
 
 **Letras** muestra todo el abecedario en orden, con N y &Ntilde; separadas,
 en cinco columnas. Cada pulsacion anade una letra; borrar quita la ultima y
-Buscar ocupa dos columnas. Se admiten como maximo doce letras, siempre en una
-sola fila de fichas que se estrechan; al llegar a doce se desactivan las letras. Sin letras, Buscar se convierte en
+Buscar ocupa dos columnas. Se usan exactamente diez letras, como en el programa, en diez
+fichas fijas en una sola fila; al llegar a diez se desactivan las letras y Buscar
+solo funciona (sin atenuar) con las diez. Los resultados muestran las palabras y
+debajo cuantas letras tienen. Sin letras, Buscar se convierte en
 **Al azar** (ambar): sortea diez letras como en el programa, con 3 a 6 vocales
 (numero uniforme) sacadas sin reposicion de la bolsa del Scrabble espanol sin
 CH, LL ni RR (vocales A12 E12 I6 O9 U5; consonantes B2 C4 D5 F1 G2 H2 J1 L4 M2
 N5 &Ntilde;1 P2 Q1 R5 S6 T4 V1 X1 Y1 Z1, como mucho dos de cada una), actualiza la
-URL y busca al momento. Con una letra vuelve Buscar. Tambien funcionan digitos, letras, Enter y retroceso del
+URL y vuelve a mostrar Buscar, sin buscar, para pensar antes de ver las
+soluciones. Con una letra vuelve Buscar. Tambien funcionan digitos, letras, Enter y retroceso del
 teclado fisico como comodidad, pero no son necesarios. Espacios y comas no
 repiten letras; se conservan las repeticiones deliberadas, tildes y &Ntilde;.
 
@@ -119,7 +122,8 @@ El reto se guarda con `modo`, `n`, `obj`, `l` y `yo=1`. Recargar restaura
 pestana, seis cifras exactas, letras con tildes, objetivo y Resolver yo, pero no
 sus operaciones. Teclear sustituye la URL sin llenar el historial. Atras y
 Adelante cambian de vista. Los parametros invalidos o mas de seis cifras se
-omiten con un aviso; mas de doce letras se recortan a doce, tambien con aviso.
+omiten con un aviso; mas de diez letras se recortan a diez, tambien con aviso; con menos de diez se
+cargan en la entrada sin buscar.
 Una URL con el reto completo abre Resolver yo. Los enlaces antiguos con enteros negativos se conservan;
 el nuevo teclado no crea signos negativos.
 

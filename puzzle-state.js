@@ -6,6 +6,7 @@
   const target = document.getElementById("target");
   const calculator = document.getElementById("calculator-panel");
   const warning = "Se han omitido datos no v\u00e1lidos de la URL. Revisa el reto.";
+  const lettersWarning = "Se admiten exactamente 10 letras; la URL tra\u00eda m\u00e1s y se han recortado.";
 
   function currentPuzzle() {
     const params = new URLSearchParams();
@@ -61,7 +62,7 @@
     if (puzzle.manual || (initial === true && complete)) document.getElementById("solve-myself").click();
     if (puzzle.invalid) {
       const status = document.getElementById(puzzle.manual ? "calculator-status" : puzzle.mode === "letras" ? "letters-status" : "status");
-      status.textContent = warning;
+      status.textContent = puzzle.mode === "letras" && [...(new URLSearchParams(location.search).get("l") || "").replace(/[\s,]/gu, "")].length > 10 ? lettersWarning : warning;
       status.classList.add("error");
     }
     restoring = false;

@@ -45,8 +45,9 @@
     #letters-result { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
     .result-scroll { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
     #summary, #letters-summary { font-size: .875rem; overflow-wrap: anywhere; }
-    .word-list { margin: 0; padding: 3px; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(124px, 1fr)); gap: 6px; align-content: start; }
-    .word-list li { display: flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border: 2px solid var(--line); border-radius: 9px; background: #fff; overflow-wrap: anywhere; }
+    #letters-summary { margin: 8px 0 0; font-size: 1rem; font-weight: 800; color: var(--blue); }
+    .word-list { margin: 0; padding: 3px; list-style: none; display: grid; grid-template-columns: 1fr; gap: 6px; align-content: start; }
+    .word-list li { display: flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border: 2px solid var(--line); border-radius: 9px; background: #fff; white-space: nowrap; }
     .word-list strong { flex: 1; min-width: 0; font-size: 1rem; color: var(--ink); }
     .word-list a { display: grid; place-items: center; flex: 0 0 44px; min-height: 44px; border-radius: 6px; }
     .word-list a:hover { background: #eef5fb; }
@@ -112,8 +113,9 @@
     .entry-slot { display: grid; place-items: center; height: 44px; min-height: 44px; min-width: 0; padding: 2px; border: 2px solid var(--line); border-radius: 9px; box-shadow: 2px 2px 0 var(--line); font-weight: 800; background: #fff; }
     .entry-slot.done { background: var(--orange); }
     .entry-slot.letter-slot { background: var(--amber); }
-    #letter-slots { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; }
-    #letter-slots .entry-slot { padding: 0; border-radius: 7px; font-size: clamp(.85rem, 4.4vw, 1.25rem); }
+    #letter-slots { grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; }
+    #letter-slots .entry-slot { height: 52px; min-height: 52px; padding: 0; border-radius: 7px; font-size: clamp(1.1rem, 5.8vw, 1.8rem); line-height: 1; }
+    #letters-solve:disabled { background: #e7eef6; color: #4d607c; border-style: dashed; box-shadow: none; }
     #letter-pad button:disabled:not(.delete-key):not(.enter-key) { background: #e7eef6; color: #4d607c; border-style: dashed; box-shadow: none; }
     .entry-slot.empty, .entry-slot:disabled { background: #f7fafd; border-color: #a7b6ca; box-shadow: none; }
     .entry-slot.current { background: #fff; border: 2px dashed var(--blue); color: var(--ink); box-shadow: none; }
@@ -196,8 +198,8 @@
       </form>
       <section id="letters-result" class="card" aria-labelledby="letters-result-title" hidden>
         <h2 id="letters-result-title">Las candidatas m&aacute;s largas</h2>
-        <p id="letters-summary"></p>
         <ul id="letters-words" class="word-list result-scroll" lang="es" tabindex="0" aria-label="Palabras candidatas"></ul>
+        <p id="letters-summary"></p>
       </section>
     </section>
     <section id="calculator-panel" hidden aria-labelledby="calculator-title">
@@ -227,11 +229,11 @@
     </section>
   </main>
   <script src="letters-core.js?v=5"></script>
-  <script src="letters-ui.js?v=25"></script>
+  <script src="letters-ui.js?v=26"></script>
   <script src="numbers-game.js?v=17"></script>
   <script src="numbers-search.js?v=25"></script>
   <script src="keypad-model.js?v=28"></script>
-  <script src="entry-keypads.js?v=28"></script>
+  <script src="entry-keypads.js?v=30"></script>
   <script src="celebration.js?v=22"></script>
   <script src="calculator-ui.js?v=29"></script>
   <script>
@@ -242,8 +244,8 @@
     });
     document.getElementById("solver").addEventListener("submit", event => event.preventDefault());
   </script>
-  <script src="puzzle-url.js?v=25"></script>
-  <script src="puzzle-state.js?v=26"></script>
+  <script src="puzzle-url.js?v=26"></script>
+  <script src="puzzle-state.js?v=27"></script>
   <script src="analytics.js?v=2"></script>
   <script data-goatcounter="https://miquelmartin.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
   </body>

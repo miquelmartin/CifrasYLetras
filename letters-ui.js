@@ -99,7 +99,7 @@ lettersForm.addEventListener("submit", event => {
             return;
           }
           document.getElementById("letters-summary").textContent =
-            `Letras utilizadas: ${length.toLocaleString("es-ES")} de ${supplied.toLocaleString("es-ES")}. Candidatas de longitud m\u00e1xima: ${matches.length.toLocaleString("es-ES")}.`;
+            `${length.toLocaleString("es-ES")} ${length === 1 ? "letra" : "letras"}`;
           for (const { word, lemma } of matches) {
             const item = document.createElement("li");
             const text = document.createElement("strong");
