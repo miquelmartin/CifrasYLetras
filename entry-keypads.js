@@ -56,12 +56,6 @@
     changed();
   }
 
-  function clearLetterResults() {
-    letterForm.classList.remove("letter-results");
-    document.getElementById("letters-edit").hidden = true;
-    document.getElementById("letters-result").hidden = true;
-  }
-
   function renderLetters() {
     letterSlots.replaceChildren();
     letters.forEach((letter, index) => {
@@ -70,7 +64,7 @@
       button.className = "entry-slot letter-slot";
       button.textContent = letter.toUpperCase();
       button.setAttribute("aria-label", `Quitar letra ${index + 1}: ${letter}`);
-      button.addEventListener("click", () => { letters.splice(index, 1); clearLetterResults(); renderLetters(); });
+      button.addEventListener("click", () => { letters.splice(index, 1); renderLetters(); });
       letterSlots.append(button);
     });
     const full = letters.length >= MAX_LETTERS;
@@ -91,11 +85,11 @@
     }
     const solveKey = document.getElementById("letters-solve");
     const random = letters.length === 0;
-    // Buscar needs exactly ten letters, as in the TV show.
+    // The tenth letter opens the solver; Enter only works with exactly ten letters, as in the TV show.
     solveKey.disabled = !random && letters.length !== MAX_LETTERS;
     solveKey.classList.toggle("random-key", random);
-    if (random) solveKey.innerHTML = '<span class="dice" aria-hidden="true">\ud83c\udfb2</span> Al azar'; else solveKey.textContent = "Buscar";
-    solveKey.setAttribute("aria-label", random ? "Letras al azar" : "Buscar palabras");
+    if (random) solveKey.innerHTML = '<span class="dice" aria-hidden="true">\ud83c\udfb2</span> Al azar'; else solveKey.textContent = "Enter";
+    solveKey.setAttribute("aria-label", random ? "Letras al azar" : "Resolver con estas diez letras");
     rawLetters.value = letters.join("");
     letterSlots.setAttribute("aria-label", `${letters.length} letras: ${rawLetters.value}`);
     changed();
@@ -129,12 +123,12 @@
   function letterKey(letter) {
     if (document.getElementById("letters-fieldset").disabled) return;
     if (letter !== "Backspace" && letters.length >= MAX_LETTERS) return;
-    clearLetterResults();
     if (letter === "Backspace") letters.pop();
     else letters.push(letter.normalize("NFC"));
     document.getElementById("letters-status").textContent = "";
     document.getElementById("letters-status").classList.remove("error");
     renderLetters();
+    if (letter !== "Backspace" && letters.length === MAX_LETTERS) openLettersPlay();
   }
   for (const key of ["7", "8", "9", "4", "5", "6", "1", "2", "3", "Backspace", "0", "Enter"]) {
     const button = document.createElement("button");
@@ -162,8 +156,12 @@
     letters = drawRandomLetters();
     document.getElementById("letters-status").textContent = "";
     document.getElementById("letters-status").classList.remove("error");
-    clearLetterResults();
     renderLetters();
+    openLettersPlay();
+  });
+  letterForm.addEventListener("submit", event => {
+    event.preventDefault();
+    if (letters.length === MAX_LETTERS) openLettersPlay();
   });
   document.getElementById("number-target-slot").addEventListener("click", () => {
     if (numberEntry.numbers.length < 6) return;
@@ -174,13 +172,9 @@
     numberEntry.edit(Math.min(6, numberEntry.numbers.length));
     renderNumbers();
   });
-  document.getElementById("letters-edit").addEventListener("click", () => {
-    clearLetterResults();
-    document.getElementById("letters-status").textContent = "";
-  });
   document.addEventListener("keydown", event => {
-    if (event.ctrlKey || event.metaKey || event.altKey || event.target.closest('[role="tab"], summary, #letters-cancel, #letters-edit, #letters-solve, #edit-numbers, #solve-myself') ||
-        !document.getElementById("calculator-panel").hidden) return;
+    if (event.ctrlKey || event.metaKey || event.altKey || event.target.closest('[role="tab"], summary, #letters-solve, #edit-numbers, #solve-myself') ||
+        !document.getElementById("calculator-panel").hidden || !document.getElementById("letters-play").hidden) return;
     const numbersActive = document.getElementById("numbers-tab").getAttribute("aria-selected") === "true";
     if (numbersActive) {
       if (/^\d$/.test(event.key) || ["Backspace", "Enter"].includes(event.key)) {
@@ -194,7 +188,7 @@
         letterKey(event.key);
       } else if (event.key === "Enter") {
         event.preventDefault();
-        if (letters.length === MAX_LETTERS) letterForm.requestSubmit();
+        if (letters.length === MAX_LETTERS) openLettersPlay();
       } else if (/^[\s,]$/.test(event.key)) event.preventDefault();
     }
   });
@@ -204,7 +198,6 @@
     status.classList.remove("error");
     if (detail === "letras") {
       letters = [];
-      clearLetterResults();
       renderLetters();
     } else {
       target.value = "";
@@ -218,7 +211,6 @@
   };
   window.setLetterChips = value => {
     letters = [...value.normalize("NFC")].slice(0, MAX_LETTERS);
-    clearLetterResults();
     renderLetters();
   };
   window.getLetterChips = () => letters.join("");

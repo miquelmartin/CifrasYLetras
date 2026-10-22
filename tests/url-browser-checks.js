@@ -75,6 +75,25 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844]]) {
       doc.getElementById("numbers-tab").click();
       assert(new URL(win.location.href).searchParams.get("modo") === "cifras", "Cambiar pestana no persiste");
 
+      await load("?modo=letras&l=camionesta");
+      win = frame.contentWindow; doc = frame.contentDocument;
+      assert(!doc.getElementById("letters-play").hidden && new URL(win.location.href).searchParams.get("yo") === "1", "Diez letras en la URL deben abrir el solver de letras");
+      const lettersStart = win.history.length;
+      win.history.back();
+      await wait(() => frame.contentDocument.getElementById("letters-play").hidden);
+      assert(new URL(frame.contentWindow.location.href).search === "?modo=letras" && frame.contentDocument.getElementById("letters").value === "", "Atras desde el solver de letras debe dejar Letras vacia sin salir");
+      win.history.forward();
+      await wait(() => !frame.contentDocument.getElementById("letters-play").hidden);
+      assert(frame.contentDocument.getElementById("lp-tiles").children.length === 10, "Adelante debe reabrir el solver");
+      await refresh();
+      win = frame.contentWindow; doc = frame.contentDocument;
+      assert(!doc.getElementById("letters-play").hidden && win.history.length === lettersStart && doc.documentElement.scrollHeight <= height, "Recargar el solver de letras duplica historial o no cabe");
+      const lettersPopped = new Promise(resolve => win.addEventListener("popstate", resolve, { once: true }));
+      doc.getElementById("lp-back").click();
+      await lettersPopped;
+      await new Promise(resolve => setTimeout(resolve, 50));
+      assert(new URL(win.location.href).search === "?modo=letras" && win.history.length === lettersStart && doc.getElementById("letters").value === "" && doc.getElementById("letters-play").hidden, "Volver debe dejar Letras vacia sin duplicar historial");
+
       await load("?modo=cifras&n=1,2,bad,3,4,5,6,7,8,9,10&obj=no&l=%3Cscript%3E&yo=1");
       doc = frame.contentDocument;
       assert(doc.getElementById("numbers").value.split(", ").length === 6, "No se conservan cifras validas dentro del limite");

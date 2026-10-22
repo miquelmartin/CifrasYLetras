@@ -1,12 +1,12 @@
 "use strict";
 
-importScripts("letters-core.js");
+importScripts("letters-core.js?v=6");
 let dictionary;
 
 self.onmessage = async ({ data }) => {
   try {
     if (!dictionary) {
-      self.postMessage({ type: "loading" });
+      self.postMessage({ type: "loading", id: data.id });
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
       try {
@@ -21,13 +21,14 @@ self.onmessage = async ({ data }) => {
       }
     }
     const result = LettersSolver.search(dictionary, data.letters, (examined, total) => {
-      self.postMessage({ type: "progress", examined, total });
-    });
-    self.postMessage({ type: "done", result });
+      self.postMessage({ type: "progress", id: data.id, examined, total });
+    }, { all: Boolean(data.all) });
+    self.postMessage({ type: "done", id: data.id, result });
   } catch (error) {
     console.error("Error en la b\u00fasqueda de letras:", error);
     self.postMessage({
       type: "error",
+      id: data.id,
       message: error.name === "AbortError" ? "Se agot\u00f3 el tiempo de descarga del diccionario." :
         error instanceof TypeError ? "No se pudo descargar o interpretar el diccionario." : error.message
     });

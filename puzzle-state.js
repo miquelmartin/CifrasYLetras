@@ -5,6 +5,8 @@
   const numbers = document.getElementById("numbers");
   const target = document.getElementById("target");
   const calculator = document.getElementById("calculator-panel");
+  const lettersPlay = document.getElementById("letters-play");
+  const solverOpen = () => !calculator.hidden || !lettersPlay.hidden;
   const warning = "Se han omitido datos no v\u00e1lidos de la URL. Revisa el reto.";
   const lettersWarning = "Se admiten exactamente 10 letras; la URL tra\u00eda m\u00e1s y se han recortado.";
 
@@ -15,7 +17,7 @@
     params.set("obj", target.value);
     params.set("l", getLetterChips());
     const puzzle = PuzzleUrl.decode(params.toString());
-    puzzle.manual = !calculator.hidden;
+    puzzle.manual = solverOpen();
     return puzzle;
   }
 
@@ -29,9 +31,9 @@
     url.search = PuzzleUrl.encode(puzzle, url.search);
     try {
       if (push) {
-        // Leave an empty Cifras entry underneath Resolver yo, so Back (browser, Android or Volver) starts afresh.
+        // Leave an empty entry of the same mode underneath Resolver yo, so Back (browser, Android or Volver) starts afresh.
         const empty = new URL(location.href);
-        empty.search = PuzzleUrl.encode({ mode: "cifras", numbers: [], target: "", letters: "", manual: false }, empty.search);
+        empty.search = PuzzleUrl.encode({ mode: puzzle.mode, numbers: [], target: "", letters: "", manual: false }, empty.search);
         history.replaceState({ puzzleView: "entrada" }, "", empty);
         history.pushState({ ...state, entryBelow: true }, "", url);
       } else if (url.href !== location.href || previous.puzzleView !== state.puzzleView) history.replaceState(state, "", url);
@@ -48,26 +50,30 @@
     restoring = true;
     stopLettersWorker();
     if (!calculator.hidden) closeCalculator();
+    if (!lettersPlay.hidden) closeLettersPlay();
     target.value = puzzle.target;
     setNumberChips(puzzle.numbers);
     setLetterChips(puzzle.letters);
     selectTab(document.getElementById(puzzle.mode === "letras" ? "letters-tab" : "numbers-tab"));
-    document.getElementById("letters-result").hidden = true;
     for (const id of ["status", "letters-status"]) {
       const status = document.getElementById(id);
       status.textContent = "";
       status.classList.remove("error");
     }
-    const complete = puzzle.mode === "cifras" && puzzle.numbers.length === 6 && puzzle.target !== "";
-    if (puzzle.manual || (initial === true && complete)) document.getElementById("solve-myself").click();
+    const complete = puzzle.mode === "cifras" ? puzzle.numbers.length === 6 && puzzle.target !== "" : [...puzzle.letters].length === 10;
+    // A truncated letters URL stays on the entry so its warning is visible.
+    if (puzzle.manual || (initial === true && complete && !(puzzle.mode === "letras" && puzzle.invalid))) {
+      if (puzzle.mode === "letras") openLettersPlay();
+      else document.getElementById("solve-myself").click();
+    }
     if (puzzle.invalid) {
-      const status = document.getElementById(puzzle.manual ? "calculator-status" : puzzle.mode === "letras" ? "letters-status" : "status");
+      const status = document.getElementById(puzzle.mode === "letras" ? (puzzle.manual ? "lp-status" : "letters-status") : puzzle.manual ? "calculator-status" : "status");
       status.textContent = puzzle.mode === "letras" && [...(new URLSearchParams(location.search).get("l") || "").replace(/[\s,]/gu, "")].length > 10 ? lettersWarning : warning;
       status.classList.add("error");
     }
     restoring = false;
     const pushedEntry = history.state && typeof history.state === "object" && history.state.entryBelow;
-    write(initial === true && !calculator.hidden && !pushedEntry);
+    write(initial === true && solverOpen() && !pushedEntry);
   }
 
   let closedPushed = false;
