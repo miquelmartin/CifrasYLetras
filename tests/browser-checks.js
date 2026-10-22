@@ -200,6 +200,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       assert([...byId("number-pad").children].map(button => button.dataset.numberKey).join() === "7,8,9,4,5,6,1,2,3,Backspace,0,Enter", "Orden numerico incorrecto");
       const enterKey = doc.querySelector('[data-number-key="Enter"]');
       const isRandom = () => enterKey.classList.contains("random-key") && /Al azar/.test(enterKey.textContent) && win.getComputedStyle(enterKey).backgroundColor === "rgb(246, 201, 107)";
+      { const dice = enterKey.querySelector(".dice"), range = doc.createRange(), kr = enterKey.getBoundingClientRect(); range.selectNodeContents(enterKey); const dr = range.getBoundingClientRect(); assert(parseFloat(win.getComputedStyle(dice).fontSize) >= 1.9 * parseFloat(win.getComputedStyle(enterKey).fontSize) && dr.top >= kr.top - 1 && dr.bottom <= kr.bottom + 1 && dr.left >= kr.left - 1 && dr.right <= kr.right + 1, "Cifras Al azar: el dado debe ser grande y caber en la tecla"); }
       assert(isRandom(), "Vacio, Enter debe ser Al azar en ambar");
       contrast(enterKey);
       key("Enter");
@@ -363,6 +364,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       assert([...doc.querySelectorAll("[data-letter-key]")].map(button => button.dataset.letterKey).join() === [..."ABCDEFGHIJKLMN\u00d1OPQRSTUVWXYZ", "Backspace"].join(), "Abecedario desordenado o sin enye");
       const solveKey = byId("letters-solve");
       const lettersRandom = () => solveKey.classList.contains("random-key") && /Al azar/.test(solveKey.textContent) && win.getComputedStyle(solveKey).backgroundColor === "rgb(246, 201, 107)";
+      { const dice = solveKey.querySelector(".dice"), range = doc.createRange(), kr = solveKey.getBoundingClientRect(); range.selectNodeContents(solveKey); const dr = range.getBoundingClientRect(); assert(parseFloat(win.getComputedStyle(dice).fontSize) >= 1.9 * parseFloat(win.getComputedStyle(solveKey).fontSize) && dr.top >= kr.top - 1 && dr.bottom <= kr.bottom + 1 && dr.left >= kr.left - 1 && dr.right <= kr.right + 1, "Letras Al azar: el dado debe ser grande y caber en la tecla"); }
       assert(lettersRandom(), "Letras vacias: Buscar debe ser Al azar en ambar");
       contrast(solveKey);
       visible(solveKey);
