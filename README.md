@@ -62,7 +62,9 @@ Los dos operandos desaparecen y aparece el resultado en azul y con un marcador
 `=`. Entre el objetivo y los botones, la caja de Pasos se alinea abajo: la
 operacion en curso es la ultima fila, mas grande y con huecos punteados, y cada
 paso nuevo empuja a los anteriores hacia arriba. Caben seis pasos a 360x640;
-si no, la caja se desplaza sola y se mantiene al final. Los operandos
+si no, la caja se desplaza sola y se mantiene al final. Los pasos crecen con la
+altura de la caja (hasta 1,55 veces) mientras sigan cabiendo seis, y los pasos
+largos reducen su letra en vez de recortarse. Los operandos
 intermedios son azules. Las teclas llenan el ancho y crecen en altura solo
 hasta ser cuadradas; el espacio sobrante es para los pasos.
 

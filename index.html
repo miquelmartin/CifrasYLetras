@@ -67,12 +67,12 @@
     #calculator-auto::before { content: "\26A1"; font-size: 1.25rem; line-height: 1.1; }
     #calculator-history { flex: 1 1 0; min-height: 0; padding: 6px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 4px; }
     #calculator-steps { margin: auto 0 0; padding: 0; list-style: none; counter-reset: manual-step; display: flex; flex-direction: column; gap: 4px; }
-    #calculator-steps li { counter-increment: manual-step; flex: 0 0 30px; height: 30px; display: flex; gap: 8px; align-items: center; padding: 0 8px; border: 1.5px solid #c8d3e3; border-radius: 9px; background: var(--soft); font-size: 1.05rem; line-height: 1.2; white-space: nowrap; overflow: hidden; }
-    #calculator-steps li::before { content: counter(manual-step); display: grid; place-items: center; flex: 0 0 22px; height: 22px; border-radius: 50%; background: var(--blue); color: #fff; font-size: .8rem; }
+    #calculator-steps li { --s: var(--step-scale, 1); counter-increment: manual-step; flex: 0 0 calc(30px * var(--s)); height: calc(30px * var(--s)); display: flex; gap: calc(8px * var(--s)); align-items: center; padding: 0 calc(8px * var(--s)); border: 1.5px solid #c8d3e3; border-radius: calc(9px * var(--s)); background: var(--soft); font-size: calc(1.05rem * var(--s)); line-height: 1.2; white-space: nowrap; overflow: hidden; }
+    #calculator-steps li::before { content: counter(manual-step); display: grid; place-items: center; flex: 0 0 calc(22px * var(--s)); height: calc(22px * var(--s)); border-radius: 50%; background: var(--blue); color: #fff; font-size: calc(.8rem * var(--s)); }
     #calculator-steps .operation { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-    #calculator-current { flex: 0 0 56px; height: 56px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border: 2.5px solid var(--blue); border-radius: 11px; background: #fff; box-shadow: 0 0 0 3px #8fb0e655; font-size: 1.9rem; font-weight: 800; line-height: 1; color: var(--ink); white-space: nowrap; min-width: 0; }
-    #calculator-current .step-number { display: grid; place-items: center; flex: 0 0 30px; height: 30px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 1rem; }
-    #calculator-current .step-slot { flex: 0 1 auto; min-width: 64px; max-width: 40%; height: 42px; padding: 0 8px; display: grid; place-items: center; border: 2.5px dashed var(--result); border-radius: 9px; color: #4d6fa8; overflow: hidden; text-overflow: ellipsis; }
+    #calculator-current { --s: var(--step-scale, 1); flex: 0 0 calc(56px * var(--s)); height: calc(56px * var(--s)); display: flex; align-items: center; gap: calc(6px * var(--s)); padding: 0 calc(8px * var(--s)); border: 2.5px solid var(--blue); border-radius: 11px; background: #fff; box-shadow: 0 0 0 3px #8fb0e655; font-size: calc(1.9rem * var(--s)); font-weight: 800; line-height: 1; color: var(--ink); white-space: nowrap; min-width: 0; }
+    #calculator-current .step-number { display: grid; place-items: center; flex: 0 0 calc(30px * var(--s)); height: calc(30px * var(--s)); border-radius: 50%; background: var(--blue); color: #fff; font-size: calc(1rem * var(--s)); }
+    #calculator-current .step-slot { flex: 0 1 auto; min-width: calc(56px * var(--s)); max-width: 40%; height: calc(42px * var(--s)); padding: 0 calc(6px * var(--s)); display: grid; place-items: center; border: 2.5px dashed var(--result); border-radius: 9px; color: #4d6fa8; overflow: hidden; text-overflow: ellipsis; }
     #calculator-current .step-slot.filled { border-style: solid; border-color: var(--line); background: var(--orange); color: var(--ink); }
     #calculator-current .step-slot.filled.derived { background: var(--result); }
     #calculator-current .step-operator { flex: 0 0 auto; color: var(--operator); }
@@ -232,7 +232,7 @@
   <script src="keypad-model.js?v=27"></script>
   <script src="entry-keypads.js?v=27"></script>
   <script src="celebration.js?v=22"></script>
-  <script src="calculator-ui.js?v=28"></script>
+  <script src="calculator-ui.js?v=29"></script>
   <script>
     "use strict";
 
