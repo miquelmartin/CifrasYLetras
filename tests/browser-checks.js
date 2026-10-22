@@ -405,7 +405,24 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       const play = byId("letters-play"), tiles = () => [...byId("lp-tiles").children];
       assert(!play.hidden && new URL(win.location.href).searchParams.get("yo") === "1" && new URL(win.location.href).searchParams.get("l") === "CAMIONESTA", "La decima letra debe abrir el solver y la URL");
       assert(tiles().map(tile => tile.textContent).join("") === "CAMIONESTA", "Fichas del solver incorrectas");
-      assert(byId("lp-best-note").textContent === "sin palabras a\u00fan" && !/10|m\u00e1x/.test(byId("lp-best").textContent + byId("lp-best-note").textContent), "No se debe revelar el maximo antes de tiempo");
+      assert(byId("lp-best-word").textContent === "sin palabras a\u00fan" && byId("lp-best").textContent === "\u2013", "Tu mejor palabra vacia");
+      assert(/^m\u00e1x\. (\d+\u2026|\u2026|10)$/.test(byId("lp-best-max").textContent), `Maximo en curso mal mostrado: ${byId("lp-best-max").textContent}`);
+      await wait(() => byId("lp-best-max").textContent === "m\u00e1x. 10");
+      {
+        const goal = play.querySelector(".calculator-target").getBoundingClientRect();
+        for (const id of ["lp-best", "lp-best-word", "lp-best-max"]) {
+          const rect = byId(id).getBoundingClientRect();
+          assert(rect.left >= goal.left - .5 && rect.right <= goal.right + .5 && rect.top >= goal.top - .5 && rect.bottom <= goal.bottom + .5 && byId(id).scrollWidth <= byId(id).clientWidth + 1, `${id} no cabe en Tu mejor palabra`);
+        }
+        assert(byId("lp-best-max").getBoundingClientRect().top >= byId("lp-best-word").getBoundingClientRect().bottom - .5, "El maximo va bajo la palabra");
+      }
+      // Live updates: a progress report with a longer word raises the known maximum before the search ends.
+      win.eval("lp.result = null; lp.known = 0; handleLettersMessage({ type: 'progress', id: lp.request, examined: 1, total: 2, longest: 6 })");
+      assert(byId("lp-best-max").textContent === "m\u00e1x. 6\u2026", "El maximo debe actualizarse en vivo");
+      win.eval("handleLettersMessage({ type: 'progress', id: lp.request, examined: 1, total: 2, longest: 4 })");
+      assert(byId("lp-best-max").textContent === "m\u00e1x. 6\u2026", "El maximo en vivo no debe bajar");
+      win.eval("stopLettersWorker(); startLettersSearch()");
+      await wait(() => byId("lp-best-max").textContent === "m\u00e1x. 10");
       const lpFits = name => {
         withoutHitAreas(() => {
           for (const button of byId("letters-play").querySelectorAll("#lp-tiles button, #lp-actions button, #lp-back, #lp-auto")) {
@@ -444,7 +461,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       const mano = lpRow("MANO"), narimo = lpRow("NAIMO");
       assert(mano && mano.classList.contains("ok") && mano.querySelector(".lp-mark").textContent === "\u2714" && mano.querySelector(".lp-len").textContent === "4", "Palabra valida sin \u2714 y longitud");
       assert(narimo && narimo.classList.contains("bad") && narimo.querySelector(".lp-mark").textContent === "\u2718" && /line-through/.test(win.getComputedStyle(narimo.querySelector(".lp-word")).textDecorationLine + win.getComputedStyle(narimo).textDecorationLine), "Palabra invalida sin tachar o sin \u2718");
-      assert(byId("lp-best").textContent === "4" && byId("lp-best-note").textContent === "letras \u00b7 MANO", "Tu mejor palabra incorrecta");
+      assert(byId("lp-best").textContent === "4" && byId("lp-best-word").textContent === "letras \u00b7 MANO" && byId("lp-best-max").textContent === "m\u00e1x. 10", "Tu mejor palabra incorrecta");
       submit("mano");
       assert(byId("lp-words").querySelectorAll("li.mine").length === 2 && lpRow("MANO").classList.contains("flash"), "Repetir una palabra debe destacarla sin duplicar");
       assert(!doc.querySelector(".celebration"), "Sin fuegos antes del maximo");
@@ -459,7 +476,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       submit("camionetas");
       await wait(() => !byId("lp-words").querySelector("li.pending"));
       const maximum = lpRow("CAMIONETAS");
-      assert(maximum.classList.contains("best") && maximum.querySelector(".lp-mark").textContent === "\u2605" && byId("lp-best-note").textContent.includes("\u00a1m\u00e1xima!"), "La palabra maxima debe ir en oro con \u2605");
+      assert(maximum.classList.contains("best") && maximum.querySelector(".lp-mark").textContent === "\u2605" && byId("lp-best-max").textContent === "\u00a1m\u00e1xima!" && byId("lp-best-word").textContent === "letras \u00b7 CAMIONETAS", "La palabra maxima debe ir en oro con \u2605");
       const lettersFireworks = doc.querySelector(".celebration");
       assert(lettersFireworks && win.getComputedStyle(lettersFireworks).pointerEvents === "none", "La palabra maxima debe lanzar fuegos");
       byId("lp-auto").click();

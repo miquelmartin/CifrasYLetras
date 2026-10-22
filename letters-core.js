@@ -160,7 +160,7 @@ const LettersSolver = (() => {
         }
       }
       examined++;
-      if (examined % 2000 === 0) progress(examined, dictionary.entries.length);
+      if (examined % 2000 === 0) progress(examined, dictionary.entries.length, longest);
     }
     return {
       length: longest,

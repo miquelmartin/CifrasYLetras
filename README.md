@@ -43,7 +43,9 @@ Tocar una ficha anade su letra y la deja casi invisible y desactivada; borrar la
 devuelve; Enter envia la palabra y devuelve todas las fichas. Cada palabra se
 comprueba con el mismo diccionario: valida con &#10004; y su longitud, o tachada en
 rojo con &#10008;. Repetir una palabra la destaca sin duplicarla. Al abrir el solver
-se buscan en segundo plano las mas largas, sin revelar la longitud maxima; si
+se buscan en segundo plano las mas largas; bajo "Tu mejor palabra" se muestra,
+como el Objetivo de Cifras, la longitud maxima conocida ("max. 6...", que sube en
+vivo mientras se busca, y "max. 10" al terminar); si
 una palabra tuya la alcanza se marca en oro con &#9733;, salen fuegos artificiales y
 "Tu mejor" indica "&iexcl;maxima!". Auto-resolver muestra "Las mas largas" (las tuyas
 marcadas "&#9733; tuya") y despues "Tus palabras". Volver, Atras del navegador o de

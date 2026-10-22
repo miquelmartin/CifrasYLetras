@@ -85,7 +85,10 @@
     .success { color: var(--ink); font-weight: 700; }
     #letters-play { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
     #lp-best { display: block; flex: 0 0 auto; font-size: 2.875rem; line-height: 1.15; overflow: hidden; white-space: nowrap; }
-    #lp-best-note { flex: 0 1 auto; min-width: 0; margin: 0; color: #6b3f12; font-size: 1rem; font-weight: 800; line-height: 1.1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    #lp-best-note { flex: 0 1 auto; min-width: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; font-weight: 800; line-height: 1.1; overflow: hidden; }
+    #lp-best-word, #lp-best-max { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    #lp-best-word { color: #6b3f12; font-size: 1rem; }
+    #lp-best-max { color: var(--blue); font-size: .9rem; }
     #lp-auto:disabled { opacity: .45; }
     #lp-box { flex: 1 1 0; min-height: 0; padding: 6px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 4px; }
     #lp-status { flex: 0 0 auto; font-size: .8rem; line-height: 1.25; overflow-wrap: anywhere; }
@@ -228,7 +231,7 @@
       <div class="calculator-toolbar">
         <button id="lp-back" type="button" class="secondary" aria-label="Volver" title="Volver"><svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true" focusable="false"><path fill="currentColor" d="M2 12 12.5 2.5V8H22v8h-9.5v5.5z"/></svg></button>
         <div class="calculator-goal" role="group" aria-label="Tu mejor palabra">
-          <div class="calculator-target"><span id="lp-best-title">Tu mejor palabra</span><span class="target-line"><strong id="lp-best">&ndash;</strong><span id="lp-best-note" role="status" aria-live="polite"></span></span></div>
+          <div class="calculator-target"><span id="lp-best-title">Tu mejor palabra</span><span class="target-line"><strong id="lp-best">&ndash;</strong><span id="lp-best-note"><span id="lp-best-word" role="status" aria-live="polite"></span><span id="lp-best-max"></span></span></span></div>
         </div>
         <button id="lp-auto" type="button">Auto-resolver</button>
       </div>
@@ -271,7 +274,7 @@
       </div>
     </section>
   </main>
-  <script src="letters-core.js?v=6"></script>
+  <script src="letters-core.js?v=7"></script>
   <script src="letters-ui.js?v=27"></script>
   <script src="numbers-game.js?v=17"></script>
   <script src="numbers-search.js?v=25"></script>
@@ -279,7 +282,7 @@
   <script src="entry-keypads.js?v=32"></script>
   <script src="celebration.js?v=22"></script>
   <script src="calculator-ui.js?v=29"></script>
-  <script src="letters-play.js?v=1"></script>
+  <script src="letters-play.js?v=2"></script>
   <script>
     "use strict";
 
