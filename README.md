@@ -60,6 +60,13 @@ invisible su zona tactil hasta la mitad del hueco vecino: tocar entre teclas act
 la mas cercana. En Letras, la nota del diccionario aparece con Auto-resolver. La paleta Pop suave combina celeste claro, naranja,
 ambar y azul menos saturados, con contornos y sombras solidas de 2 px.
 
+Las teclas y controles de ambos modos emiten una vibracion sutil de 10 ms por
+activacion si el navegador admite `navigator.vibrate`. No se repite por iconos
+anidados, eventos tactiles o acciones internas del auto-solver; los controles
+desactivados no vibran. Los navegadores sin esa API (incluidos iPhone y iPad)
+siguen funcionando sin vibracion ni sustitutos simulados. El dispositivo o el
+navegador pueden ignorar la solicitud.
+
 En Resolver yo, una flecha solida (Volver) tan alta como la caja Objetivo vuelve a
 una entrada de Cifras vacia y lista para un reto nuevo (`?modo=cifras`); el boton
 Atras del navegador o de Android lleva a esa misma entrada vacia sin salir del sitio; junto al objetivo se indica en pequeno "faltan N" o "sobran N" respecto
