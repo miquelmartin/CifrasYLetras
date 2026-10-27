@@ -95,12 +95,19 @@ class NumberEntry {
 const LETTER_BAG_VOWELS = { A: 12, E: 12, I: 6, O: 9, U: 5 };
 const LETTER_BAG_CONSONANTS = { B: 2, C: 4, D: 5, F: 1, G: 2, H: 2, J: 1, L: 4, M: 2, N: 5, "\u00d1": 1, P: 2, Q: 1, R: 5, S: 6, T: 4, V: 1, X: 1, Y: 1, Z: 1 };
 const MAX_SAME_CONSONANT = 2;
+const LANGUAGE_LETTER_BAGS = {
+  es: [LETTER_BAG_VOWELS, LETTER_BAG_CONSONANTS],
+  fr: [{ A: 9, E: 15, I: 8, O: 6, U: 6 }, { B: 2, C: 2, D: 3, F: 2, G: 2, H: 2, J: 1, K: 1, L: 5, M: 3, N: 6, P: 2, Q: 1, R: 6, S: 6, T: 6, V: 2, W: 1, X: 1, Y: 1, Z: 1 }],
+  en: [{ A: 9, E: 12, I: 9, O: 8, U: 4 }, { B: 2, C: 2, D: 4, F: 2, G: 3, H: 2, J: 1, K: 1, L: 4, M: 2, N: 6, P: 2, Q: 1, R: 6, S: 4, T: 6, V: 2, W: 2, X: 1, Y: 2, Z: 1 }]
+};
 
-function drawRandomLetters(random = Math.random) {
+function drawRandomLetters(random = Math.random, language = "es") {
+  if (!LANGUAGE_LETTER_BAGS[language]) throw new Error("Idioma no compatible.");
+  const [vowelBag, consonantBag] = LANGUAGE_LETTER_BAGS[language];
   const bag = counts => Object.entries(counts).flatMap(([letter, count]) => Array(count).fill(letter));
   const vowelCount = 3 + Math.floor(random() * 4);
-  const vowels = bag(LETTER_BAG_VOWELS);
-  let consonants = bag(LETTER_BAG_CONSONANTS);
+  const vowels = bag(vowelBag);
+  let consonants = bag(consonantBag);
   const drawn = [];
   for (let index = 0; index < vowelCount; index++) drawn.push(vowels.splice(Math.floor(random() * vowels.length), 1)[0]);
   for (let index = vowelCount; index < 10; index++) {
@@ -117,5 +124,5 @@ function drawRandomLetters(random = Math.random) {
 
 if (typeof module !== "undefined") {
   module.exports = NumberEntry;
-  Object.assign(module.exports, { drawRandomLetters, LETTER_BAG_VOWELS, LETTER_BAG_CONSONANTS, MAX_SAME_CONSONANT });
+  Object.assign(module.exports, { drawRandomLetters, LETTER_BAG_VOWELS, LETTER_BAG_CONSONANTS, LANGUAGE_LETTER_BAGS, MAX_SAME_CONSONANT });
 }

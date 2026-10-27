@@ -147,8 +147,8 @@ function createNumberStep(step) {
     span.title = String(value);
     span.setAttribute("aria-label", String(value));
     if (reference) {
-      span.title = "Resultado anterior";
-      span.setAttribute("aria-label", `${value}, resultado anterior`);
+      span.title = tr("Resultado anterior");
+      span.setAttribute("aria-label", tr("{value}, resultado anterior", { value }));
     }
     return span;
   };

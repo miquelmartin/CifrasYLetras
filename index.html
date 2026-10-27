@@ -33,10 +33,20 @@
     #status, #letters-status { margin-top: 4px; font-size: .875rem; max-height: 3.9em; overflow: hidden; overflow-wrap: anywhere; }
     #status.error, #letters-status.error { color: #a52826; }
     a { color: var(--blue); text-underline-offset: 3px; }
-    .tabs { position: relative; flex: 0 0 auto; display: flex; gap: 4px; padding: 4px; background: #fff; border: 2px solid var(--line); border-radius: 12px; }
+    .tabs { position: relative; flex: 0 0 auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #fff; border: 2px solid var(--line); border-radius: 12px; }
     .tabs button { flex: 1; min-width: 0; background: transparent; color: var(--ink); border: 0; box-shadow: none; }
+    .mode-tabs { display: contents; }
     #numbers-tab { padding-right: 38px; }
-    #letters-tab { padding-left: 38px; }
+    #letters-tab { padding-left: 38px; padding-right: 64px; }
+    .language-control { position: absolute; right: 8px; top: 8px; z-index: 3; }
+    .tabs #language-button { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 36px; width: 54px; padding: 2px 4px; border: 2px solid var(--line); border-radius: 7px; background: #fff; box-shadow: 1px 1px 0 var(--line); color: var(--ink); font-size: .75rem; }
+    #language-button svg { width: 10px; height: 10px; }
+    #language-menu { position: absolute; right: 0; top: 44px; width: 180px; margin: 0; padding: 5px; background: #fff; border: 2px solid var(--line); border-radius: 10px; box-shadow: 3px 3px 0 var(--line); display: grid; gap: 4px; }
+    .tabs #language-menu button { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 6px 10px; border: 2px solid transparent; border-radius: 6px; background: var(--soft); text-align: left; font-size: .9rem; }
+    .tabs #language-menu button[aria-checked="true"] { background: var(--amber); border-color: var(--line); }
+    #language-menu button[aria-checked="true"]::after { content: "\2713"; }
+    .tabs #language-menu button:focus-visible { border-color: var(--blue); }
+    @media (max-width: 420px) { .tabs [role="tab"] { font-size: .875rem; } }
     .tabs button[aria-selected="true"] { background: var(--amber); color: var(--ink); }
     .tabs img { position: absolute; left: 50%; top: 50%; z-index: 1; width: 78px; height: 78px; transform: translate(-50%, -50%); filter: drop-shadow(0 1px 2px rgba(43, 58, 90, .35)); pointer-events: none; user-select: none; }
     [role="tabpanel"] { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -194,10 +204,20 @@
 </head>
 <body>
   <main>
-    <div class="tabs" role="tablist" aria-label="Elige un reto">
+    <div class="tabs" aria-label="Elige un reto">
+      <div class="mode-tabs" role="tablist" aria-label="Elige un reto">
       <button id="numbers-tab" type="button" role="tab" aria-selected="true" aria-controls="numbers-panel">Cifras</button>
       <img src="icons/logo-156.png?v=1" width="78" height="78" alt="" aria-hidden="true" draggable="false">
       <button id="letters-tab" type="button" role="tab" aria-selected="false" aria-controls="letters-panel" tabindex="-1">Letras</button>
+      </div>
+      <div class="language-control">
+        <button id="language-button" type="button" aria-label="Idioma" aria-haspopup="menu" aria-expanded="false" aria-controls="language-menu" title="Interfaz y diccionario">ES<svg viewBox="0 0 12 12" aria-hidden="true"><path d="m2 4 4 4 4-4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+        <div id="language-menu" role="menu" aria-label="Idioma" hidden>
+          <button type="button" role="menuitemradio" aria-checked="true" data-language="es" lang="es" tabindex="-1">Espa&ntilde;ol</button>
+          <button type="button" role="menuitemradio" aria-checked="false" data-language="fr" lang="fr" tabindex="-1">Fran&ccedil;ais</button>
+          <button type="button" role="menuitemradio" aria-checked="false" data-language="en" lang="en" tabindex="-1">English</button>
+        </div>
+      </div>
     </div>
     <section id="numbers-panel" role="tabpanel" aria-labelledby="numbers-tab">
     <form id="solver" class="card keypad-form" novalidate>
@@ -275,15 +295,16 @@
     </section>
   </main>
   <script src="haptics.js?v=1"></script>
-  <script src="letters-core.js?v=7"></script>
+  <script src="i18n.js?v=1"></script>
+  <script src="letters-core.js?v=8"></script>
   <script src="letters-ui.js?v=27"></script>
   <script src="numbers-game.js?v=17"></script>
-  <script src="numbers-search.js?v=25"></script>
-  <script src="keypad-model.js?v=28"></script>
-  <script src="entry-keypads.js?v=32"></script>
+  <script src="numbers-search.js?v=26"></script>
+  <script src="keypad-model.js?v=29"></script>
+  <script src="entry-keypads.js?v=33"></script>
   <script src="celebration.js?v=22"></script>
-  <script src="calculator-ui.js?v=29"></script>
-  <script src="letters-play.js?v=2"></script>
+  <script src="calculator-ui.js?v=30"></script>
+  <script src="letters-play.js?v=3"></script>
   <script>
     "use strict";
 
@@ -292,8 +313,8 @@
     });
     document.getElementById("solver").addEventListener("submit", event => event.preventDefault());
   </script>
-  <script src="puzzle-url.js?v=27"></script>
-  <script src="puzzle-state.js?v=28"></script>
+  <script src="puzzle-url.js?v=28"></script>
+  <script src="puzzle-state.js?v=29"></script>
   <script src="analytics.js?v=2"></script>
   <script data-goatcounter="https://miquelmartin.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
   </body>

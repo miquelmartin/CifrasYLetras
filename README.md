@@ -1,8 +1,34 @@
 # Cifras y Letras
 
-Un buscador de soluciones estatico, en espanol, que funciona en el navegador.
+Un buscador de soluciones estatico, en espanol, frances e ingles, que funciona en el navegador.
 Abre `index.html` directamente para cifras, o sirve este directorio por HTTP
 para ambas pestanas, por ejemplo con `python -m http.server 8000`.
+
+## Idioma
+
+El selector **ES / FR / EN**, dentro del extremo derecho de la pestana Letras,
+cambia toda la interfaz (incluidos avisos, errores y nombres accesibles) y el
+diccionario de palabras. Las dos pestanas conservan la misma anchura y el logo
+permanece centrado. El menu usa los mismos bordes, sombras, colores y botones
+grandes que el juego; admite teclado, Escape y cierre al pulsar fuera.
+
+La preferencia se guarda en el navegador. Los enlaces compartidos incluyen
+`lang=fr` o `lang=en` y prevalecen sobre esa preferencia; los retos antiguos
+sin idioma siguen siendo espanoles. Cambiar el idioma conserva la entrada de
+numeros y vacia las letras, para no mezclar alfabetos o validaciones.
+Frances e ingles muestran A-Z (sin la tecla enie), y sortean con sus respectivas
+distribuciones de fichas de Scrabble: diez letras, 3-6 vocales y como mucho dos
+de cada consonante. En frances se ignoran acentos y cedilla, y las ligaduras
+oe/ae ocupan dos fichas; la grafia original se conserva en las palabras encontradas.
+
+Espanol sigue usando RLA-ES; frances e ingles usan listas abiertas de
+Letterpress, distribuidas por `an-array-of-french-words` y
+`an-array-of-english-words`. Se descargan solo al abrir el solver de ese
+idioma (aproximadamente 4,6 MB y 3,4 MB sin comprimir), se guardan por separado
+en el proceso de busqueda y se reutilizan sin mezclar resultados. Los enlaces
+de consulta usan el DLE para espanol y Wiktionary para frances e ingles.
+Las listas no son diccionarios oficiales de competicion. Vease
+[fuentes, versiones y licencias](data/README.md).
 
 ## Entrada sin teclado del movil
 
@@ -139,7 +165,7 @@ aplicaciones, CDN externo, compilacion ni instalacion de paquetes.
 
 ## Direcciones e iconos
 
-El reto se guarda con `modo`, `n`, `obj`, `l` y `yo=1`. Recargar restaura
+El reto se guarda con `modo`, `lang`, `n`, `obj`, `l` y `yo=1`. Recargar restaura
 pestana, seis cifras exactas, letras con tildes, objetivo y Resolver yo, pero no
 sus operaciones. Teclear sustituye la URL sin llenar el historial. Atras y
 Adelante cambian de vista. Los parametros invalidos o mas de seis cifras se
@@ -162,6 +188,7 @@ Con Node.js 18 o posterior:
 ```text
 node --test tests/solver.test.js tests/numbers-game.test.js tests/celebration.test.js
 node --test tests/keypad-model.test.js tests/puzzle-url.test.js tests/icons.test.js
+node --test tests/languages.test.js tests/haptics.test.js
 ```
 
 Sirve el sitio y ejecuta en la consola del navegador:
@@ -169,6 +196,7 @@ Sirve el sitio y ejecuta en la consola del navegador:
 ```js
 await (await import("./tests/browser-checks.js")).run()
 await (await import("./tests/url-browser-checks.js")).run()
+await (await import("./tests/language-browser-checks.js")).run()
 ```
 
 Incluyen entrada completa con botones, orden alfabetico, teclas visibles sin
@@ -176,7 +204,9 @@ scroll, calculos entre resultados, animacion y deshacer, reproduccion automatica
 reinicio y cancelacion, palabras reales, iconos DLE, persistencia exacta,
 recarga e historial. Tambien cubren el motor generico con nueve botones,
 valores negativos largos y una solucion de ocho pasos, ademas del contraste
-y la ausencia de anillos de foco (contorno, sombra o resaltado tactil) en cualquier elemento enfocable. El motor se compara con una referencia exhaustiva
+y la ausencia de anillos de foco (contorno, sombra o resaltado tactil) en los controles del juego.
+El nuevo menu de idiomas distingue el foco de teclado con un borde azul.
+El motor se compara con una referencia exhaustiva
 independiente para conjuntos pequenos.
 
 El lector de RLA-ES admite intencionadamente solo las directivas de la version

@@ -1,21 +1,40 @@
 "use strict";
 
 const LettersSolver = (() => {
-  const alphabet = "abcdefghijklmnñopqrstuvwxyz";
   const wordPattern = /^[a-záéíóúüñ]+$/u;
+  const patterns = { es: wordPattern, fr: /^[a-zàâäæçéèêëîïôöœùûüÿ]+$/u, en: /^[a-z]+$/u };
   const splitFlags = value => value.match(/.\uFE0F?/gu) || [];
 
-  function normalize(value) {
+  function normalize(value, language = "es") {
+    if (language === "en") return value.normalize("NFC").toLowerCase();
+    if (language === "fr") {
+      return value.toLowerCase().replace(/œ/g, "oe").replace(/æ/g, "ae")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
     return value.normalize("NFC").toLowerCase().replace(/[áéíóúü]/g,
       letter => ({ á: "a", é: "e", í: "i", ó: "o", ú: "u", ü: "u" })[letter]);
   }
 
-  function parseLetters(value) {
-    const letters = normalize(value).replace(/[\s,]+/g, "");
-    if (!letters || !/^[a-zñ]+$/u.test(letters)) {
+  function parseLetters(value, language = "es") {
+    if (!patterns[language]) throw new Error("Idioma no compatible.");
+    const source = value.normalize("NFC").toLowerCase().replace(/[\s,]+/g, "");
+    const letters = normalize(source, language);
+    if (!patterns[language].test(source) || !(language === "es" ? /^[a-zñ]+$/u : /^[a-z]+$/u).test(letters)) {
       throw new Error("Introduce letras del espa\u00f1ol, juntas o separadas por espacios o comas. No se admiten cifras ni signos de puntuaci\u00f3n.");
     }
     return letters;
+  }
+
+  function parseWordList(text, language) {
+    if (!["fr", "en"].includes(language)) throw new Error("Idioma no compatible.");
+    const words = JSON.parse(text);
+    if (!Array.isArray(words) || !words.length || words.some(word => typeof word !== "string" || !word)) {
+      throw new Error("El diccionario ortogr\u00e1fico est\u00e1 incompleto.");
+    }
+    const entries = [...new Set(words)].filter(word => patterns[language].test(word))
+      .map(word => ({ word, flags: [] }));
+    if (!entries.length) throw new Error("El diccionario ortogr\u00e1fico est\u00e1 vac\u00edo.");
+    return { entries, prefixes: new Map(), suffixes: new Map(), language };
   }
 
   function parseDictionary(affText, dicText) {
@@ -101,7 +120,9 @@ const LettersSolver = (() => {
   }
 
   function search(dictionary, supplied, progress = () => {}, { all = false } = {}) {
-    const letters = parseLetters(supplied);
+    const language = dictionary.language || "es";
+    const alphabet = language === "es" ? "abcdefghijklmnñopqrstuvwxyz" : "abcdefghijklmnopqrstuvwxyz";
+    const letters = parseLetters(supplied, language);
     const available = new Uint32Array(alphabet.length);
     for (const letter of letters) available[alphabet.indexOf(letter)]++;
     let longest = 0;
@@ -111,26 +132,28 @@ const LettersSolver = (() => {
     let examined = 0;
 
     function consider(word, lemma) {
-      if ((!all && word.length < longest) || word.length > letters.length || !wordPattern.test(word)) return;
-      const normalized = normalize(word);
+      if (language === "es" && ((!all && word.length < longest) || word.length > letters.length)) return;
+      if (!patterns[language].test(word)) return;
+      const normalized = normalize(word, language);
+      if ((!all && normalized.length < longest) || normalized.length > letters.length) return;
       const used = new Uint32Array(alphabet.length);
       for (const letter of normalized) {
         const index = alphabet.indexOf(letter);
-        if (++used[index] > available[index]) return;
+        if (index < 0 || ++used[index] > available[index]) return;
       }
       if (all) {
         // Prefer the unaccented spelling (mano over man\u00f3) when both forms exist.
         const known = valid.get(normalized);
         if (!known || (known[0] !== normalized && word === normalized)) valid.set(normalized, [word, lemma]);
       }
-      if (word.length < longest) return;
-      if (word.length > longest) { longest = word.length; matches.clear(); }
+      if (normalized.length < longest) return;
+      if (normalized.length > longest) { longest = normalized.length; matches.clear(); }
       if (!matches.has(word)) matches.set(word, lemma);
     }
 
     function withPrefixes(word, entry, cross) {
       consider(word, entry.word);
-      if (word.length > letters.length) return;
+      if (!dictionary.prefixes.size || word.length > letters.length) return;
       for (const flag of entry.flags) {
         for (const rule of dictionary.prefixes.get(flag) || []) {
           if (cross && !rule.cross) continue;
@@ -166,12 +189,12 @@ const LettersSolver = (() => {
       length: longest,
       supplied: letters.length,
       matches: [...matches].map(([word, lemma]) => ({ word, lemma }))
-        .sort((a, b) => a.word.localeCompare(b.word, "es")),
+        .sort((a, b) => a.word.localeCompare(b.word, language)),
       ...(all ? { valid: [...valid].map(([key, [word, lemma]]) => [key, word, lemma]) } : {})
     };
   }
 
-  return { normalize, parseLetters, parseDictionary, search };
+  return { normalize, parseLetters, parseDictionary, parseWordList, search };
 })();
 
 if (typeof module !== "undefined") module.exports = LettersSolver;

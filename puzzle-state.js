@@ -16,6 +16,7 @@
     params.set("n", numbers.value);
     params.set("obj", target.value);
     params.set("l", getLetterChips());
+    params.set("lang", I18n.locale);
     const puzzle = PuzzleUrl.decode(params.toString());
     puzzle.manual = solverOpen();
     return puzzle;
@@ -33,14 +34,14 @@
       if (push) {
         // Leave an empty entry of the same mode underneath Resolver yo, so Back (browser, Android or Volver) starts afresh.
         const empty = new URL(location.href);
-        empty.search = PuzzleUrl.encode({ mode: puzzle.mode, numbers: [], target: "", letters: "", manual: false }, empty.search);
+        empty.search = PuzzleUrl.encode({ mode: puzzle.mode, language: puzzle.language, numbers: [], target: "", letters: "", manual: false }, empty.search);
         history.replaceState({ puzzleView: "entrada" }, "", empty);
         history.pushState({ ...state, entryBelow: true }, "", url);
       } else if (url.href !== location.href || previous.puzzleView !== state.puzzleView) history.replaceState(state, "", url);
     } catch (error) {
       console.error("No se pudo guardar el reto en la direcci\u00f3n:", error);
       const status = document.getElementById(puzzle.manual ? "calculator-status" : puzzle.mode === "letras" ? "letters-status" : "status");
-      status.textContent = "No se pudo actualizar la direcci\u00f3n. El reto sigue disponible en esta p\u00e1gina, pero no se guardar\u00e1 al recargar.";
+      status.textContent = tr("No se pudo actualizar la direcci\u00f3n. El reto sigue disponible en esta p\u00e1gina, pero no se guardar\u00e1 al recargar.");
       status.classList.add("error");
     }
   }
@@ -51,6 +52,9 @@
     stopLettersWorker();
     if (!calculator.hidden) closeCalculator();
     if (!lettersPlay.hidden) closeLettersPlay();
+    const params = new URLSearchParams(location.search);
+    const savedPreference = initial === true && !params.has("lang") && !["l", "n", "obj"].some(key => params.has(key));
+    I18n.setLocale(savedPreference ? I18n.locale : puzzle.language);
     target.value = puzzle.target;
     setNumberChips(puzzle.numbers);
     setLetterChips(puzzle.letters);
@@ -68,7 +72,7 @@
     }
     if (puzzle.invalid) {
       const status = document.getElementById(puzzle.mode === "letras" ? (puzzle.manual ? "lp-status" : "letters-status") : puzzle.manual ? "calculator-status" : "status");
-      status.textContent = puzzle.mode === "letras" && [...(new URLSearchParams(location.search).get("l") || "").replace(/[\s,]/gu, "")].length > 10 ? lettersWarning : warning;
+      status.textContent = tr(puzzle.mode === "letras" && [...(new URLSearchParams(location.search).get("l") || "").replace(/[\s,]/gu, "")].length > 10 ? lettersWarning : warning);
       status.classList.add("error");
     }
     restoring = false;

@@ -175,7 +175,7 @@ function renderCalculator(message, error = false) {
     button.dataset.marker = tile.step === null ? "" : "=";
     button.setAttribute("aria-pressed", String(state.selected === tile.id));
     button.setAttribute("aria-label", tile.step === null ?
-      `Cifra original ${tile.originals[0] + 1}: ${tile.value}` : `Resultado: ${tile.value}`);
+      tr("Cifra original {number}: {value}", { number: tile.originals[0] + 1, value: tile.value }) : tr("Resultado: {value}", { value: tile.value }));
     button.disabled = autoBusy || animationBusy;
     return button;
   });
@@ -186,7 +186,7 @@ function renderCalculator(message, error = false) {
   }
   document.getElementById("calculator-undo").disabled = autoBusy || animationBusy || (!manualGame.history.length && state.selected === null);
   autoButton.disabled = animationBusy && !autoBusy;
-  autoButton.textContent = autoBusy ? "Cancelar" : "Auto-resolver";
+  autoButton.textContent = tr(autoBusy ? "Cancelar" : "Auto-resolver");
   const steps = document.getElementById("calculator-steps");
   steps.replaceChildren();
   for (const step of state.steps) {
@@ -211,13 +211,14 @@ function renderCalculator(message, error = false) {
   operator.className = `step-operator${symbol ? "" : " empty"}`;
   operator.textContent = symbol || "\u25cb";
   current.replaceChildren(number, slot(selected), operator, slot(null));
-  current.setAttribute("aria-label", `Paso ${state.steps.length + 1}: ${selected ? selected.value : "?"} ${symbol || "?"} ?`);
-  const gap = reached ? "" : `${manualGame.offset < 0n ? "faltan" : "sobran"} ${formatNumberValue(manualGame.distance)}`;
-  document.getElementById("calculator-distance").textContent = reached ? "Objetivo alcanzado" : gap;
+  current.setAttribute("aria-label", tr("Paso {number}: {left} {operator} ?", { number: state.steps.length + 1, left: selected ? selected.value : "?", operator: symbol || "?" }));
+  const direction = tr(manualGame.offset < 0n ? "faltan" : "sobran");
+  const gap = reached ? "" : `${direction} ${formatNumberValue(manualGame.distance)}`;
+  document.getElementById("calculator-distance").textContent = reached ? tr("Objetivo alcanzado") : gap;
   document.getElementById("calculator-distance").setAttribute("aria-label", reached ?
-    "Objetivo alcanzado" : `${manualGame.offset < 0n ? "Faltan" : "Sobran"} ${manualGame.distance} respecto al bot\u00f3n m\u00e1s cercano`);
-  document.getElementById("calculator-distance").title = reached ? "Objetivo alcanzado" : `${gap.split(" ")[0]} ${manualGame.distance}`;
-  calculatorStatus.textContent = message || (reached ? "\u00a1Objetivo alcanzado!" : "");
+    tr("Objetivo alcanzado") : tr("{gap} {distance} respecto al bot\u00f3n m\u00e1s cercano", { gap: direction, distance: manualGame.distance }));
+  document.getElementById("calculator-distance").title = reached ? tr("Objetivo alcanzado") : `${direction} ${manualGame.distance}`;
+  calculatorStatus.textContent = tr(message || (reached ? "\u00a1Objetivo alcanzado!" : ""));
   calculatorStatus.classList.toggle("error", error);
   calculatorStatus.classList.toggle("success", reached && !error);
   targetCelebration.update(reached);
@@ -260,7 +261,7 @@ function searchTiles(tiles) {
       autoUrl = created.url;
       autoWorker.onmessage = ({ data }) => {
         if (data.type === "progress") {
-          calculatorStatus.textContent = `Buscando con hasta ${data.depth} operaciones (${data.visited.toLocaleString("es-ES")} estados)...`;
+          calculatorStatus.textContent = tr("Buscando con hasta {depth} operaciones ({states} estados)...", { depth: data.depth, states: data.visited.toLocaleString(I18n.locale) });
           return;
         }
         clearSearchWorker();
@@ -272,7 +273,7 @@ function searchTiles(tiles) {
         event.preventDefault();
         clearSearchWorker();
         rejectSearch = null;
-        reject(new Error("El navegador no pudo ejecutar la b\u00fasqueda autom\u00e1tica."));
+        reject(new Error(tr("El navegador no pudo ejecutar la b\u00fasqueda autom\u00e1tica.")));
       };
       autoWorker.postMessage({
         numbers: tiles.map(tile => String(tile.value)), ids: tiles.map(tile => tile.id), target: String(manualGame.target)
@@ -354,7 +355,7 @@ document.getElementById("solve-myself").addEventListener("click", () => {
     puzzle = NumbersGame.parsePuzzle(document.getElementById("numbers").value, document.getElementById("target").value);
   } catch (error) {
     const status = document.getElementById("status");
-    status.textContent = error.message;
+    status.textContent = tr(error.message);
     status.classList.add("error");
     return;
   }
