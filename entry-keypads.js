@@ -28,7 +28,7 @@
       button.textContent = text;
       button.title = value;
       button.disabled = index > numberEntry.numbers.length + (numberEntry.inserting ? 1 : 0);
-      button.setAttribute("aria-label", `N\u00famero ${index + 1}: ${value || "vac\u00edo"}${current ? ", actual" : ""}`);
+      button.setAttribute("aria-label", tr("N\u00famero {number}: {value}", { number: index + 1, value: (value || tr("vac\u00edo")) + (current ? tr(", actual") : "") }));
       button.addEventListener("click", () => { numberEntry.edit(index); renderNumbers(); });
       numberSlots.append(button);
     }
@@ -40,7 +40,7 @@
     targetSlot.className = `entry-target ${targetCurrent ? "current" : targetText ? "done" : "empty"}${targetText.length > 6 ? " long" : ""}`;
     targetSlot.title = targetText;
     targetSlot.disabled = numberEntry.numbers.length < 6 || targetCurrent;
-    targetSlot.setAttribute("aria-label", `Objetivo: ${targetText || "vac\u00edo"}${targetCurrent ? ", actual" : ""}`);
+    targetSlot.setAttribute("aria-label", tr("Objetivo: {value}", { value: (targetText || tr("vac\u00edo")) + (targetCurrent ? tr(", actual") : "") }));
     rawNumbers.value = numberEntry.numbers.join(", ");
     target.value = numberEntry.target;
     numberForm.classList.toggle("number-ready", numberEntry.ready);
@@ -50,8 +50,8 @@
     if (enterKey) {
       const random = numberEntry.isEmpty;
       enterKey.classList.toggle("random-key", random);
-      if (random) enterKey.innerHTML = '<span class="dice" aria-hidden="true">\ud83c\udfb2</span>Al azar'; else enterKey.textContent = "Enter";
-      enterKey.setAttribute("aria-label", random ? "Cifras y objetivo al azar" : "Confirmar n\u00famero");
+      if (random) enterKey.innerHTML = '<span class="dice" aria-hidden="true">\ud83c\udfb2</span>' + tr("Al azar"); else enterKey.textContent = tr("Enter");
+      enterKey.setAttribute("aria-label", tr(random ? "Cifras y objetivo al azar" : "Confirmar n\u00famero"));
     }
     changed();
   }
@@ -63,7 +63,7 @@
       button.type = "button";
       button.className = "entry-slot letter-slot";
       button.textContent = letter.toUpperCase();
-      button.setAttribute("aria-label", `Quitar letra ${index + 1}: ${letter}`);
+      button.setAttribute("aria-label", tr("Quitar letra {number}: {letter}", { number: index + 1, letter }));
       button.addEventListener("click", () => { letters.splice(index, 1); renderLetters(); });
       letterSlots.append(button);
     });
@@ -71,7 +71,7 @@
     if (!full) {
       const next = document.createElement("span");
       next.className = "entry-slot current";
-      next.setAttribute("aria-label", `Siguiente letra; ${letters.length} de ${MAX_LETTERS} letras introducidas`);
+      next.setAttribute("aria-label", tr("Siguiente letra; {count} de {total} letras introducidas", { count: letters.length, total: MAX_LETTERS }));
       letterSlots.append(next);
     }
     for (const button of document.querySelectorAll("[data-letter-key]")) {
@@ -88,10 +88,10 @@
     // The tenth letter opens the solver; Enter only works with exactly ten letters, as in the TV show.
     solveKey.disabled = !random && letters.length !== MAX_LETTERS;
     solveKey.classList.toggle("random-key", random);
-    if (random) solveKey.innerHTML = '<span class="dice" aria-hidden="true">\ud83c\udfb2</span> Al azar'; else solveKey.textContent = "Enter";
-    solveKey.setAttribute("aria-label", random ? "Letras al azar" : "Resolver con estas diez letras");
+    if (random) solveKey.innerHTML = '<span class="dice" aria-hidden="true">\ud83c\udfb2</span> ' + tr("Al azar"); else solveKey.textContent = tr("Enter");
+    solveKey.setAttribute("aria-label", tr(random ? "Letras al azar" : "Resolver con estas diez letras"));
     rawLetters.value = letters.join("");
-    letterSlots.setAttribute("aria-label", `${letters.length} letras: ${rawLetters.value}`);
+    letterSlots.setAttribute("aria-label", tr("{count} letras: {letters}", { count: letters.length, letters: rawLetters.value }));
     changed();
   }
 
@@ -111,7 +111,7 @@
       else if (key === "Backspace") numberEntry.backspace();
       else numberEntry.digit(key);
     } catch (error) {
-      document.getElementById("status").textContent = error.message;
+      document.getElementById("status").textContent = tr(error.message);
       document.getElementById("status").classList.add("error");
       return;
     }
@@ -134,26 +134,31 @@
     const button = document.createElement("button");
     button.type = "button";
     button.dataset.numberKey = key;
-    button.textContent = key === "Backspace" ? "\u232b" : key;
+    button.textContent = key === "Backspace" ? "\u232b" : key === "Enter" ? tr("Enter") : key;
     button.className = key === "Enter" ? "enter-key" : key === "Backspace" ? "delete-key" : "";
-    button.setAttribute("aria-label", key === "Backspace" ? "Borrar d\u00edgito" : key === "Enter" ? "Confirmar n\u00famero" : key);
+    button.setAttribute("aria-label", tr(key === "Backspace" ? "Borrar d\u00edgito" : key === "Enter" ? "Confirmar n\u00famero" : key));
     button.addEventListener("click", () => numberKey(key, true));
     document.getElementById("number-pad").append(button);
   }
-  for (const letter of [..."ABCDEFGHIJKLMN\u00d1OPQRSTUVWXYZ", "Backspace"]) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.dataset.letterKey = letter;
-    button.textContent = letter === "Backspace" ? "\u232b" : letter;
-    if (letter === "Backspace") button.className = "delete-key";
-    button.setAttribute("aria-label", letter === "Backspace" ? "Borrar letra" : letter);
-    button.addEventListener("click", () => letterKey(letter));
-    document.getElementById("letter-pad").insertBefore(button, document.getElementById("letters-solve"));
+  function buildAlphabet() {
+    for (const button of document.querySelectorAll("[data-letter-key]")) button.remove();
+    document.getElementById("letters-solve").style.gridColumn = I18n.locale === "es" ? "span 2" : "span 3";
+    for (const letter of [...(I18n.locale === "es" ? "ABCDEFGHIJKLMN\u00d1OPQRSTUVWXYZ" : "ABCDEFGHIJKLMNOPQRSTUVWXYZ"), "Backspace"]) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.letterKey = letter;
+      button.textContent = letter === "Backspace" ? "\u232b" : letter;
+      if (letter === "Backspace") button.className = "delete-key";
+      button.setAttribute("aria-label", letter === "Backspace" ? tr("Borrar letra") : letter);
+      button.addEventListener("click", () => letterKey(letter));
+      document.getElementById("letter-pad").insertBefore(button, document.getElementById("letters-solve"));
+    }
   }
+  buildAlphabet();
   document.getElementById("letters-solve").addEventListener("click", event => {
     if (letters.length || document.getElementById("letters-fieldset").disabled) return;
     event.preventDefault();
-    letters = drawRandomLetters();
+    letters = drawRandomLetters(Math.random, I18n.locale);
     document.getElementById("letters-status").textContent = "";
     document.getElementById("letters-status").classList.remove("error");
     renderLetters();
@@ -173,7 +178,7 @@
     renderNumbers();
   });
   document.addEventListener("keydown", event => {
-    if (event.ctrlKey || event.metaKey || event.altKey || event.target.closest('[role="tab"], summary, #letters-solve, #edit-numbers, #solve-myself') ||
+    if (event.ctrlKey || event.metaKey || event.altKey || event.target.closest('[role="tab"], .language-control, summary, #letters-solve, #edit-numbers, #solve-myself') ||
         !document.getElementById("calculator-panel").hidden || !document.getElementById("letters-play").hidden) return;
     const numbersActive = document.getElementById("numbers-tab").getAttribute("aria-selected") === "true";
     if (numbersActive) {
@@ -183,7 +188,9 @@
         numberKey(event.key);
       }
     } else if (!document.getElementById("letters-fieldset").disabled) {
-      if (/^[a-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00fc\u00f1]$/iu.test(event.key) || event.key === "Backspace") {
+      const pattern = I18n.locale === "es" ? /^[a-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00fc\u00f1]$/iu :
+        I18n.locale === "fr" ? /^[a-z\u00e0\u00e2\u00e4\u00e7\u00e9\u00e8\u00ea\u00eb\u00ee\u00ef\u00f4\u00f6\u00f9\u00fb\u00fc\u00ff]$/iu : /^[a-z]$/iu;
+      if (pattern.test(event.key) || event.key === "Backspace") {
         event.preventDefault();
         letterKey(event.key);
       } else if (event.key === "Enter") {
@@ -214,6 +221,20 @@
     renderLetters();
   };
   window.getLetterChips = () => letters.join("");
+  document.addEventListener("languagechange", () => {
+    letters = [];
+    buildAlphabet();
+    for (const id of ["status", "letters-status"]) {
+      document.getElementById(id).textContent = "";
+      document.getElementById(id).classList.remove("error");
+    }
+    for (const button of document.querySelectorAll("[data-number-key]")) {
+      const key = button.dataset.numberKey;
+      button.setAttribute("aria-label", tr(key === "Backspace" ? "Borrar d\u00edgito" : key === "Enter" ? "Confirmar n\u00famero" : key));
+    }
+    renderNumbers();
+    renderLetters();
+  });
   renderNumbers();
   renderLetters();
 })();

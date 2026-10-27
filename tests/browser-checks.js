@@ -15,7 +15,9 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
     const load = search => new Promise((resolve, reject) => {
       frame.onload = () => { doc = frame.contentDocument; win = frame.contentWindow; resolve(); };
       frame.onerror = reject;
-      frame.src = new URL(`../index.html${search || "?check=" + Date.now()}`, import.meta.url).href;
+      const url = new URL(`../index.html${search || "?check=" + Date.now()}`, import.meta.url);
+      url.searchParams.set("lang", "es");
+      frame.src = url.href;
       if (!frame.isConnected) document.body.append(frame);
     });
     const byId = id => doc.getElementById(id);
@@ -149,7 +151,8 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
         for (const rule of sheet.cssRules) {
           if (!rule.selectorText || !/:focus|:active/.test(rule.selectorText)) continue;
           const style = rule.style;
-          assert(!style.boxShadow && !style.filter && !style.backgroundColor && !style.borderColor && [ "", "none"].includes(style.outlineStyle) && ["", "0px"].includes(style.outlineWidth),
+          const menuFocus = rule.selectorText === ".tabs #language-menu button:focus-visible";
+          assert(!style.boxShadow && !style.filter && !style.backgroundColor && (!style.borderColor || menuFocus) && [ "", "none"].includes(style.outlineStyle) && ["", "0px"].includes(style.outlineWidth),
             `${name}: la regla ${rule.selectorText} muestra el foco`);
         }
       }
@@ -179,7 +182,7 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       assert(!doc.querySelector("h1") && !doc.body.textContent.includes("Cifras y Letras"), "El titulo visible debe desaparecer");
       assert(tabIcon.getAttribute("aria-hidden") === "true" && tabIcon.alt === "" && win.getComputedStyle(tabIcon).pointerEvents === "none", "Icono debe ser decorativo");
       assert(Math.abs((iconRect.left + iconRect.right) / 2 - (cifrasTab.left + letrasTab.right) / 2) <= 1 && iconRect.left < cifrasTab.right && iconRect.right > letrasTab.left, "Icono debe centrarse y solaparse con ambas pestanas");
-      const bar = tabIcon.parentElement.getBoundingClientRect();
+      const bar = tabIcon.closest(".tabs").getBoundingClientRect();
       assert(Math.abs((iconRect.top + iconRect.bottom) / 2 - (bar.top + bar.bottom) / 2) <= 1 && iconRect.height > bar.height && iconRect.height >= 76 && iconRect.top >= 0, "Icono debe centrarse en vertical y ser mas alto que la barra");
       for (const tab of [byId("numbers-tab"), byId("letters-tab")]) {
         const range = doc.createRange(); range.selectNodeContents(tab);

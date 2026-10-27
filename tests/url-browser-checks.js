@@ -15,7 +15,9 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844]]) {
     const load = search => new Promise((resolve, reject) => {
       frame.onload = resolve;
       frame.onerror = reject;
-      frame.src = new URL(`../index.html${search}`, import.meta.url).href;
+      const url = new URL(`../index.html${search}`, import.meta.url);
+      url.searchParams.set("lang", "es");
+      frame.src = url.href;
     });
     const refresh = () => new Promise(resolve => { frame.onload = resolve; frame.contentWindow.location.reload(); });
     try {

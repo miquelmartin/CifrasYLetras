@@ -1,4 +1,30 @@
-# Datos ortograficos del espanol
+# Diccionarios de letras
+
+## Francais / English
+
+`fr.json` and `en.json` are unchanged word lists (including inflections) from
+Zeke Sikelianos's MIT-licensed packages, derived from the Letterpress word
+list by Loren Brichter and contributors (CC0):
+
+- French: https://github.com/words/an-array-of-french-words/tree/24a6b29562cd0f8c4090262dbe303413f68aafe9
+  (`index.json`, 336,524 entries); license in `LICENSE-fr.txt`.
+- English: https://github.com/words/an-array-of-english-words/tree/b96df7dc26aeb6366c7adad42cb98e6933bddd89
+  (`index.json`, 274,937 entries); license in `LICENSE-en.txt`.
+- Upstream: https://github.com/lorenbrichter/Words (CC0 1.0).
+
+The original files are included without editing. At runtime, only lowercase,
+single alphabetic words are considered; hyphens, apostrophes, whitespace,
+digits and other scripts are excluded. French accents and cedillas are
+folded for tile matching; oe/ae ligatures require two corresponding tiles.
+English requires A-Z. Displayed spellings are preserved. No new inflections
+are invented. Word lengths count tiles, including expanded ligatures.
+
+These are not official Countdown / Des chiffres et des lettres dictionaries.
+Coverage and competition acceptance are not guaranteed. The book icon opens
+the original spelling on French or English Wiktionary; definitions are not
+copied, fetched or bundled.
+
+## Datos ortograficos del espanol
 
 Los archivos `.dic` y `.aff` son el diccionario RLA-ES para espanol de Espana
 distribuido por LibreOffice, sin modificaciones, fijado en el commit

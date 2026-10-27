@@ -19,8 +19,9 @@ const LP_ROW = 30, LP_CURRENT = 56, LP_GAP = 4, LP_STATUS = 34, LP_CHROME = 16;
 const LP_MIN_BOX = LP_CHROME + LP_STATUS + 6 * (LP_ROW + LP_GAP) + LP_CURRENT;
 const LP_RESERVE = 12 + LP_STATUS + 6 * LP_GAP, LP_UNITS = 6 * LP_ROW + LP_CURRENT, LP_MAX_SCALE = 1.55;
 
-const letterWord = count => count === 1 ? "letra" : "letras";
-const upper = word => word.toLocaleUpperCase("es");
+const letterWord = count => tr(count === 1 ? "letra" : "letras");
+const upper = word => word.toLocaleUpperCase(I18n.locale);
+const normalizeWord = word => LettersSolver.normalize(word, I18n.locale);
 
 function stopLettersWorker() {
   // Results of an abandoned puzzle are ignored; the worker keeps the parsed dictionary for the next one.
@@ -35,13 +36,13 @@ function failLetters(message) {
 
 function handleLettersMessage(data) {
   if (!lp || data.id !== lp.request) return;
-  if (data.type === "loading") lp.progress = "Cargando el diccionario ortogr\u00e1fico RLA-ES...";
+  if (data.type === "loading") lp.progress = tr("Cargando el diccionario...");
   else if (data.type === "progress") {
-    lp.progress = `Buscando... ${Math.round(data.examined / data.total * 100)} % de las entradas revisadas.`;
+    lp.progress = tr("Buscando... {percent} % de las entradas revisadas.", { percent: Math.round(data.examined / data.total * 100) });
     lp.known = Math.max(lp.known, data.longest || 0);
   }
   else if (data.type === "error") {
-    failLetters(`Error en la b\u00fasqueda: ${data.message} Vuelve atr\u00e1s e int\u00e9ntalo de nuevo.`);
+    failLetters(tr("Error en la b\u00fasqueda: {message} Vuelve atr\u00e1s e int\u00e9ntalo de nuevo.", { message: tr(data.message) }));
     return;
   } else if (data.type === "done") {
     const { length, matches, valid } = data.result;
@@ -57,20 +58,20 @@ function startLettersSearch() {
   const id = lp.request = ++lettersRequest;
   try {
     if (!lettersWorker) {
-      lettersWorker = new Worker("letters-worker.js?v=3");
+      lettersWorker = new Worker("letters-worker.js?v=4");
       lettersWorker.onmessage = ({ data }) => handleLettersMessage(data);
       lettersWorker.onerror = event => {
         event.preventDefault();
         console.error("Error en el proceso de letras:", event.message);
         lettersWorker.terminate();
         lettersWorker = null;
-        failLetters("No se pudo cargar o ejecutar el proceso de letras. Abre el sitio web en lugar del archivo local e int\u00e9ntalo de nuevo.");
+        failLetters(tr("No se pudo cargar o ejecutar el proceso de letras. Abre el sitio web en lugar del archivo local e int\u00e9ntalo de nuevo."));
       };
     }
-    lettersWorker.postMessage({ letters: lp.key, id, all: true });
+    lettersWorker.postMessage({ letters: lp.key, language: I18n.locale, id, all: true });
   } catch (error) {
     console.error("Error al iniciar el proceso de letras:", error);
-    failLetters("No se pudo iniciar la b\u00fasqueda. Comprueba que tu navegador permite los procesos en segundo plano.");
+    failLetters(tr("No se pudo iniciar la b\u00fasqueda. Comprueba que tu navegador permite los procesos en segundo plano."));
   }
 }
 
@@ -86,11 +87,12 @@ const isMaximum = row => Boolean(lp.result) && lp.result.length > 0 && row.statu
 function dleLink(word, lemma) {
   const link = document.createElement("a");
   link.className = "lp-dle";
-  link.href = `https://dle.rae.es/${encodeURIComponent(lemma)}`;
+  link.href = I18n.locale === "es" ? `https://dle.rae.es/${encodeURIComponent(lemma)}` :
+    `https://${I18n.locale}.wiktionary.org/wiki/${encodeURIComponent(word)}`;
   link.target = "_blank";
   link.rel = "noopener noreferrer";
-  link.lang = "es";
-  link.title = `Consultar \u00ab${word}\u00bb en el DLE (lema: ${lemma})`;
+  link.lang = I18n.locale;
+  link.title = tr("Consultar \u00ab{word}\u00bb en el DLE (lema: {lemma})", { word, lemma });
   link.setAttribute("aria-label", link.title);
   const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   icon.setAttribute("viewBox", "0 0 24 24");
@@ -144,26 +146,30 @@ function renderLettersPlay() {
   const found = new Set(lp.rows.filter(row => row.status === "ok").map(row => row.key));
   if (lp.auto && lp.result) {
     items.push(sectionRow(lp.result.matches.length ?
-      `Las m\u00e1s largas \u00b7 ${lp.result.length} ${letterWord(lp.result.length)}` : "Sin candidatas"));
+      tr("Las m\u00e1s largas \u00b7 {count} {unit}", { count: lp.result.length, unit: letterWord(lp.result.length) }) : tr("Sin candidatas")));
     const caveat = sectionRow("", "lp-caveat");
     caveat.id = "letters-source";
-    caveat.innerHTML = 'Candidatas del diccionario abierto <a href="https://github.com/sbosio/rla-es">RLA-ES</a> (Santiago Bosio y colaboradores), <strong>no verificadas por la RAE</strong> &middot; <a href="data/MPL-1.1.txt">MPL 1.1</a> &middot; <a href="data/README.md">Fuente y alcance</a>';
+    caveat.innerHTML = I18n.locale === "es" ?
+      'Candidatas del diccionario abierto <a href="https://github.com/sbosio/rla-es">RLA-ES</a> (Santiago Bosio y colaboradores), <strong>no verificadas por la RAE</strong> &middot; <a href="data/MPL-1.1.txt">MPL 1.1</a> &middot; <a href="data/README.md">Fuente y alcance</a>' :
+      I18n.locale === "fr" ?
+        'Mots de <a href="https://github.com/words/an-array-of-french-words">an-array-of-french-words</a> (Zeke Sikelianos / Letterpress), <strong>sans garantie d\u2019acceptation officielle</strong> &middot; <a href="data/LICENSE-fr.txt">MIT</a> &middot; <a href="data/README.md">Source et limites</a>' :
+        'Words from <a href="https://github.com/words/an-array-of-english-words">an-array-of-english-words</a> (Zeke Sikelianos / Letterpress), <strong>not an official competition dictionary</strong> &middot; <a href="data/LICENSE-en.txt">MIT</a> &middot; <a href="data/README.md">Source and scope</a>';
     items.push(caveat);
     for (const { word, lemma } of lp.result.matches) {
-      const mine = found.has(LettersSolver.normalize(word));
-      const item = wordRow(upper(word), [...word].length, mine ? "\u2605 tuya" : "", `solution${mine ? " best" : ""}`);
+      const mine = found.has(normalizeWord(word));
+      const item = wordRow(upper(word), [...normalizeWord(word)].length, mine ? tr("\u2605 tuya") : "", `solution${mine ? " best" : ""}`);
       item.append(dleLink(word, lemma));
       items.push(item);
     }
-    items.push(sectionRow("Tus palabras"));
+    items.push(sectionRow(tr("Tus palabras")));
   }
   for (const row of lp.rows) {
     const maximum = isMaximum(row);
     const mark = row.status === "pending" ? "\u2026" : row.status === "bad" ? "\u2718" : maximum ? "\u2605" : "\u2714";
     const item = wordRow(upper(row.word), row.status === "ok" ? [...row.key].length : 0, mark, `mine ${row.status}${maximum ? " best" : ""}`);
     item.dataset.key = row.key;
-    item.setAttribute("aria-label", `${row.word}: ${row.status === "pending" ? "comprobando" : row.status === "bad" ? "no v\u00e1lida" :
-      `v\u00e1lida, ${[...row.key].length} ${letterWord([...row.key].length)}${maximum ? ", de las m\u00e1s largas" : ""}`}`);
+    item.setAttribute("aria-label", `${row.word}: ${row.status === "pending" ? tr("comprobando") : row.status === "bad" ? tr("no v\u00e1lida") :
+      tr("v\u00e1lida, {count} {unit}{maximum}", { count: [...row.key].length, unit: letterWord([...row.key].length), maximum: maximum ? tr(", de las m\u00e1s largas") : "" })}`);
     items.push(item);
   }
   lpWords.replaceChildren(...items);
@@ -175,7 +181,7 @@ function renderLettersPlay() {
   const caret = document.createElement("span");
   caret.className = "lp-caret";
   lpCurrent.replaceChildren(word, caret);
-  lpCurrent.setAttribute("aria-label", text ? `Palabra en curso: ${text}` : "Palabra en curso: vac\u00eda");
+  lpCurrent.setAttribute("aria-label", text ? tr("Palabra en curso: {word}", { word: text }) : tr("Palabra en curso: vac\u00eda"));
   document.getElementById("lp-delete").disabled = !lp.current.length;
   document.getElementById("lp-submit").disabled = !lp.current.length;
   lpAuto.disabled = lp.auto;
@@ -186,15 +192,15 @@ function renderLettersPlay() {
   const bestLength = best ? [...best.key].length : 0;
   const setText = (id, text) => { const element = document.getElementById(id); if (element.textContent !== text) element.textContent = text; };
   setText("lp-best", best ? String(bestLength) : "\u2013");
-  setText("lp-best-word", best ? `${letterWord(bestLength)} \u00b7 ${upper(best.word)}` : "sin palabras a\u00fan");
+  setText("lp-best-word", best ? `${letterWord(bestLength)} \u00b7 ${upper(best.word)}` : tr("sin palabras a\u00fan"));
   // The background search reveals the longest length known so far, like the Cifras objective.
-  setText("lp-best-max", reached ? "\u00a1m\u00e1xima!" : lp.result ? `m\u00e1x. ${lp.result.length}` :
-    lp.error ? "" : `m\u00e1x. ${lp.known || ""}\u2026`);
+  setText("lp-best-max", reached ? tr("\u00a1m\u00e1xima!") : lp.result ? `${tr("m\u00e1x.")} ${lp.result.length}` :
+    lp.error ? "" : `${tr("m\u00e1x.")} ${lp.known || ""}\u2026`);
 
   let message = "";
   if (lp.error) message = lp.error;
-  else if (lp.auto && !lp.result) message = lp.progress || "Buscando las palabras m\u00e1s largas...";
-  else if (shown && !lp.result.matches.length) message = "No se han encontrado candidatas en este diccionario ortogr\u00e1fico. Esto no demuestra que no exista ninguna palabra real en espa\u00f1ol.";
+  else if (lp.auto && !lp.result) message = lp.progress || tr("Buscando las palabras m\u00e1s largas...");
+  else if (shown && !lp.result.matches.length) message = tr("No se han encontrado candidatas en este diccionario ortogr\u00e1fico. Esto no demuestra que no exista ninguna palabra real.");
   lpStatus.textContent = message;
   lpStatus.classList.toggle("error", Boolean(lp.error));
   lettersCelebration.update(reached);
@@ -268,7 +274,7 @@ function submitWord() {
 function openLettersPlay() {
   let key;
   try {
-    key = LettersSolver.parseLetters(getLetterChips());
+    key = LettersSolver.parseLetters(getLetterChips(), I18n.locale);
   } catch {
     return false;
   }
@@ -280,7 +286,7 @@ function openLettersPlay() {
     tile.type = "button";
     tile.dataset.tile = String(index);
     tile.textContent = upper(letter);
-    tile.setAttribute("aria-label", `Letra ${upper(letter)}`);
+    tile.setAttribute("aria-label", tr("Letra {letter}", { letter: upper(letter) }));
     tile.addEventListener("click", () => addLetter(index));
     return tile;
   }));
@@ -325,9 +331,9 @@ document.addEventListener("keydown", event => {
   } else if (event.key === "Backspace") {
     event.preventDefault();
     removeLetter();
-  } else if (/^[a-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00fc\u00f1]$/iu.test(event.key)) {
+  } else if (/^[a-z\u00c0-\u00ff\u0152\u0153]$/iu.test(event.key)) {
     event.preventDefault();
-    const letter = LettersSolver.normalize(event.key);
+    const letter = normalizeWord(event.key);
     const index = lp.letters.findIndex((tile, position) => tile === letter && !lp.used[position]);
     if (index >= 0) addLetter(index);
   }

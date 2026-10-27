@@ -7,7 +7,7 @@ const { decode, encode } = require("../puzzle-url.js");
 test("URL round-trips exact duplicate, signed and 180-digit numbers and both tabs", () => {
   for (const mode of ["cifras", "letras"]) {
     const puzzle = {
-      mode, numbers: ["+002", "-5", "-5", "0", "9".repeat(180), "-900719925474099312345"],
+      mode, language: "es", numbers: ["+002", "-5", "-5", "0", "9".repeat(180), "-900719925474099312345"],
       target: "-" + "8".repeat(180), letters: "A\u0301\u00fc\u00f1\u00f1aa".normalize("NFC"), manual: mode === "cifras"
     };
     const search = encode(puzzle, "?extra=kept");
@@ -19,9 +19,24 @@ test("URL round-trips exact duplicate, signed and 180-digit numbers and both tab
 
 test("partial valid puzzles remain partially filled without opening the calculator", () => {
   assert.deepEqual(decode("?modo=letras&n=2,2&l=ni%C3%B1os"), {
-    mode: "letras", numbers: ["2", "2"], target: "", letters: "ni\u00f1os", manual: false, invalid: false
+    mode: "letras", language: "es", numbers: ["2", "2"], target: "", letters: "ni\u00f1os", manual: false, invalid: false
   });
-  assert.deepEqual(decode(""), { mode: "cifras", numbers: [], target: "", letters: "", manual: false, invalid: false });
+  assert.deepEqual(decode(""), { mode: "cifras", language: "es", numbers: [], target: "", letters: "", manual: false, invalid: false });
+});
+
+test("language travels with shared puzzles and validates the corresponding alphabet", () => {
+  for (const [language, letters] of [["fr", "\u00e9l\u00e8ves"], ["en", "relations"]]) {
+    const puzzle = { mode: "letras", language, numbers: [], target: "", letters, manual: false };
+    assert.deepEqual(decode(encode(puzzle)), { ...puzzle, invalid: false });
+  }
+  for (const query of ["?lang=xx", "?lang=fr&lang=en", "?lang=en&l=ni\u00f1os", "?lang=fr&l=ni\u00f1os"]) {
+    assert.equal(decode(query).invalid, true, query);
+  }
+  assert.equal(decode("?lang=fr&l=c\u0153ur").letters, "coeur");
+  assert.equal(decode("?lang=fr&l=abcdefghi\u0153").letters, "abcdefghio");
+  assert.equal(decode("?lang=fr&l=abcdefghi\u0153").invalid, true);
+  assert.equal(decode("?modo=letras&l=ni\u00f1os").language, "es");
+  assert.ok(!encode({ mode: "cifras", language: "es", numbers: [], target: "", letters: "", manual: false }, "?lang=fr").includes("lang="));
 });
 
 test("malformed or out-of-range URL values are rejected visibly and without HTML parsing", () => {
