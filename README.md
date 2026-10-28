@@ -93,6 +93,11 @@ desactivados no vibran. Los navegadores sin esa API (incluidos iPhone y iPad)
 siguen funcionando sin vibracion ni sustitutos simulados. El dispositivo o el
 navegador pueden ignorar la solicitud.
 
+Mantener pulsado un boton y soltarlo conserva la activacion normal: los botones
+no permiten seleccion de texto, menus de pulsacion larga ni callouts de iOS.
+La accion sigue ocurriendo al soltar, sin repeticion automatica; los enlaces
+al diccionario conservan su menu habitual.
+
 En Resolver yo, una flecha solida (Volver) tan alta como la caja Objetivo vuelve a
 una entrada de Cifras vacia y lista para un reto nuevo (`?modo=cifras`); el boton
 Atras del navegador o de Android lleva a esa misma entrada vacia sin salir del sitio; junto al objetivo se indica en pequeno "faltan N" o "sobran N" respecto
