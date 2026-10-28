@@ -27,6 +27,7 @@
     .hint { display: block; font-size: .875rem; color: var(--muted); margin: 8px 0; }
     .buttons { display: flex; gap: 8px; margin-top: 10px; }
     button { min-height: 44px; border: 2px solid var(--line); border-radius: 8px; padding: 6px 10px; font: inherit; font-weight: 700; cursor: pointer; background: var(--orange); color: var(--ink); box-shadow: 2px 2px 0 var(--line); }
+    button { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     .buttons button { flex: 1; }
     button.secondary { background: #fff; color: var(--blue); }
     button:disabled { background: #e7eef6; color: #4d607c; box-shadow: none; cursor: not-allowed; }
@@ -294,6 +295,7 @@
       </div>
     </section>
   </main>
+  <script src="touch-controls.js?v=1"></script>
   <script src="haptics.js?v=1"></script>
   <script src="i18n.js?v=1"></script>
   <script src="letters-core.js?v=8"></script>

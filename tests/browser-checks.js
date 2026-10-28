@@ -158,6 +158,11 @@ export async function run(viewports = [[360, 640], [375, 667], [390, 844], [1280
       }
       const focusable = [...doc.querySelectorAll("button, a[href], input, select, textarea, [tabindex]")].filter(element => element.getClientRects().length && !element.disabled);
       for (const element of focusable) {
+        if (element.tagName === "BUTTON") {
+          assert(!element.dispatchEvent(new win.MouseEvent("contextmenu", { bubbles: true, cancelable: true })), `${name}: el menu de pulsacion larga bloquea la tecla`);
+          const touchStyle = win.getComputedStyle(element);
+          assert(touchStyle.userSelect === "none" && touchStyle.touchAction === "manipulation", `${name}: pulsar una tecla no debe seleccionar texto ni iniciar gestos`);
+        }
         doc.activeElement?.blur?.();
         const before = win.getComputedStyle(element);
         const resting = [before.boxShadow, before.filter, before.backgroundColor, before.borderColor].join("|");
